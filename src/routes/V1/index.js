@@ -22,6 +22,14 @@ Example:
 const masterCategoryModule = require('../../modules/masterCategory')
 routing.use(`${API_TAG}/master_category`, masterCategoryModule)
 
+// Categories Module
+const categoriesModule = require('../../modules/categories')
+routing.use(`${API_TAG}/categories`, categoriesModule)
+
+// Type Category Module
+const typeCategoryModule = require('../../modules/type_category')
+routing.use(`${API_TAG}/type_category`, typeCategoryModule)
+
 // Tambahkan routes module Anda di sini
 // Example:
 // const yourModule = require('../../modules/yourModule')

@@ -24,13 +24,21 @@ const servers = [
 
 const masterCategorySchema = require('./schema/masterCategory');
 const masterCategoryPaths = require('./path/masterCategory');
+const categoriesSchema = require('./schema/categories');
+const categoriesPaths = require('./path/categories');
+const typeCategorySchema = require('./schema/type_category');
+const typeCategoryPaths = require('./path/type_category');
 
 const schemas = {
   ...masterCategorySchema,
+  ...categoriesSchema,
+  ...typeCategorySchema,
 };
 
 const paths = {
   ...masterCategoryPaths,
+  ...categoriesPaths,
+  ...typeCategoryPaths,
 };
 
 const index = {
