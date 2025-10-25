@@ -81,6 +81,43 @@ const categoriesSchemas = {
         type: 'boolean',
         description: 'Soft delete flag',
         example: false
+      },
+      data_type: {
+        type: 'array',
+        nullable: true,
+        description: 'Array of type categories',
+        items: {
+          type: 'object',
+          properties: {
+            type_category_id: {
+              type: 'string',
+              format: 'uuid',
+              nullable: true,
+              description: 'Type category ID',
+              example: '123e4567-e89b-12d3-a456-426614174000'
+            },
+            type_category_name_en: {
+              type: 'string',
+              maxLength: 255,
+              nullable: true,
+              description: 'Type category name in English',
+              example: 'Electronics'
+            },
+            type_category_name_cn: {
+              type: 'string',
+              maxLength: 255,
+              nullable: true,
+              description: 'Type category name in Chinese',
+              example: '电子产品'
+            },
+            type_category_description: {
+              type: 'string',
+              nullable: true,
+              description: 'Type category description',
+              example: 'Electronic devices and components'
+            }
+          }
+        }
       }
     }
   },
@@ -113,6 +150,36 @@ const categoriesSchemas = {
         nullable: true,
         description: 'Category description',
         example: 'Electronic devices and components'
+      },
+      data_type: {
+        type: 'array',
+        nullable: true,
+        description: 'Array of type categories',
+        items: {
+          type: 'object',
+          properties: {
+            type_category_name_en: {
+              type: 'string',
+              maxLength: 255,
+              nullable: true,
+              description: 'Type category name in English',
+              example: 'Electronics'
+            },
+            type_category_name_cn: {
+              type: 'string',
+              maxLength: 255,
+              nullable: true,
+              description: 'Type category name in Chinese',
+              example: '电子产品'
+            },
+            type_category_description: {
+              type: 'string',
+              nullable: true,
+              description: 'Type category description',
+              example: 'Electronic devices and components'
+            }
+          }
+        }
       }
     }
   },

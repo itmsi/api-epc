@@ -63,8 +63,8 @@ const categoriesPaths = {
   '/categories/{id}': {
     get: {
       tags: ['Categories'],
-      summary: 'Get category by ID',
-      description: 'Retrieve a specific category by its ID',
+      summary: 'Get category by ID with type categories',
+      description: 'Retrieve a specific category by its ID including related type categories',
       security: [{ bearerAuth: [] }],
       parameters: [
         {
@@ -114,8 +114,8 @@ const categoriesPaths = {
     },
     put: {
       tags: ['Categories'],
-      summary: 'Update category',
-      description: 'Update an existing category',
+      summary: 'Update category with type categories',
+      description: 'Update an existing category with optional type categories data',
       security: [{ bearerAuth: [] }],
       parameters: [
         {
@@ -141,7 +141,14 @@ const categoriesPaths = {
               master_category_id: '123e4567-e89b-12d3-a456-426614174000',
               master_category_name_en: 'Updated Electronics',
               category_name_cn: '更新的电子产品',
-              category_description: 'Updated electronic devices and components'
+              category_description: 'Updated electronic devices and components',
+              data_type: [
+                {
+                  type_category_name_en: 'Updated Electronics',
+                  type_category_name_cn: '更新的电子产品',
+                  type_category_description: 'Updated electronic devices and components'
+                }
+              ]
             }
           }
         }
@@ -244,8 +251,8 @@ const categoriesPaths = {
   '/categories/create': {
     post: {
       tags: ['Categories'],
-      summary: 'Create new category',
-      description: 'Create a new category',
+      summary: 'Create new category with type categories',
+      description: 'Create a new category with optional type categories data',
       security: [{ bearerAuth: [] }],
       requestBody: {
         required: true,
@@ -258,7 +265,14 @@ const categoriesPaths = {
               master_category_id: '123e4567-e89b-12d3-a456-426614174000',
               master_category_name_en: 'Electronics',
               category_name_cn: '电子产品',
-              category_description: 'Electronic devices and components'
+              category_description: 'Electronic devices and components',
+              data_type: [
+                {
+                  type_category_name_en: 'Electronics',
+                  type_category_name_cn: '电子产品',
+                  type_category_description: 'Electronic devices and components'
+                }
+              ]
             }
           }
         }

@@ -50,6 +50,29 @@ const createValidation = [
     .isString()
     .withMessage('Category description harus berupa string')
     .trim(),
+  body('data_type')
+    .optional()
+    .isArray()
+    .withMessage('Data type harus berupa array'),
+  body('data_type.*.type_category_id')
+    .optional()
+    .isUUID()
+    .withMessage('Type category ID harus berupa UUID yang valid'),
+  body('data_type.*.type_category_name_en')
+    .optional()
+    .isLength({ max: 255 })
+    .withMessage('Type category name EN maksimal 255 karakter')
+    .trim(),
+  body('data_type.*.type_category_name_cn')
+    .optional()
+    .isLength({ max: 255 })
+    .withMessage('Type category name CN maksimal 255 karakter')
+    .trim(),
+  body('data_type.*.type_category_description')
+    .optional()
+    .isString()
+    .withMessage('Type category description harus berupa string')
+    .trim(),
 ];
 
 /**
@@ -80,6 +103,29 @@ const updateValidation = [
     .optional()
     .isString()
     .withMessage('Category description harus berupa string')
+    .trim(),
+  body('data_type')
+    .optional()
+    .isArray()
+    .withMessage('Data type harus berupa array'),
+  body('data_type.*.type_category_id')
+    .optional()
+    .isUUID()
+    .withMessage('Type category ID harus berupa UUID yang valid'),
+  body('data_type.*.type_category_name_en')
+    .optional()
+    .isLength({ max: 255 })
+    .withMessage('Type category name EN maksimal 255 karakter')
+    .trim(),
+  body('data_type.*.type_category_name_cn')
+    .optional()
+    .isLength({ max: 255 })
+    .withMessage('Type category name CN maksimal 255 karakter')
+    .trim(),
+  body('data_type.*.type_category_description')
+    .optional()
+    .isString()
+    .withMessage('Type category description harus berupa string')
     .trim(),
 ];
 

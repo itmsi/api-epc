@@ -1,6 +1,21 @@
 # Categories Module
 
-Module untuk mengelola data categories dengan fitur CRUD lengkap.
+Module untuk mengelola data categories dengan fitur CRUD lengkap dan relasi dengan type categories.
+
+## Fitur Utama
+
+- **CRUD Operations**: Create, Read, Update, Delete categories
+- **Type Categories Integration**: Setiap category dapat memiliki multiple type categories
+- **Transaction Support**: Semua operasi menggunakan database transaction untuk konsistensi data
+- **Soft Delete**: Data tidak dihapus permanen, hanya ditandai sebagai deleted
+- **Pagination & Search**: Mendukung pagination dan pencarian data
+- **Validation**: Validasi lengkap untuk semua input data
+
+## Relasi Data
+
+- **Categories** → **Type Categories** (One-to-Many)
+- Setiap category dapat memiliki multiple type categories
+- Type categories akan otomatis ter-soft delete saat category di-update dengan data_type baru
 
 ## Endpoints
 
@@ -53,6 +68,14 @@ GET /api/epc/categories/:id
     "master_category_name_en": "Electronics",
     "category_name_cn": "电子产品",
     "category_description": "Description",
+    "data_type": [
+      {
+        "type_category_id": "uuid",
+        "type_category_name_en": "Electronics",
+        "type_category_name_cn": "电子产品",
+        "type_category_description": "Electronic devices and components"
+      }
+    ],
     "created_at": "2025-01-01T00:00:00.000Z",
     "created_by": "uuid",
     "updated_at": "2025-01-01T00:00:00.000Z",
@@ -75,7 +98,15 @@ POST /api/epc/categories/create
   "master_category_id": "uuid",
   "master_category_name_en": "Electronics",
   "category_name_cn": "电子产品",
-  "category_description": "Description"
+  "category_description": "Description",
+  "data_type": [
+    {
+      "type_category_id": "uuid",
+      "type_category_name_en": "Electronics",
+      "type_category_name_cn": "电子产品",
+      "type_category_description": "Electronic devices and components"
+    }
+  ]
 }
 ```
 
@@ -99,7 +130,15 @@ PUT /api/epc/categories/:id
   "master_category_id": "uuid",
   "master_category_name_en": "Updated Electronics",
   "category_name_cn": "更新的电子产品",
-  "category_description": "Updated description"
+  "category_description": "Updated description",
+  "data_type": [
+    {
+      "type_category_id": "uuid",
+      "type_category_name_en": "Updated Electronics",
+      "type_category_name_cn": "更新的电子产品",
+      "type_category_description": "Updated electronic devices and components"
+    }
+  ]
 }
 ```
 
