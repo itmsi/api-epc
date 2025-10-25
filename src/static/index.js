@@ -28,17 +28,21 @@ const categoriesSchema = require('./schema/categories');
 const categoriesPaths = require('./path/categories');
 const typeCategorySchema = require('./schema/type_category');
 const typeCategoryPaths = require('./path/type_category');
+const unitSchema = require('./schema/unit');
+const unitPaths = require('./path/unit');
 
 const schemas = {
   ...masterCategorySchema,
   ...categoriesSchema,
   ...typeCategorySchema,
+  ...unitSchema,
 };
 
 const paths = {
   ...masterCategoryPaths,
   ...categoriesPaths,
   ...typeCategoryPaths,
+  ...unitPaths,
 };
 
 const index = {
