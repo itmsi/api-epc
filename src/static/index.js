@@ -34,6 +34,8 @@ const itemCategorySchema = require('./schema/item_category');
 const itemCategoryPaths = require('./path/item_category');
 const productsSchema = require('./schema/products');
 const productsPaths = require('./path/products');
+const dokumenSchema = require('./schema/dokumen');
+const dokumenPaths = require('./path/dokumen');
 
 const schemas = {
   ...masterCategorySchema,
@@ -42,6 +44,7 @@ const schemas = {
   ...unitSchema,
   ...itemCategorySchema,
   ...productsSchema,
+  ...dokumenSchema,
 };
 
 const paths = {
@@ -51,6 +54,7 @@ const paths = {
   ...unitPaths,
   ...itemCategoryPaths,
   ...productsPaths,
+  ...dokumenPaths,
 };
 
 const index = {
