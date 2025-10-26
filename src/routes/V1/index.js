@@ -38,6 +38,10 @@ routing.use(`${API_TAG}/unit`, unitModule)
 const itemCategoryModule = require('../../modules/item_category')
 routing.use(`${API_TAG}/item_category`, itemCategoryModule)
 
+// Products Module
+const productsModule = require('../../modules/products')
+routing.use(`${API_TAG}/products`, productsModule)
+
 // Tambahkan routes module Anda di sini
 // Example:
 // const yourModule = require('../../modules/yourModule')

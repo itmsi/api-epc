@@ -32,6 +32,8 @@ const unitSchema = require('./schema/unit');
 const unitPaths = require('./path/unit');
 const itemCategorySchema = require('./schema/item_category');
 const itemCategoryPaths = require('./path/item_category');
+const productsSchema = require('./schema/products');
+const productsPaths = require('./path/products');
 
 const schemas = {
   ...masterCategorySchema,
@@ -39,6 +41,7 @@ const schemas = {
   ...typeCategorySchema,
   ...unitSchema,
   ...itemCategorySchema,
+  ...productsSchema,
 };
 
 const paths = {
@@ -47,6 +50,7 @@ const paths = {
   ...typeCategoryPaths,
   ...unitPaths,
   ...itemCategoryPaths,
+  ...productsPaths,
 };
 
 const index = {
