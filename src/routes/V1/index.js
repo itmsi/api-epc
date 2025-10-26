@@ -34,6 +34,10 @@ routing.use(`${API_TAG}/type_category`, typeCategoryModule)
 const unitModule = require('../../modules/unit')
 routing.use(`${API_TAG}/unit`, unitModule)
 
+// Item Category Module
+const itemCategoryModule = require('../../modules/item_category')
+routing.use(`${API_TAG}/item_category`, itemCategoryModule)
+
 // Tambahkan routes module Anda di sini
 // Example:
 // const yourModule = require('../../modules/yourModule')

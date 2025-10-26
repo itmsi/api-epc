@@ -17,6 +17,7 @@ const findAll = async (page = 1, limit = 10, search = '', sortBy = 'created_at',
   if (search) {
     query = query.where(function() {
       this.where('master_category_name_en', 'ilike', `%${search}%`)
+        .orWhere('category_name_en', 'ilike', `%${search}%`)
         .orWhere('category_name_cn', 'ilike', `%${search}%`)
         .orWhere('category_description', 'ilike', `%${search}%`);
     });
@@ -36,6 +37,7 @@ const findAll = async (page = 1, limit = 10, search = '', sortBy = 'created_at',
   if (search) {
     countQuery = countQuery.where(function() {
       this.where('master_category_name_en', 'ilike', `%${search}%`)
+        .orWhere('category_name_en', 'ilike', `%${search}%`)
         .orWhere('category_name_cn', 'ilike', `%${search}%`)
         .orWhere('category_description', 'ilike', `%${search}%`);
     });

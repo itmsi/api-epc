@@ -1,0 +1,430 @@
+const db = require('../../config/database').pgCore;
+
+const TABLES = {
+  ITEM_CATEGORIES: 'item_categories',
+  ITEM_CATEGORIES_DETAILS: 'item_categories_details',
+  DOKUMEN: 'dokumen',
+  UNITS: 'units',
+  MASTER_CATEGORIES: 'master_categories',
+  CATEGORIES: 'categories',
+  TYPE_CATEGORIES: 'type_categories'
+};
+
+/**
+ * Find all item categories with pagination and joins
+ */
+const findAll = async (page = 1, limit = 10, search = '', sortBy = 'created_at', sortOrder = 'desc') => {
+  const offset = (page - 1) * limit;
+  
+  let query = db(TABLES.ITEM_CATEGORIES)
+    .select([
+      'ic.*',
+      'd.dokumen_name',
+      'd.dokumen_description',
+      'tc.type_category_name_en',
+      'tc.type_category_name_cn',
+      'c.category_name_en',
+      'c.category_name_cn',
+      'mc.master_category_name_en',
+      'mc.master_category_name_cn'
+    ])
+    .from(`${TABLES.ITEM_CATEGORIES} as ic`)
+    .leftJoin(`${TABLES.DOKUMEN} as d`, 'ic.dokumen_id', 'd.dokumen_id')
+    .leftJoin(`${TABLES.TYPE_CATEGORIES} as tc`, 'ic.type_category_id', 'tc.type_category_id')
+    .leftJoin(`${TABLES.CATEGORIES} as c`, 'tc.category_id', 'c.category_id')
+    .leftJoin(`${TABLES.MASTER_CATEGORIES} as mc`, 'c.master_category_id', 'mc.master_category_id')
+    .where('ic.deleted_at', null)
+    .where('ic.is_delete', false);
+
+  // Add search functionality
+  if (search) {
+    query = query.where(function() {
+      this.where('ic.item_category_name_en', 'ilike', `%${search}%`)
+        .orWhere('ic.item_category_name_cn', 'ilike', `%${search}%`)
+        .orWhere('d.dokumen_name', 'ilike', `%${search}%`)
+        .orWhere('tc.type_category_name_en', 'ilike', `%${search}%`)
+        .orWhere('tc.type_category_name_cn', 'ilike', `%${search}%`);
+    });
+  }
+
+  // Add sorting
+  query = query.orderBy(`ic.${sortBy}`, sortOrder);
+
+  const data = await query.limit(limit).offset(offset);
+  
+  // Get total count
+  let countQuery = db(TABLES.ITEM_CATEGORIES)
+    .from(`${TABLES.ITEM_CATEGORIES} as ic`)
+    .leftJoin(`${TABLES.DOKUMEN} as d`, 'ic.dokumen_id', 'd.dokumen_id')
+    .leftJoin(`${TABLES.TYPE_CATEGORIES} as tc`, 'ic.type_category_id', 'tc.type_category_id')
+    .where('ic.deleted_at', null)
+    .where('ic.is_delete', false);
+
+  if (search) {
+    countQuery = countQuery.where(function() {
+      this.where('ic.item_category_name_en', 'ilike', `%${search}%`)
+        .orWhere('ic.item_category_name_cn', 'ilike', `%${search}%`)
+        .orWhere('d.dokumen_name', 'ilike', `%${search}%`)
+        .orWhere('tc.type_category_name_en', 'ilike', `%${search}%`)
+        .orWhere('tc.type_category_name_cn', 'ilike', `%${search}%`);
+    });
+  }
+
+  const total = await countQuery.count('ic.item_category_id as count').first();
+  
+  return {
+    items: data,
+    pagination: {
+      page: parseInt(page),
+      limit: parseInt(limit),
+      total: parseInt(total.count),
+      totalPages: Math.ceil(total.count / limit)
+    }
+  };
+};
+
+/**
+ * Find single item category by ID with all related data
+ */
+const findById = async (id) => {
+  const itemCategory = await db(TABLES.ITEM_CATEGORIES)
+    .select([
+      'ic.*',
+      'd.dokumen_name',
+      'd.dokumen_description',
+      'tc.type_category_name_en',
+      'tc.type_category_name_cn',
+      'c.category_name_en',
+      'c.category_name_cn',
+      'mc.master_category_name_en',
+      'mc.master_category_name_cn'
+    ])
+    .from(`${TABLES.ITEM_CATEGORIES} as ic`)
+    .leftJoin(`${TABLES.DOKUMEN} as d`, 'ic.dokumen_id', 'd.dokumen_id')
+    .leftJoin(`${TABLES.TYPE_CATEGORIES} as tc`, 'ic.type_category_id', 'tc.type_category_id')
+    .leftJoin(`${TABLES.CATEGORIES} as c`, 'tc.category_id', 'c.category_id')
+    .leftJoin(`${TABLES.MASTER_CATEGORIES} as mc`, 'c.master_category_id', 'mc.master_category_id')
+    .where('ic.item_category_id', id)
+    .where('ic.deleted_at', null)
+    .where('ic.is_delete', false)
+    .first();
+
+  if (!itemCategory) {
+    return null;
+  }
+
+  // Get item category details
+  const details = await db(TABLES.ITEM_CATEGORIES_DETAILS)
+    .select([
+      'icd.*',
+      'u.unit_name_en',
+      'u.unit_name_cn'
+    ])
+    .from(`${TABLES.ITEM_CATEGORIES_DETAILS} as icd`)
+    .leftJoin(`${TABLES.UNITS} as u`, 'icd.unit', 'u.unit_name_en')
+    .where('icd.item_category_id', id)
+    .where('icd.deleted_at', null)
+    .where('icd.is_delete', false);
+
+  return {
+    ...itemCategory,
+    details
+  };
+};
+
+/**
+ * Find or create dokumen
+ */
+const findOrCreateDokumen = async (dokumenName, userId) => {
+  if (!dokumenName) return null;
+
+  let dokumen = await db(TABLES.DOKUMEN)
+    .where('dokumen_name', dokumenName)
+    .where('deleted_at', null)
+    .where('is_delete', false)
+    .first();
+
+  if (!dokumen) {
+    const [newDokumen] = await db(TABLES.DOKUMEN)
+      .insert({
+        dokumen_name: dokumenName,
+        created_by: userId,
+        updated_by: userId,
+        created_at: db.fn.now(),
+        updated_at: db.fn.now()
+      })
+      .returning('*');
+    dokumen = newDokumen;
+  }
+
+  return dokumen;
+};
+
+/**
+ * Find or create unit
+ */
+const findOrCreateUnit = async (unitName, userId) => {
+  if (!unitName) return null;
+
+  let unit = await db(TABLES.UNITS)
+    .where('unit_name_en', unitName)
+    .where('deleted_at', null)
+    .where('is_delete', false)
+    .first();
+
+  if (!unit) {
+    const [newUnit] = await db(TABLES.UNITS)
+      .insert({
+        unit_name_en: unitName,
+        unit_name_cn: unitName,
+        created_by: userId,
+        updated_by: userId,
+        created_at: db.fn.now(),
+        updated_at: db.fn.now()
+      })
+      .returning('*');
+    unit = newUnit;
+  }
+
+  return unit;
+};
+
+/**
+ * Create new item category with details
+ */
+const create = async (data, userId) => {
+  const trx = await db.transaction();
+  
+  try {
+    // Find or create dokumen
+    const dokumen = await findOrCreateDokumen(data.dokumen_name, userId);
+    
+    // Create item category
+    const [itemCategory] = await trx(TABLES.ITEM_CATEGORIES)
+      .insert({
+        type_category_id: data.type_category_id,
+        dokumen_id: dokumen ? dokumen.dokumen_id : null,
+        item_category_name_en: data.item_category_name_en,
+        item_category_name_cn: data.item_category_name_cn,
+        item_category_description: data.item_category_description,
+        item_category_foto: data.item_category_foto,
+        created_by: userId,
+        updated_by: userId,
+        created_at: db.fn.now(),
+        updated_at: db.fn.now()
+      })
+      .returning('*');
+
+    // Create item category details
+    if (data.data_items && data.data_items.length > 0) {
+      for (const item of data.data_items) {
+        const unit = await findOrCreateUnit(item.unit, userId);
+        
+        await trx(TABLES.ITEM_CATEGORIES_DETAILS)
+          .insert({
+            item_category_id: itemCategory.item_category_id,
+            target_id: item.target_id,
+            part_number: item.part_number,
+            catalog_item_name_en: item.catalog_item_name_en,
+            catalog_item_name_ch: item.catalog_item_name_ch,
+            description: item.description,
+            quantity: item.quantity,
+            unit: item.unit,
+            created_by: userId,
+            updated_by: userId,
+            created_at: db.fn.now(),
+            updated_at: db.fn.now()
+          });
+      }
+    }
+
+    await trx.commit();
+    return await findById(itemCategory.item_category_id);
+  } catch (error) {
+    await trx.rollback();
+    throw error;
+  }
+};
+
+/**
+ * Update existing item category
+ */
+const update = async (id, data, userId) => {
+  const trx = await db.transaction();
+  
+  try {
+    // Check if item category exists
+    const existingItem = await trx(TABLES.ITEM_CATEGORIES)
+      .where('item_category_id', id)
+      .where('deleted_at', null)
+      .where('is_delete', false)
+      .first();
+
+    if (!existingItem) {
+      await trx.rollback();
+      return null;
+    }
+
+    // Update dokumen if dokumen_id exists and dokumen_name is provided
+    if (existingItem.dokumen_id && data.dokumen_name) {
+      await trx(TABLES.DOKUMEN)
+        .where('dokumen_id', existingItem.dokumen_id)
+        .update({
+          dokumen_name: data.dokumen_name,
+          updated_by: userId,
+          updated_at: db.fn.now()
+        });
+    }
+    
+    // Update item category
+    const [updatedItem] = await trx(TABLES.ITEM_CATEGORIES)
+      .where('item_category_id', id)
+      .update({
+        type_category_id: data.type_category_id,
+        item_category_name_en: data.item_category_name_en,
+        item_category_name_cn: data.item_category_name_cn,
+        item_category_description: data.item_category_description,
+        item_category_foto: data.item_category_foto,
+        updated_by: userId,
+        updated_at: db.fn.now()
+      })
+      .returning('*');
+
+    // Delete existing details (hard delete)
+    await trx(TABLES.ITEM_CATEGORIES_DETAILS)
+      .where('item_category_id', id)
+      .del();
+
+    // Create new details
+    if (data.data_items && data.data_items.length > 0) {
+      for (const item of data.data_items) {
+        const unit = await findOrCreateUnit(item.unit, userId);
+        
+        await trx(TABLES.ITEM_CATEGORIES_DETAILS)
+          .insert({
+            item_category_id: id,
+            target_id: item.target_id,
+            part_number: item.part_number,
+            catalog_item_name_en: item.catalog_item_name_en,
+            catalog_item_name_ch: item.catalog_item_name_ch,
+            description: item.description,
+            quantity: item.quantity,
+            unit: item.unit,
+            created_by: userId,
+            updated_by: userId,
+            created_at: db.fn.now(),
+            updated_at: db.fn.now()
+          });
+      }
+    }
+
+    await trx.commit();
+    return await findById(id);
+  } catch (error) {
+    await trx.rollback();
+    throw error;
+  }
+};
+
+/**
+ * Soft delete item category
+ */
+const remove = async (id, userId) => {
+  const trx = await db.transaction();
+  
+  try {
+    // Soft delete item category
+    const [deletedItem] = await trx(TABLES.ITEM_CATEGORIES)
+      .where('item_category_id', id)
+      .where('deleted_at', null)
+      .where('is_delete', false)
+      .update({
+        deleted_at: db.fn.now(),
+        deleted_by: userId,
+        is_delete: true,
+        updated_at: db.fn.now(),
+        updated_by: userId
+      })
+      .returning('*');
+
+    if (!deletedItem) {
+      await trx.rollback();
+      return null;
+    }
+
+    // Soft delete all related details
+    await trx(TABLES.ITEM_CATEGORIES_DETAILS)
+      .where('item_category_id', id)
+      .where('deleted_at', null)
+      .where('is_delete', false)
+      .update({
+        deleted_at: db.fn.now(),
+        deleted_by: userId,
+        is_delete: true,
+        updated_at: db.fn.now(),
+        updated_by: userId
+      });
+
+    await trx.commit();
+    return deletedItem;
+  } catch (error) {
+    await trx.rollback();
+    throw error;
+  }
+};
+
+/**
+ * Restore soft deleted item category
+ */
+const restore = async (id, userId) => {
+  const trx = await db.transaction();
+  
+  try {
+    // Restore item category
+    const [restoredItem] = await trx(TABLES.ITEM_CATEGORIES)
+      .where('item_category_id', id)
+      .whereNotNull('deleted_at')
+      .where('is_delete', true)
+      .update({
+        deleted_at: null,
+        deleted_by: null,
+        is_delete: false,
+        updated_at: db.fn.now(),
+        updated_by: userId
+      })
+      .returning('*');
+
+    if (!restoredItem) {
+      await trx.rollback();
+      return null;
+    }
+
+    // Restore all related details
+    await trx(TABLES.ITEM_CATEGORIES_DETAILS)
+      .where('item_category_id', id)
+      .whereNotNull('deleted_at')
+      .where('is_delete', true)
+      .update({
+        deleted_at: null,
+        deleted_by: null,
+        is_delete: false,
+        updated_at: db.fn.now(),
+        updated_by: userId
+      });
+
+    await trx.commit();
+    return await findById(id);
+  } catch (error) {
+    await trx.rollback();
+    throw error;
+  }
+};
+
+module.exports = {
+  findAll,
+  findById,
+  create,
+  update,
+  remove,
+  restore
+};

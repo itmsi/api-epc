@@ -25,6 +25,12 @@ const categoriesSchemas = {
         description: 'Master category name in English',
         example: 'Electronics'
       },
+      category_name_en: {
+        type: 'string',
+        nullable: true,
+        description: 'Category name in English',
+        example: 'Electronic Devices'
+      },
       category_name_cn: {
         type: 'string',
         nullable: true,

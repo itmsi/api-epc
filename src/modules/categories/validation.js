@@ -18,8 +18,8 @@ const getValidation = [
     .withMessage('Search harus berupa string'),
   body('sort_by')
     .optional()
-    .isIn(['created_at', 'master_category_name_en', 'category_name_cn'])
-    .withMessage('Sort by harus salah satu dari: created_at, master_category_name_en, category_name_cn'),
+    .isIn(['created_at', 'master_category_name_en', 'category_name_en', 'category_name_cn'])
+    .withMessage('Sort by harus salah satu dari: created_at, master_category_name_en, category_name_en, category_name_cn'),
   body('sort_order')
     .optional()
     .isIn(['asc', 'desc'])
@@ -39,6 +39,11 @@ const createValidation = [
     .optional()
     .isLength({ max: 255 })
     .withMessage('Master category name EN maksimal 255 karakter')
+    .trim(),
+  body('category_name_en')
+    .optional()
+    .isLength({ max: 255 })
+    .withMessage('Category name EN maksimal 255 karakter')
     .trim(),
   body('category_name_cn')
     .optional()
@@ -93,6 +98,11 @@ const updateValidation = [
     .optional()
     .isLength({ max: 255 })
     .withMessage('Master category name EN maksimal 255 karakter')
+    .trim(),
+  body('category_name_en')
+    .optional()
+    .isLength({ max: 255 })
+    .withMessage('Category name EN maksimal 255 karakter')
     .trim(),
   body('category_name_cn')
     .optional()

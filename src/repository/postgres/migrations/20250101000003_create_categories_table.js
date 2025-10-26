@@ -13,6 +13,7 @@ exports.up = function(knex) {
     table.string('master_category_name_en', 255).nullable();
     
     // Data fields sesuai spesifikasi
+    table.string('category_name_en', 255).nullable();
     table.string('category_name_cn', 255).nullable();
     table.text('category_description').nullable();
     
@@ -31,6 +32,7 @@ exports.up = function(knex) {
     table.index(['created_at'], 'idx_categories_created_at');
     table.index(['master_category_id'], 'idx_categories_master_category_id');
     table.index(['master_category_name_en'], 'idx_categories_master_category_name_en');
+    table.index(['category_name_en'], 'idx_categories_name_en');
     table.index(['category_name_cn'], 'idx_categories_name_cn');
   });
 };
