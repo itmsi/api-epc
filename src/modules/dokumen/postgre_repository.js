@@ -8,37 +8,86 @@ const TABLE_NAME = 'dokumen';
 const findAll = async (page = 1, limit = 10, search = '', sortBy = 'created_at', sortOrder = 'desc') => {
   const offset = (page - 1) * limit;
   
-  let query = db(TABLE_NAME)
-    .select('*')
-    .where('deleted_at', null)
-    .where('is_delete', false);
+  let query = db(TABLE_NAME + ' as d')
+    .select(
+      'd.*',
+      db.raw(`concat_ws(' - ', d.dokumen_name, c.category_name_en, tc.type_category_name_en) as dokumen_name_all`)
+    )
+    .leftJoin('item_categories as ic', function() {
+      this.on('d.dokumen_id', '=', 'ic.dokumen_id')
+        .andOnNull('ic.deleted_at')
+        .andOn('ic.is_delete', '=', db.raw('false'));
+    })
+    .leftJoin('type_categories as tc', function() {
+      this.on('tc.type_category_id', '=', 'ic.type_category_id')
+        .andOnNull('tc.deleted_at')
+        .andOn('tc.is_delete', '=', db.raw('false'));
+    })
+    .leftJoin('categories as c', function() {
+      this.on('c.category_id', '=', 'tc.category_id')
+        .andOnNull('c.deleted_at')
+        .andOn('c.is_delete', '=', db.raw('false'));
+    })
+    .leftJoin('master_categories as mc', function() {
+      this.on('mc.master_category_id', '=', 'c.master_category_id')
+        .andOnNull('mc.deleted_at')
+        .andOn('mc.is_delete', '=', db.raw('false'));
+    })
+    .where('d.deleted_at', null)
+    .where('d.is_delete', false)
+    .groupBy('d.dokumen_id', 'd.dokumen_name', 'd.dokumen_description', 'd.created_at', 'd.created_by', 'd.updated_at', 'd.updated_by', 'd.deleted_at', 'd.deleted_by', 'd.is_delete', 'tc.type_category_id', 'c.category_id');
 
   // Add search functionality
   if (search) {
     query = query.where(function() {
-      this.where('dokumen_name', 'ilike', `%${search}%`)
-        .orWhere('dokumen_description', 'ilike', `%${search}%`);
+      this.where('d.dokumen_name', 'ilike', `%${search}%`)
+        .orWhere('d.dokumen_description', 'ilike', `%${search}%`);
     });
   }
 
-  // Add sorting
-  query = query.orderBy(sortBy, sortOrder);
+  // Add sorting - ensure we use qualified column names
+  const sortColumn = sortBy.includes('.') ? sortBy : `d.${sortBy}`;
+  query = query.orderBy(sortColumn, sortOrder);
 
   const data = await query.limit(limit).offset(offset);
   
-  // Get total count
-  let countQuery = db(TABLE_NAME)
-    .where('deleted_at', null)
-    .where('is_delete', false);
+  // Get total count - replicate query structure without pagination
+  let countQuery = db(TABLE_NAME + ' as d')
+    .select(db.raw('1'))
+    .leftJoin('item_categories as ic', function() {
+      this.on('ic.dokumen_id', '=', 'd.dokumen_id')
+        .andOnNull('ic.deleted_at')
+        .andOn('ic.is_delete', '=', db.raw('false'));
+    })
+    .leftJoin('type_categories as tc', function() {
+      this.on('tc.type_category_id', '=', 'ic.type_category_id')
+        .andOnNull('tc.deleted_at')
+        .andOn('tc.is_delete', '=', db.raw('false'));
+    })
+    .leftJoin('categories as c', function() {
+      this.on('c.category_id', '=', 'tc.category_id')
+        .andOnNull('c.deleted_at')
+        .andOn('c.is_delete', '=', db.raw('false'));
+    })
+    .leftJoin('master_categories as mc', function() {
+      this.on('mc.master_category_id', '=', 'c.master_category_id')
+        .andOnNull('mc.deleted_at')
+        .andOn('mc.is_delete', '=', db.raw('false'));
+    })
+    .where('d.deleted_at', null)
+    .where('d.is_delete', false);
 
   if (search) {
     countQuery = countQuery.where(function() {
-      this.where('dokumen_name', 'ilike', `%${search}%`)
-        .orWhere('dokumen_description', 'ilike', `%${search}%`);
+      this.where('d.dokumen_name', 'ilike', `%${search}%`)
+        .orWhere('d.dokumen_description', 'ilike', `%${search}%`);
     });
   }
 
-  const total = await countQuery.count('dokumen_id as count').first();
+  // Apply GROUP BY and count rows
+  countQuery = countQuery.groupBy('tc.type_category_id', 'c.category_id', 'd.dokumen_id');
+  const countRows = await countQuery;
+  const total = { count: countRows.length };
   
   return {
     items: data,
