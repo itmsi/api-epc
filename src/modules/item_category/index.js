@@ -13,16 +13,8 @@ const { validateMiddleware } = require('../../middlewares/validation');
 const multer = require('multer');
 const path = require('path');
 
-// Configure multer for file upload
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/temp/');
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
+// Configure multer for file upload with memory storage for MinIO
+const storage = multer.memoryStorage();
 
 const fileUpload = multer({
   storage: storage,

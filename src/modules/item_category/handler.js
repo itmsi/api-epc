@@ -1,5 +1,8 @@
 const repository = require('./postgre_repository');
 const { successResponse, errorResponse } = require('../../utils/response');
+const { uploadToMinio, isMinioEnabled } = require('../../config/minio');
+const path = require('path');
+const { generateFolder } = require('../../utils/folder');
 
 /**
  * Get all item categories with pagination and filters
@@ -51,10 +54,42 @@ const create = async (req, res) => {
       return errorResponse(res, 'User ID tidak ditemukan dalam token', 401);
     }
 
+    let fileUrl = null;
+
+    // Upload file to MinIO if file exists
+    if (req.file && isMinioEnabled) {
+      try {
+        const bucketName = process.env.S3_BUCKET || 'msi-sso';
+        const { pathForDatabase } = generateFolder('item_category');
+        const fileName = `${Date.now()}${path.extname(req.file.originalname)}`;
+        const objectName = `${pathForDatabase}${fileName}`;
+        const contentType = req.file.mimetype;
+
+        // Upload to MinIO (signature: objectName, buffer, contentType, bucketName)
+        const uploadResult = await uploadToMinio(objectName, req.file.buffer, contentType, bucketName);
+
+        if (uploadResult.success) {
+          // Replace endpoint with S3_BASE_URL if configured
+          if (process.env.S3_BASE_URL) {
+            fileUrl = uploadResult.url.replace(process.env.S3_ENDPOINT, process.env.S3_BASE_URL);
+          } else {
+            fileUrl = uploadResult.url;
+          }
+        } else {
+          console.error('Error uploading to MinIO:', uploadResult.error);
+        }
+      } catch (uploadError) {
+        console.error('Error uploading file to MinIO:', uploadError);
+      }
+    } else if (req.file && !isMinioEnabled) {
+      // Fallback to disk storage if MinIO is disabled
+      fileUrl = req.file.filename;
+    }
+
     // Prepare data from request body and file upload
     const data = {
       ...req.body,
-      item_category_foto: req.file ? req.file.path : null
+      item_category_foto: fileUrl
     };
 
     const result = await repository.create(data, userId);
@@ -78,10 +113,42 @@ const update = async (req, res) => {
       return errorResponse(res, 'User ID tidak ditemukan dalam token', 401);
     }
 
+    let fileUrl = req.body.item_category_foto;
+
+    // Upload file to MinIO if new file exists
+    if (req.file && isMinioEnabled) {
+      try {
+        const bucketName = process.env.S3_BUCKET || 'msi-sso';
+        const { pathForDatabase } = generateFolder('item_category');
+        const fileName = `${Date.now()}${path.extname(req.file.originalname)}`;
+        const objectName = `${pathForDatabase}${fileName}`;
+        const contentType = req.file.mimetype;
+
+        // Upload to MinIO (signature: objectName, buffer, contentType, bucketName)
+        const uploadResult = await uploadToMinio(objectName, req.file.buffer, contentType, bucketName);
+
+        if (uploadResult.success) {
+          // Replace endpoint with S3_BASE_URL if configured
+          if (process.env.S3_BASE_URL) {
+            fileUrl = uploadResult.url.replace(process.env.S3_ENDPOINT, process.env.S3_BASE_URL);
+          } else {
+            fileUrl = uploadResult.url;
+          }
+        } else {
+          console.error('Error uploading to MinIO:', uploadResult.error);
+        }
+      } catch (uploadError) {
+        console.error('Error uploading file to MinIO:', uploadError);
+      }
+    } else if (req.file && !isMinioEnabled) {
+      // Fallback to disk storage if MinIO is disabled
+      fileUrl = req.file.filename;
+    }
+
     // Prepare data from request body and file upload
     const data = {
       ...req.body,
-      item_category_foto: req.file ? req.file.path : req.body.item_category_foto
+      item_category_foto: fileUrl
     };
 
     const result = await repository.update(id, data, userId);
