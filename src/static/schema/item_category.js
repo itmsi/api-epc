@@ -91,7 +91,15 @@ const itemCategorySchemas = {
         type: 'string',
         format: 'uuid',
         description: 'Reference to type category',
-        example: '123e4567-e89b-12d3-a456-426614174000'
+        example: '123e4567-e89b-12d3-a456-426614174000',
+        nullable: true
+      },
+      category_id: {
+        type: 'string',
+        format: 'uuid',
+        description: 'Reference to category (direct)',
+        example: '123e4567-e89b-12d3-a456-426614174000',
+        nullable: true
       },
       dokumen_id: {
         type: 'string',
@@ -183,7 +191,7 @@ const itemCategorySchemas = {
 
   ItemCategoryInput: {
     type: 'object',
-    required: ['master_category_id', 'category_id', 'type_category_id'],
+    required: ['master_category_id'],
     properties: {
       dokumen_name: {
         type: 'string',
@@ -200,14 +208,16 @@ const itemCategorySchemas = {
       category_id: {
         type: 'string',
         format: 'uuid',
-        description: 'Category ID',
-        example: '123e4567-e89b-12d3-a456-426614174000'
+        description: 'Category ID (optional - use if type_category_id is not provided)',
+        example: '123e4567-e89b-12d3-a456-426614174000',
+        nullable: true
       },
       type_category_id: {
         type: 'string',
         format: 'uuid',
-        description: 'Type category ID',
-        example: '123e4567-e89b-12d3-a456-426614174000'
+        description: 'Type category ID (optional - use if category_id is not provided)',
+        example: '123e4567-e89b-12d3-a456-426614174000',
+        nullable: true
       },
       item_category_name_en: {
         type: 'string',
@@ -382,6 +392,85 @@ const itemCategorySchemas = {
         type: 'string',
         description: 'Response message',
         example: 'Data berhasil dibuat'
+      }
+    }
+  },
+
+  ItemCategoryByDokumen: {
+    type: 'object',
+    properties: {
+      item_category_id: {
+        type: 'string',
+        format: 'uuid',
+        description: 'Item category ID',
+        example: '123e4567-e89b-12d3-a456-426614174000'
+      },
+      category_id: {
+        type: 'string',
+        format: 'uuid',
+        description: 'Category ID (direct or from type_category)',
+        example: '123e4567-e89b-12d3-a456-426614174000',
+        nullable: true
+      },
+      category_name_en: {
+        type: 'string',
+        description: 'Category name in English',
+        example: 'Automotive Parts',
+        nullable: true
+      },
+      category_name_cn: {
+        type: 'string',
+        description: 'Category name in Chinese',
+        example: '汽车零件',
+        nullable: true
+      },
+      type_category_id: {
+        type: 'string',
+        format: 'uuid',
+        description: 'Type category ID',
+        example: '123e4567-e89b-12d3-a456-426614174000',
+        nullable: true
+      },
+      type_category_name_en: {
+        type: 'string',
+        description: 'Type category name in English',
+        example: 'Engine Parts',
+        nullable: true
+      },
+      type_category_name_cn: {
+        type: 'string',
+        description: 'Type category name in Chinese',
+        example: '发动机零件',
+        nullable: true
+      }
+    }
+  },
+
+  ItemCategoryByDokumenResponse: {
+    type: 'object',
+    properties: {
+      success: {
+        type: 'boolean',
+        example: true
+      },
+      data: {
+        type: 'object',
+        properties: {
+          items: {
+            type: 'array',
+            items: {
+              $ref: '#/components/schemas/ItemCategoryByDokumen'
+            }
+          },
+          pagination: {
+            $ref: '#/components/schemas/Pagination'
+          }
+        }
+      },
+      message: {
+        type: 'string',
+        description: 'Response message',
+        example: 'Data berhasil diambil'
       }
     }
   },

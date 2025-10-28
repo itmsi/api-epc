@@ -42,15 +42,29 @@ const createValidation = [
     .isUUID()
     .withMessage('Format Master category ID tidak valid'),
   body('category_id')
-    .notEmpty()
-    .withMessage('Category ID wajib diisi')
-    .isUUID()
-    .withMessage('Format Category ID tidak valid'),
+    .optional({ checkFalsy: true })
+    .custom((value) => {
+      if (!value || value.trim() === '') {
+        return true;
+      }
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(value)) {
+        throw new Error('Format Category ID tidak valid');
+      }
+      return true;
+    }),
   body('type_category_id')
-    .notEmpty()
-    .withMessage('Type category ID wajib diisi')
-    .isUUID()
-    .withMessage('Format Type category ID tidak valid'),
+    .optional({ checkFalsy: true })
+    .custom((value) => {
+      if (!value || value.trim() === '') {
+        return true;
+      }
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(value)) {
+        throw new Error('Format Type category ID tidak valid');
+      }
+      return true;
+    }),
   body('item_category_name_en')
     .optional()
     .isLength({ max: 255 })
@@ -121,17 +135,41 @@ const updateValidation = [
     .withMessage('Dokumen name maksimal 255 karakter')
     .trim(),
   body('master_category_id')
-    .optional()
-    .isUUID()
-    .withMessage('Format Master category ID tidak valid'),
+    .optional({ checkFalsy: true })
+    .custom((value) => {
+      if (!value || value.trim() === '') {
+        return true;
+      }
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(value)) {
+        throw new Error('Format Master category ID tidak valid');
+      }
+      return true;
+    }),
   body('category_id')
-    .optional()
-    .isUUID()
-    .withMessage('Format Category ID tidak valid'),
+    .optional({ checkFalsy: true })
+    .custom((value) => {
+      if (!value || value.trim() === '') {
+        return true;
+      }
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(value)) {
+        throw new Error('Format Category ID tidak valid');
+      }
+      return true;
+    }),
   body('type_category_id')
-    .optional()
-    .isUUID()
-    .withMessage('Format Type category ID tidak valid'),
+    .optional({ checkFalsy: true })
+    .custom((value) => {
+      if (!value || value.trim() === '') {
+        return true;
+      }
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(value)) {
+        throw new Error('Format Type category ID tidak valid');
+      }
+      return true;
+    }),
   body('item_category_name_en')
     .optional()
     .isLength({ max: 255 })

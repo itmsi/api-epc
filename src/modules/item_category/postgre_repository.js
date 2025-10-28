@@ -23,16 +23,18 @@ const findAll = async (page = 1, limit = 10, search = '', sortBy = 'created_at',
       'd.dokumen_description',
       'tc.type_category_name_en',
       'tc.type_category_name_cn',
-      'c.category_name_en',
-      'c.category_name_cn',
-      'mc.master_category_name_en',
-      'mc.master_category_name_cn'
+      db.raw('COALESCE(c_type.category_name_en, c_direct.category_name_en) as category_name_en'),
+      db.raw('COALESCE(c_type.category_name_cn, c_direct.category_name_cn) as category_name_cn'),
+      db.raw('COALESCE(mc_type.master_category_name_en, mc_direct.master_category_name_en) as master_category_name_en'),
+      db.raw('COALESCE(mc_type.master_category_name_cn, mc_direct.master_category_name_cn) as master_category_name_cn')
     ])
     .from(`${TABLES.ITEM_CATEGORIES} as ic`)
     .leftJoin(`${TABLES.DOKUMEN} as d`, 'ic.dokumen_id', 'd.dokumen_id')
     .leftJoin(`${TABLES.TYPE_CATEGORIES} as tc`, 'ic.type_category_id', 'tc.type_category_id')
-    .leftJoin(`${TABLES.CATEGORIES} as c`, 'tc.category_id', 'c.category_id')
-    .leftJoin(`${TABLES.MASTER_CATEGORIES} as mc`, 'c.master_category_id', 'mc.master_category_id')
+    .leftJoin(`${TABLES.CATEGORIES} as c_type`, 'tc.category_id', 'c_type.category_id')
+    .leftJoin(`${TABLES.CATEGORIES} as c_direct`, 'ic.category_id', 'c_direct.category_id')
+    .leftJoin(`${TABLES.MASTER_CATEGORIES} as mc_type`, 'c_type.master_category_id', 'mc_type.master_category_id')
+    .leftJoin(`${TABLES.MASTER_CATEGORIES} as mc_direct`, 'c_direct.master_category_id', 'mc_direct.master_category_id')
     .where('ic.deleted_at', null)
     .where('ic.is_delete', false);
 
@@ -57,6 +59,8 @@ const findAll = async (page = 1, limit = 10, search = '', sortBy = 'created_at',
     .from(`${TABLES.ITEM_CATEGORIES} as ic`)
     .leftJoin(`${TABLES.DOKUMEN} as d`, 'ic.dokumen_id', 'd.dokumen_id')
     .leftJoin(`${TABLES.TYPE_CATEGORIES} as tc`, 'ic.type_category_id', 'tc.type_category_id')
+    .leftJoin(`${TABLES.CATEGORIES} as c_type`, 'tc.category_id', 'c_type.category_id')
+    .leftJoin(`${TABLES.CATEGORIES} as c_direct`, 'ic.category_id', 'c_direct.category_id')
     .where('ic.deleted_at', null)
     .where('ic.is_delete', false);
 
@@ -94,16 +98,18 @@ const findById = async (id) => {
       'd.dokumen_description',
       'tc.type_category_name_en',
       'tc.type_category_name_cn',
-      'c.category_name_en',
-      'c.category_name_cn',
-      'mc.master_category_name_en',
-      'mc.master_category_name_cn'
+      db.raw('COALESCE(c_type.category_name_en, c_direct.category_name_en) as category_name_en'),
+      db.raw('COALESCE(c_type.category_name_cn, c_direct.category_name_cn) as category_name_cn'),
+      db.raw('COALESCE(mc_type.master_category_name_en, mc_direct.master_category_name_en) as master_category_name_en'),
+      db.raw('COALESCE(mc_type.master_category_name_cn, mc_direct.master_category_name_cn) as master_category_name_cn')
     ])
     .from(`${TABLES.ITEM_CATEGORIES} as ic`)
     .leftJoin(`${TABLES.DOKUMEN} as d`, 'ic.dokumen_id', 'd.dokumen_id')
     .leftJoin(`${TABLES.TYPE_CATEGORIES} as tc`, 'ic.type_category_id', 'tc.type_category_id')
-    .leftJoin(`${TABLES.CATEGORIES} as c`, 'tc.category_id', 'c.category_id')
-    .leftJoin(`${TABLES.MASTER_CATEGORIES} as mc`, 'c.master_category_id', 'mc.master_category_id')
+    .leftJoin(`${TABLES.CATEGORIES} as c_type`, 'tc.category_id', 'c_type.category_id')
+    .leftJoin(`${TABLES.CATEGORIES} as c_direct`, 'ic.category_id', 'c_direct.category_id')
+    .leftJoin(`${TABLES.MASTER_CATEGORIES} as mc_type`, 'c_type.master_category_id', 'mc_type.master_category_id')
+    .leftJoin(`${TABLES.MASTER_CATEGORIES} as mc_direct`, 'c_direct.master_category_id', 'mc_direct.master_category_id')
     .where('ic.item_category_id', id)
     .where('ic.deleted_at', null)
     .where('ic.is_delete', false)
@@ -202,7 +208,8 @@ const create = async (data, userId) => {
     // Create item category
     const [itemCategory] = await trx(TABLES.ITEM_CATEGORIES)
       .insert({
-        type_category_id: data.type_category_id,
+        type_category_id: data.type_category_id || null,
+        category_id: data.category_id || null,
         dokumen_id: dokumen ? dokumen.dokumen_id : null,
         item_category_name_en: data.item_category_name_en,
         item_category_name_cn: data.item_category_name_cn,
@@ -280,7 +287,8 @@ const update = async (id, data, userId) => {
     const [updatedItem] = await trx(TABLES.ITEM_CATEGORIES)
       .where('item_category_id', id)
       .update({
-        type_category_id: data.type_category_id,
+        type_category_id: data.type_category_id || null,
+        category_id: data.category_id || null,
         item_category_name_en: data.item_category_name_en,
         item_category_name_cn: data.item_category_name_cn,
         item_category_description: data.item_category_description,
@@ -420,9 +428,59 @@ const restore = async (id, userId) => {
   }
 };
 
+/**
+ * Find all item categories by dokumen_id with category and type_category info with pagination
+ */
+const findByDokumenId = async (dokumenId, page = 1, limit = 10, sortBy = 'created_at', sortOrder = 'desc') => {
+  const offset = (page - 1) * limit;
+  
+  let query = db(TABLES.ITEM_CATEGORIES)
+    .select([
+      'ic.item_category_id',
+      db.raw('COALESCE(ic.category_id, tc.category_id) as category_id'),
+      db.raw('COALESCE(c_direct.category_name_en, c_type.category_name_en) as category_name_en'),
+      db.raw('COALESCE(c_direct.category_name_cn, c_type.category_name_cn) as category_name_cn'),
+      'ic.type_category_id',
+      'tc.type_category_name_en',
+      'tc.type_category_name_cn'
+    ])
+    .from(`${TABLES.ITEM_CATEGORIES} as ic`)
+    .leftJoin(`${TABLES.TYPE_CATEGORIES} as tc`, 'ic.type_category_id', 'tc.type_category_id')
+    .leftJoin(`${TABLES.CATEGORIES} as c_type`, 'tc.category_id', 'c_type.category_id')
+    .leftJoin(`${TABLES.CATEGORIES} as c_direct`, 'ic.category_id', 'c_direct.category_id')
+    .where('ic.dokumen_id', dokumenId)
+    .where('ic.deleted_at', null)
+    .where('ic.is_delete', false);
+
+  // Add sorting
+  query = query.orderBy(`ic.${sortBy}`, sortOrder);
+
+  const data = await query.limit(limit).offset(offset);
+  
+  // Get total count
+  let countQuery = db(TABLES.ITEM_CATEGORIES)
+    .from(`${TABLES.ITEM_CATEGORIES} as ic`)
+    .where('ic.dokumen_id', dokumenId)
+    .where('ic.deleted_at', null)
+    .where('ic.is_delete', false);
+
+  const total = await countQuery.count('ic.item_category_id as count').first();
+  
+  return {
+    items: data,
+    pagination: {
+      page: parseInt(page),
+      limit: parseInt(limit),
+      total: parseInt(total.count),
+      totalPages: Math.ceil(total.count / limit)
+    }
+  };
+};
+
 module.exports = {
   findAll,
   findById,
+  findByDokumenId,
   create,
   update,
   remove,

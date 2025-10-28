@@ -92,6 +92,10 @@ const create = async (req, res) => {
       item_category_foto: fileUrl
     };
 
+    // Convert empty strings to null for optional fields
+    if (data.type_category_id === '') data.type_category_id = null;
+    if (data.category_id === '') data.category_id = null;
+
     const result = await repository.create(data, userId);
     return successResponse(res, result, 'Data berhasil dibuat', 201);
   } catch (error) {
@@ -150,6 +154,10 @@ const update = async (req, res) => {
       ...req.body,
       item_category_foto: fileUrl
     };
+
+    // Convert empty strings to null for optional fields
+    if (data.type_category_id === '') data.type_category_id = null;
+    if (data.category_id === '') data.category_id = null;
 
     const result = await repository.update(id, data, userId);
     
@@ -215,9 +223,31 @@ const restore = async (req, res) => {
   }
 };
 
+/**
+ * Get all item categories by dokumen_id with pagination
+ */
+const getByDokumenId = async (req, res) => {
+  try {
+    const { dokumen_id } = req.params;
+    const { 
+      page = 1, 
+      limit = 10, 
+      sort_by = 'created_at', 
+      sort_order = 'desc' 
+    } = req.query;
+    
+    const data = await repository.findByDokumenId(dokumen_id, page, limit, sort_by, sort_order);
+    
+    return successResponse(res, data, 'Data berhasil diambil');
+  } catch (error) {
+    return errorResponse(res, error.message || 'Terjadi kesalahan', 500);
+  }
+};
+
 module.exports = {
   getAll,
   getById,
+  getByDokumenId,
   create,
   update,
   remove,

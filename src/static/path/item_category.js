@@ -64,6 +64,104 @@ const itemCategoryPaths = {
     }
   },
 
+  '/item_category/dokumen/{dokumen_id}': {
+    get: {
+      tags: ['Item Category'],
+      summary: 'Get item categories by dokumen ID',
+      description: 'Retrieve all item categories for a specific dokumen with category and type_category info',
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'dokumen_id',
+          in: 'path',
+          required: true,
+          description: 'Dokumen ID',
+          schema: {
+            type: 'string',
+            format: 'uuid'
+          }
+        },
+        {
+          name: 'page',
+          in: 'query',
+          required: false,
+          description: 'Page number',
+          schema: {
+            type: 'integer',
+            minimum: 1,
+            default: 1
+          }
+        },
+        {
+          name: 'limit',
+          in: 'query',
+          required: false,
+          description: 'Items per page',
+          schema: {
+            type: 'integer',
+            minimum: 1,
+            maximum: 100,
+            default: 10
+          }
+        },
+        {
+          name: 'sort_by',
+          in: 'query',
+          required: false,
+          description: 'Sort field',
+          schema: {
+            type: 'string',
+            enum: ['created_at', 'updated_at', 'item_category_name_en', 'item_category_name_cn'],
+            default: 'created_at'
+          }
+        },
+        {
+          name: 'sort_order',
+          in: 'query',
+          required: false,
+          description: 'Sort order',
+          schema: {
+            type: 'string',
+            enum: ['asc', 'desc'],
+            default: 'desc'
+          }
+        }
+      ],
+      responses: {
+        200: {
+          description: 'Successfully retrieved item categories',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ItemCategoryByDokumenResponse'
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        500: {
+          description: 'Internal Server Error',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
   '/item_category/{id}': {
     get: {
       tags: ['Item Category'],
@@ -162,12 +260,12 @@ const itemCategoryPaths = {
                 category_id: {
                   type: 'string',
                   format: 'uuid',
-                  description: 'Category ID'
+                  description: 'Category ID (optional - use if type_category_id is not provided)'
                 },
                 type_category_id: {
                   type: 'string',
                   format: 'uuid',
-                  description: 'Type category ID'
+                  description: 'Type category ID (optional - use if category_id is not provided)'
                 },
                 item_category_name_en: {
                   type: 'string',
@@ -334,7 +432,7 @@ const itemCategoryPaths = {
           'multipart/form-data': {
             schema: {
               type: 'object',
-              required: ['master_category_id', 'category_id', 'type_category_id'],
+              required: ['master_category_id'],
               properties: {
                 dokumen_name: {
                   type: 'string',
@@ -348,12 +446,12 @@ const itemCategoryPaths = {
                 category_id: {
                   type: 'string',
                   format: 'uuid',
-                  description: 'Category ID'
+                  description: 'Category ID (optional - use if type_category_id is not provided)'
                 },
                 type_category_id: {
                   type: 'string',
                   format: 'uuid',
-                  description: 'Type category ID'
+                  description: 'Type category ID (optional - use if category_id is not provided)'
                 },
                 item_category_name_en: {
                   type: 'string',

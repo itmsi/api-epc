@@ -68,6 +68,17 @@ router.post(
 );
 
 /**
+ * @route   GET /api/epc/item_category/dokumen/:dokumen_id
+ * @desc    Get all item categories by dokumen_id with category and type_category info
+ * @access  Private
+ */
+router.get(
+  '/dokumen/:dokumen_id',
+  verifyToken,
+  handler.getByDokumenId
+);
+
+/**
  * @route   GET /api/epc/item_category/:id
  * @desc    Get item category by ID with all related data
  * @access  Private
