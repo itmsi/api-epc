@@ -16,16 +16,12 @@ const getAll = async (req, res) => {
       sort_by = 'created_at', 
       sort_order = 'desc',
       master_category_name_en,
-      category_name_en,
-      type_category_name_en,
       dokumen_name
     } = req.body;
     
     // Extract filters from request body
     const filters = {};
     if (master_category_name_en) filters.master_category_name_en = master_category_name_en;
-    if (category_name_en) filters.category_name_en = category_name_en;
-    if (type_category_name_en) filters.type_category_name_en = type_category_name_en;
     if (dokumen_name) filters.dokumen_name = dokumen_name;
     
     const data = await repository.findAll(page, limit, search, sort_by, sort_order, filters);

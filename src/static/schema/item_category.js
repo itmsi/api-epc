@@ -331,18 +331,6 @@ const itemCategorySchemas = {
         description: 'Filter by master category name in English',
         example: 'Vehicle Components'
       },
-      category_name_en: {
-        type: 'string',
-        maxLength: 255,
-        description: 'Filter by category name in English',
-        example: 'Automotive Parts'
-      },
-      type_category_name_en: {
-        type: 'string',
-        maxLength: 255,
-        description: 'Filter by type category name in English',
-        example: 'Engine Parts'
-      },
       dokumen_name: {
         type: 'string',
         maxLength: 255,
@@ -378,6 +366,120 @@ const itemCategorySchemas = {
     }
   },
 
+  SimpleItemCategoryResponse: {
+    type: 'object',
+    properties: {
+      dokumen_id: {
+        type: 'string',
+        format: 'uuid',
+        example: '123e4567-e89b-12d3-a456-426614174000',
+        nullable: true,
+        description: 'Document ID'
+      },
+      dokumen_name: {
+        type: 'string',
+        example: 'Engine Manual',
+        nullable: true,
+        description: 'Document name'
+      },
+      master_category_id: {
+        type: 'string',
+        format: 'uuid',
+        example: '123e4567-e89b-12d3-a456-426614174000',
+        nullable: true,
+        description: 'Master category ID'
+      },
+      master_category_name_en: {
+        type: 'string',
+        example: 'Vehicle Components',
+        nullable: true,
+        description: 'Master category name in English'
+      },
+      master_category_name_cn: {
+        type: 'string',
+        example: '车辆组件',
+        nullable: true,
+        description: 'Master category name in Chinese'
+      }
+    }
+  },
+
+  GroupedItemCategory: {
+    type: 'object',
+    properties: {
+      dokumen_id: {
+        type: 'string',
+        format: 'uuid',
+        example: '123e4567-e89b-12d3-a456-426614174000',
+        nullable: true
+      },
+      dokumen_name: {
+        type: 'string',
+        example: 'Engine Manual',
+        nullable: true
+      },
+      dokumen_description: {
+        type: 'string',
+        example: 'Complete engine maintenance manual',
+        nullable: true
+      },
+      master_categories: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            master_category_id: {
+              type: 'string',
+              format: 'uuid',
+              example: '123e4567-e89b-12d3-a456-426614174000',
+              nullable: true
+            },
+            master_category_name_en: {
+              type: 'string',
+              example: 'Vehicle Components',
+              nullable: true
+            },
+            master_category_name_cn: {
+              type: 'string',
+              example: '车辆组件',
+              nullable: true
+            },
+            items: {
+              type: 'array',
+              items: {
+                $ref: '#/components/schemas/ItemCategory'
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  SimpleItemCategoryListResponse: {
+    type: 'object',
+    properties: {
+      success: {
+        type: 'boolean',
+        example: true
+      },
+      data: {
+        type: 'object',
+        properties: {
+          items: {
+            type: 'array',
+            items: {
+              $ref: '#/components/schemas/SimpleItemCategoryResponse'
+            }
+          },
+          pagination: {
+            $ref: '#/components/schemas/Pagination'
+          }
+        }
+      }
+    }
+  },
+
   ItemCategoryListResponse: {
     type: 'object',
     properties: {
@@ -391,7 +493,7 @@ const itemCategorySchemas = {
           items: {
             type: 'array',
             items: {
-              $ref: '#/components/schemas/ItemCategory'
+              $ref: '#/components/schemas/GroupedItemCategory'
             }
           },
           pagination: {

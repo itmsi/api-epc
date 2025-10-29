@@ -18,13 +18,9 @@ const findAll = async (page = 1, limit = 10, search = '', sortBy = 'created_at',
   
   let query = db(TABLES.ITEM_CATEGORIES)
     .select([
-      'ic.*',
+      'd.dokumen_id',
       'd.dokumen_name',
-      'd.dokumen_description',
-      'tc.type_category_name_en',
-      'tc.type_category_name_cn',
-      db.raw('COALESCE(c_type.category_name_en, c_direct.category_name_en) as category_name_en'),
-      db.raw('COALESCE(c_type.category_name_cn, c_direct.category_name_cn) as category_name_cn'),
+      db.raw('COALESCE(mc_type.master_category_id, mc_direct.master_category_id) as master_category_id'),
       db.raw('COALESCE(mc_type.master_category_name_en, mc_direct.master_category_name_en) as master_category_name_en'),
       db.raw('COALESCE(mc_type.master_category_name_cn, mc_direct.master_category_name_cn) as master_category_name_cn')
     ])
@@ -36,16 +32,17 @@ const findAll = async (page = 1, limit = 10, search = '', sortBy = 'created_at',
     .leftJoin(`${TABLES.MASTER_CATEGORIES} as mc_type`, 'c_type.master_category_id', 'mc_type.master_category_id')
     .leftJoin(`${TABLES.MASTER_CATEGORIES} as mc_direct`, 'c_direct.master_category_id', 'mc_direct.master_category_id')
     .where('ic.deleted_at', null)
-    .where('ic.is_delete', false);
+    .where('ic.is_delete', false)
+    .distinct();
 
   // Add search functionality
   if (search) {
     query = query.where(function() {
-      this.where('ic.item_category_name_en', 'ilike', `%${search}%`)
-        .orWhere('ic.item_category_name_cn', 'ilike', `%${search}%`)
-        .orWhere('d.dokumen_name', 'ilike', `%${search}%`)
-        .orWhere('tc.type_category_name_en', 'ilike', `%${search}%`)
-        .orWhere('tc.type_category_name_cn', 'ilike', `%${search}%`);
+      this.where('d.dokumen_name', 'ilike', `%${search}%`)
+        .orWhere('mc_type.master_category_name_en', 'ilike', `%${search}%`)
+        .orWhere('mc_direct.master_category_name_en', 'ilike', `%${search}%`)
+        .orWhere('mc_type.master_category_name_cn', 'ilike', `%${search}%`)
+        .orWhere('mc_direct.master_category_name_cn', 'ilike', `%${search}%`);
     });
   }
 
@@ -57,23 +54,12 @@ const findAll = async (page = 1, limit = 10, search = '', sortBy = 'created_at',
     });
   }
 
-  if (filters.category_name_en) {
-    query = query.where(function() {
-      this.where('c_type.category_name_en', 'ilike', `%${filters.category_name_en}%`)
-        .orWhere('c_direct.category_name_en', 'ilike', `%${filters.category_name_en}%`);
-    });
-  }
-
-  if (filters.type_category_name_en) {
-    query = query.where('tc.type_category_name_en', 'ilike', `%${filters.type_category_name_en}%`);
-  }
-
   if (filters.dokumen_name) {
     query = query.where('d.dokumen_name', 'ilike', `%${filters.dokumen_name}%`);
   }
 
   // Add sorting
-  query = query.orderBy(`ic.${sortBy}`, sortOrder);
+  query = query.orderBy('d.dokumen_name', sortOrder).orderBy('master_category_name_en', sortOrder);
 
   const data = await query.limit(limit).offset(offset);
   
@@ -91,11 +77,11 @@ const findAll = async (page = 1, limit = 10, search = '', sortBy = 'created_at',
 
   if (search) {
     countQuery = countQuery.where(function() {
-      this.where('ic.item_category_name_en', 'ilike', `%${search}%`)
-        .orWhere('ic.item_category_name_cn', 'ilike', `%${search}%`)
-        .orWhere('d.dokumen_name', 'ilike', `%${search}%`)
-        .orWhere('tc.type_category_name_en', 'ilike', `%${search}%`)
-        .orWhere('tc.type_category_name_cn', 'ilike', `%${search}%`);
+      this.where('d.dokumen_name', 'ilike', `%${search}%`)
+        .orWhere('mc_type.master_category_name_en', 'ilike', `%${search}%`)
+        .orWhere('mc_direct.master_category_name_en', 'ilike', `%${search}%`)
+        .orWhere('mc_type.master_category_name_cn', 'ilike', `%${search}%`)
+        .orWhere('mc_direct.master_category_name_cn', 'ilike', `%${search}%`);
     });
   }
 
@@ -107,22 +93,19 @@ const findAll = async (page = 1, limit = 10, search = '', sortBy = 'created_at',
     });
   }
 
-  if (filters.category_name_en) {
-    countQuery = countQuery.where(function() {
-      this.where('c_type.category_name_en', 'ilike', `%${filters.category_name_en}%`)
-        .orWhere('c_direct.category_name_en', 'ilike', `%${filters.category_name_en}%`);
-    });
-  }
-
-  if (filters.type_category_name_en) {
-    countQuery = countQuery.where('tc.type_category_name_en', 'ilike', `%${filters.type_category_name_en}%`);
-  }
-
   if (filters.dokumen_name) {
     countQuery = countQuery.where('d.dokumen_name', 'ilike', `%${filters.dokumen_name}%`);
   }
 
-  const total = await countQuery.count('ic.item_category_id as count').first();
+  // Get count of unique combinations
+  const countResult = await countQuery
+    .select([
+      'd.dokumen_id',
+      db.raw('COALESCE(mc_type.master_category_id, mc_direct.master_category_id) as master_category_id')
+    ])
+    .distinct();
+  
+  const total = { count: countResult.length };
   
   return {
     items: data,
@@ -482,34 +465,59 @@ const restore = async (id, userId) => {
 const findByDokumenId = async (dokumenId, page = 1, limit = 10, search = '', sortBy = 'created_at', sortOrder = 'desc') => {
   const offset = (page - 1) * limit;
   
+  // First, get dokumen info
+  const dokumen = await db(TABLES.DOKUMEN)
+    .where('dokumen_id', dokumenId)
+    .where('deleted_at', null)
+    .where('is_delete', false)
+    .first();
+  
+  if (!dokumen) {
+    return {
+      dokumen_name: null,
+      master_category_name_en: null,
+      master_category_name_cn: null,
+      items: [],
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: 0,
+        totalPages: 0
+      }
+    };
+  }
+  
   let query = db(TABLES.ITEM_CATEGORIES)
     .select([
       'ic.item_category_id',
-      db.raw('COALESCE(ic.category_id, tc.category_id) as category_id'),
-      db.raw('COALESCE(c_direct.category_name_en, c_type.category_name_en) as category_name_en'),
-      db.raw('COALESCE(c_direct.category_name_cn, c_type.category_name_cn) as category_name_cn'),
-      'ic.type_category_id',
-      'tc.type_category_name_en',
-      'tc.type_category_name_cn'
+      'ic.dokumen_id',
+      db.raw('COALESCE(mc_type.master_category_id, mc_direct.master_category_id) as master_category_id'),
+      db.raw('COALESCE(mc_type.master_category_name_en, mc_direct.master_category_name_en) as master_category_name_en'),
+      db.raw('COALESCE(mc_type.master_category_name_cn, mc_direct.master_category_name_cn) as master_category_name_cn')
     ])
     .from(`${TABLES.ITEM_CATEGORIES} as ic`)
     .leftJoin(`${TABLES.TYPE_CATEGORIES} as tc`, 'ic.type_category_id', 'tc.type_category_id')
     .leftJoin(`${TABLES.CATEGORIES} as c_type`, 'tc.category_id', 'c_type.category_id')
     .leftJoin(`${TABLES.CATEGORIES} as c_direct`, 'ic.category_id', 'c_direct.category_id')
+    .leftJoin(`${TABLES.MASTER_CATEGORIES} as mc_type`, 'c_type.master_category_id', 'mc_type.master_category_id')
+    .leftJoin(`${TABLES.MASTER_CATEGORIES} as mc_direct`, 'c_direct.master_category_id', 'mc_direct.master_category_id')
     .where('ic.dokumen_id', dokumenId)
     .where('ic.deleted_at', null)
-    .where('ic.is_delete', false);
+    .where('ic.is_delete', false)
+    .distinct();
 
   // Add search functionality
   if (search) {
     query = query.where(function() {
-      this.where(db.raw('COALESCE(c_direct.category_name_en, c_type.category_name_en)'), 'ilike', `%${search}%`)
-        .orWhere('tc.type_category_name_en', 'ilike', `%${search}%`);
+      this.where('mc_type.master_category_name_en', 'ilike', `%${search}%`)
+        .orWhere('mc_direct.master_category_name_en', 'ilike', `%${search}%`)
+        .orWhere('mc_type.master_category_name_cn', 'ilike', `%${search}%`)
+        .orWhere('mc_direct.master_category_name_cn', 'ilike', `%${search}%`);
     });
   }
 
   // Add sorting
-  query = query.orderBy(`ic.${sortBy}`, sortOrder);
+  query = query.orderBy('master_category_name_en', sortOrder);
 
   const data = await query.limit(limit).offset(offset);
   
@@ -519,6 +527,8 @@ const findByDokumenId = async (dokumenId, page = 1, limit = 10, search = '', sor
     .leftJoin(`${TABLES.TYPE_CATEGORIES} as tc`, 'ic.type_category_id', 'tc.type_category_id')
     .leftJoin(`${TABLES.CATEGORIES} as c_type`, 'tc.category_id', 'c_type.category_id')
     .leftJoin(`${TABLES.CATEGORIES} as c_direct`, 'ic.category_id', 'c_direct.category_id')
+    .leftJoin(`${TABLES.MASTER_CATEGORIES} as mc_type`, 'c_type.master_category_id', 'mc_type.master_category_id')
+    .leftJoin(`${TABLES.MASTER_CATEGORIES} as mc_direct`, 'c_direct.master_category_id', 'mc_direct.master_category_id')
     .where('ic.dokumen_id', dokumenId)
     .where('ic.deleted_at', null)
     .where('ic.is_delete', false);
@@ -526,15 +536,34 @@ const findByDokumenId = async (dokumenId, page = 1, limit = 10, search = '', sor
   // Add search functionality to count query
   if (search) {
     countQuery = countQuery.where(function() {
-      this.where(db.raw('COALESCE(c_direct.category_name_en, c_type.category_name_en)'), 'ilike', `%${search}%`)
-        .orWhere('tc.type_category_name_en', 'ilike', `%${search}%`);
+      this.where('mc_type.master_category_name_en', 'ilike', `%${search}%`)
+        .orWhere('mc_direct.master_category_name_en', 'ilike', `%${search}%`)
+        .orWhere('mc_type.master_category_name_cn', 'ilike', `%${search}%`)
+        .orWhere('mc_direct.master_category_name_cn', 'ilike', `%${search}%`);
     });
   }
 
-  const total = await countQuery.count('ic.item_category_id as count').first();
+  // Count unique master categories
+  const countResult = await countQuery
+    .select(db.raw('COALESCE(mc_type.master_category_id, mc_direct.master_category_id) as master_category_id'))
+    .distinct();
+  
+  const total = { count: countResult.length };
+  
+  // Get first master category info if exists (for dokumen level info)
+  const firstMasterCategory = data.length > 0 ? data[0] : null;
   
   return {
-    items: data,
+    dokumen_name: dokumen.dokumen_name,
+    master_category_name_en: firstMasterCategory ? firstMasterCategory.master_category_name_en : null,
+    master_category_name_cn: firstMasterCategory ? firstMasterCategory.master_category_name_cn : null,
+    items: data.map(item => ({
+      item_category_id: item.item_category_id,
+      dokumen_id: item.dokumen_id,
+      master_category_id: item.master_category_id,
+      master_category_name_en: item.master_category_name_en,
+      master_category_name_cn: item.master_category_name_cn
+    })),
     pagination: {
       page: parseInt(page),
       limit: parseInt(limit),
