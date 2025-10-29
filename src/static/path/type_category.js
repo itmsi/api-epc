@@ -21,7 +21,8 @@ const typeCategoryPaths = {
               limit: 10,
               search: '',
               sort_by: 'created_at',
-              sort_order: 'desc'
+              sort_order: 'desc',
+              category_id: null
             }
           }
         }

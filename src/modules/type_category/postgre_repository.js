@@ -5,12 +5,17 @@ const TABLE_NAME = 'type_categories';
 /**
  * Find all items with pagination dan search
  */
-const findAll = async (page = 1, limit = 10, search = '', sortBy = 'created_at', sortOrder = 'desc') => {
+const findAll = async (page = 1, limit = 10, search = '', sortBy = 'created_at', sortOrder = 'desc', categoryId = null) => {
   const offset = (page - 1) * limit;
   
   let query = db(TABLE_NAME)
     .select('*')
     .where({ is_delete: false });
+  
+  // Filter by category_id jika ada
+  if (categoryId) {
+    query = query.where({ category_id: categoryId });
+  }
   
   // Search functionality
   if (search) {
@@ -31,6 +36,10 @@ const findAll = async (page = 1, limit = 10, search = '', sortBy = 'created_at',
   // Count total untuk pagination
   let countQuery = db(TABLE_NAME)
     .where({ is_delete: false });
+  
+  if (categoryId) {
+    countQuery = countQuery.where({ category_id: categoryId });
+  }
     
   if (search) {
     countQuery = countQuery.where(function() {

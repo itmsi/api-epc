@@ -11,10 +11,15 @@ const getAll = async (req, res) => {
       limit = 10, 
       search = '', 
       sort_by = 'created_at', 
-      sort_order = 'desc' 
+      sort_order = 'desc',
+      category_id = null
     } = req.body;
     
-    const data = await repository.findAll(page, limit, search, sort_by, sort_order);
+    const normalizedCategoryId = (category_id === '' || category_id === null || category_id === undefined)
+      ? null
+      : category_id;
+
+    const data = await repository.findAll(page, limit, search, sort_by, sort_order, normalizedCategoryId);
     return successResponse(res, data, 'Data berhasil diambil');
   } catch (error) {
     return errorResponse(res, error.message || 'Terjadi kesalahan', 500);
