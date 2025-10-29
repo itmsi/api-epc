@@ -68,6 +68,21 @@ router.post(
 );
 
 /**
+ * @route   POST /api/epc/item_category/create
+ * @desc    Create new item category with details
+ * @access  Private
+ */
+router.post(
+  '/create',
+  verifyToken,
+  fileUpload.single('file_foto'),
+  parseDataItems,
+  createValidation,
+  validateMiddleware,
+  handler.create
+);
+
+/**
  * @route   GET /api/epc/item_category/dokumen/:dokumen_id
  * @desc    Get all item categories by dokumen_id with category and type_category info
  * @access  Private
@@ -89,21 +104,6 @@ router.get(
   getByIdValidation,
   validateMiddleware,
   handler.getById
-);
-
-/**
- * @route   POST /api/epc/item_category/create
- * @desc    Create new item category with details
- * @access  Private
- */
-router.post(
-  '/create',
-  verifyToken,
-  fileUpload.single('file_foto'),
-  parseDataItems,
-  createValidation,
-  validateMiddleware,
-  handler.create
 );
 
 /**
