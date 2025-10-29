@@ -15,6 +15,17 @@ const itemCategoryPaths = {
           'application/json': {
             schema: {
               $ref: '#/components/schemas/ItemCategoryGetRequest'
+            },
+            example: {
+              page: 1,
+              limit: 10,
+              search: '',
+              sort_by: 'created_at',
+              sort_order: 'desc',
+              master_category_name_en: '',
+              category_name_en: '',
+              type_category_name_en: '',
+              dokumen_name: ''
             }
           }
         }
@@ -102,6 +113,17 @@ const itemCategoryPaths = {
             minimum: 1,
             maximum: 100,
             default: 10
+          }
+        },
+        {
+          name: 'search',
+          in: 'query',
+          required: false,
+          description: 'Search term for category_name_en and type_category_name_en',
+          schema: {
+            type: 'string',
+            maxLength: 255,
+            default: ''
           }
         },
         {

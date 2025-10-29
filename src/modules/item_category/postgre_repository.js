@@ -13,7 +13,7 @@ const TABLES = {
 /**
  * Find all item categories with pagination and joins
  */
-const findAll = async (page = 1, limit = 10, search = '', sortBy = 'created_at', sortOrder = 'desc') => {
+const findAll = async (page = 1, limit = 10, search = '', sortBy = 'created_at', sortOrder = 'desc', filters = {}) => {
   const offset = (page - 1) * limit;
   
   let query = db(TABLES.ITEM_CATEGORIES)
@@ -49,6 +49,29 @@ const findAll = async (page = 1, limit = 10, search = '', sortBy = 'created_at',
     });
   }
 
+  // Add filters
+  if (filters.master_category_name_en) {
+    query = query.where(function() {
+      this.where('mc_type.master_category_name_en', 'ilike', `%${filters.master_category_name_en}%`)
+        .orWhere('mc_direct.master_category_name_en', 'ilike', `%${filters.master_category_name_en}%`);
+    });
+  }
+
+  if (filters.category_name_en) {
+    query = query.where(function() {
+      this.where('c_type.category_name_en', 'ilike', `%${filters.category_name_en}%`)
+        .orWhere('c_direct.category_name_en', 'ilike', `%${filters.category_name_en}%`);
+    });
+  }
+
+  if (filters.type_category_name_en) {
+    query = query.where('tc.type_category_name_en', 'ilike', `%${filters.type_category_name_en}%`);
+  }
+
+  if (filters.dokumen_name) {
+    query = query.where('d.dokumen_name', 'ilike', `%${filters.dokumen_name}%`);
+  }
+
   // Add sorting
   query = query.orderBy(`ic.${sortBy}`, sortOrder);
 
@@ -61,6 +84,8 @@ const findAll = async (page = 1, limit = 10, search = '', sortBy = 'created_at',
     .leftJoin(`${TABLES.TYPE_CATEGORIES} as tc`, 'ic.type_category_id', 'tc.type_category_id')
     .leftJoin(`${TABLES.CATEGORIES} as c_type`, 'tc.category_id', 'c_type.category_id')
     .leftJoin(`${TABLES.CATEGORIES} as c_direct`, 'ic.category_id', 'c_direct.category_id')
+    .leftJoin(`${TABLES.MASTER_CATEGORIES} as mc_type`, 'c_type.master_category_id', 'mc_type.master_category_id')
+    .leftJoin(`${TABLES.MASTER_CATEGORIES} as mc_direct`, 'c_direct.master_category_id', 'mc_direct.master_category_id')
     .where('ic.deleted_at', null)
     .where('ic.is_delete', false);
 
@@ -72,6 +97,29 @@ const findAll = async (page = 1, limit = 10, search = '', sortBy = 'created_at',
         .orWhere('tc.type_category_name_en', 'ilike', `%${search}%`)
         .orWhere('tc.type_category_name_cn', 'ilike', `%${search}%`);
     });
+  }
+
+  // Add filters to count query
+  if (filters.master_category_name_en) {
+    countQuery = countQuery.where(function() {
+      this.where('mc_type.master_category_name_en', 'ilike', `%${filters.master_category_name_en}%`)
+        .orWhere('mc_direct.master_category_name_en', 'ilike', `%${filters.master_category_name_en}%`);
+    });
+  }
+
+  if (filters.category_name_en) {
+    countQuery = countQuery.where(function() {
+      this.where('c_type.category_name_en', 'ilike', `%${filters.category_name_en}%`)
+        .orWhere('c_direct.category_name_en', 'ilike', `%${filters.category_name_en}%`);
+    });
+  }
+
+  if (filters.type_category_name_en) {
+    countQuery = countQuery.where('tc.type_category_name_en', 'ilike', `%${filters.type_category_name_en}%`);
+  }
+
+  if (filters.dokumen_name) {
+    countQuery = countQuery.where('d.dokumen_name', 'ilike', `%${filters.dokumen_name}%`);
   }
 
   const total = await countQuery.count('ic.item_category_id as count').first();
@@ -431,7 +479,7 @@ const restore = async (id, userId) => {
 /**
  * Find all item categories by dokumen_id with category and type_category info with pagination
  */
-const findByDokumenId = async (dokumenId, page = 1, limit = 10, sortBy = 'created_at', sortOrder = 'desc') => {
+const findByDokumenId = async (dokumenId, page = 1, limit = 10, search = '', sortBy = 'created_at', sortOrder = 'desc') => {
   const offset = (page - 1) * limit;
   
   let query = db(TABLES.ITEM_CATEGORIES)
@@ -452,17 +500,36 @@ const findByDokumenId = async (dokumenId, page = 1, limit = 10, sortBy = 'create
     .where('ic.deleted_at', null)
     .where('ic.is_delete', false);
 
+  // Add search functionality
+  if (search) {
+    query = query.where(function() {
+      this.where(db.raw('COALESCE(c_direct.category_name_en, c_type.category_name_en)'), 'ilike', `%${search}%`)
+        .orWhere('tc.type_category_name_en', 'ilike', `%${search}%`);
+    });
+  }
+
   // Add sorting
   query = query.orderBy(`ic.${sortBy}`, sortOrder);
 
   const data = await query.limit(limit).offset(offset);
   
-  // Get total count
+  // Get total count with same joins and filters
   let countQuery = db(TABLES.ITEM_CATEGORIES)
     .from(`${TABLES.ITEM_CATEGORIES} as ic`)
+    .leftJoin(`${TABLES.TYPE_CATEGORIES} as tc`, 'ic.type_category_id', 'tc.type_category_id')
+    .leftJoin(`${TABLES.CATEGORIES} as c_type`, 'tc.category_id', 'c_type.category_id')
+    .leftJoin(`${TABLES.CATEGORIES} as c_direct`, 'ic.category_id', 'c_direct.category_id')
     .where('ic.dokumen_id', dokumenId)
     .where('ic.deleted_at', null)
     .where('ic.is_delete', false);
+
+  // Add search functionality to count query
+  if (search) {
+    countQuery = countQuery.where(function() {
+      this.where(db.raw('COALESCE(c_direct.category_name_en, c_type.category_name_en)'), 'ilike', `%${search}%`)
+        .orWhere('tc.type_category_name_en', 'ilike', `%${search}%`);
+    });
+  }
 
   const total = await countQuery.count('ic.item_category_id as count').first();
   

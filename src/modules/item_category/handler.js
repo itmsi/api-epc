@@ -14,10 +14,21 @@ const getAll = async (req, res) => {
       limit = 10, 
       search = '', 
       sort_by = 'created_at', 
-      sort_order = 'desc' 
+      sort_order = 'desc',
+      master_category_name_en,
+      category_name_en,
+      type_category_name_en,
+      dokumen_name
     } = req.body;
     
-    const data = await repository.findAll(page, limit, search, sort_by, sort_order);
+    // Extract filters from request body
+    const filters = {};
+    if (master_category_name_en) filters.master_category_name_en = master_category_name_en;
+    if (category_name_en) filters.category_name_en = category_name_en;
+    if (type_category_name_en) filters.type_category_name_en = type_category_name_en;
+    if (dokumen_name) filters.dokumen_name = dokumen_name;
+    
+    const data = await repository.findAll(page, limit, search, sort_by, sort_order, filters);
     return successResponse(res, data, 'Data berhasil diambil');
   } catch (error) {
     return errorResponse(res, error.message || 'Terjadi kesalahan', 500);
@@ -231,12 +242,13 @@ const getByDokumenId = async (req, res) => {
     const { dokumen_id } = req.params;
     const { 
       page = 1, 
-      limit = 10, 
+      limit = 10,
+      search = '',
       sort_by = 'created_at', 
       sort_order = 'desc' 
     } = req.query;
     
-    const data = await repository.findByDokumenId(dokumen_id, page, limit, sort_by, sort_order);
+    const data = await repository.findByDokumenId(dokumen_id, page, limit, search, sort_by, sort_order);
     
     return successResponse(res, data, 'Data berhasil diambil');
   } catch (error) {

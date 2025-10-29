@@ -324,6 +324,30 @@ const itemCategorySchemas = {
         enum: ['asc', 'desc'],
         description: 'Sort order',
         example: 'desc'
+      },
+      master_category_name_en: {
+        type: 'string',
+        maxLength: 255,
+        description: 'Filter by master category name in English',
+        example: 'Vehicle Components'
+      },
+      category_name_en: {
+        type: 'string',
+        maxLength: 255,
+        description: 'Filter by category name in English',
+        example: 'Automotive Parts'
+      },
+      type_category_name_en: {
+        type: 'string',
+        maxLength: 255,
+        description: 'Filter by type category name in English',
+        example: 'Engine Parts'
+      },
+      dokumen_name: {
+        type: 'string',
+        maxLength: 255,
+        description: 'Filter by document name',
+        example: 'Engine Manual'
       }
     }
   },
