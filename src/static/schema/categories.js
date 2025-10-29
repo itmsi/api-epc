@@ -221,6 +221,13 @@ const categoriesSchemas = {
         enum: ['asc', 'desc'],
         description: 'Sort order',
         example: 'desc'
+      },
+      master_category_id: {
+        type: 'string',
+        format: 'uuid',
+        nullable: true,
+        description: 'Filter by master category ID (UUID, null, or empty string)',
+        example: '123e4567-e89b-12d3-a456-426614174000'
       }
     }
   },

@@ -24,6 +24,19 @@ const getValidation = [
     .optional()
     .isIn(['asc', 'desc'])
     .withMessage('Sort order harus asc atau desc'),
+  body('master_category_id')
+    .optional()
+    .custom((value) => {
+      // Bisa null, string kosong, atau UUID yang valid
+      if (value === null || value === undefined || value === '') {
+        return true;
+      }
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (typeof value === 'string' && uuidRegex.test(value)) {
+        return true;
+      }
+      throw new Error('Master category ID harus berupa UUID yang valid, null, atau string kosong');
+    }),
 ];
 
 /**

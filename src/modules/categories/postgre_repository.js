@@ -6,12 +6,17 @@ const TABLE_NAME = 'categories';
 /**
  * Find all items with pagination dan search
  */
-const findAll = async (page = 1, limit = 10, search = '', sortBy = 'created_at', sortOrder = 'desc') => {
+const findAll = async (page = 1, limit = 10, search = '', sortBy = 'created_at', sortOrder = 'desc', masterCategoryId = null) => {
   const offset = (page - 1) * limit;
   
   let query = db(TABLE_NAME)
     .select('*')
     .where({ is_delete: false });
+  
+  // Filter by master_category_id jika ada
+  if (masterCategoryId) {
+    query = query.where({ master_category_id: masterCategoryId });
+  }
   
   // Search functionality
   if (search) {
@@ -33,6 +38,11 @@ const findAll = async (page = 1, limit = 10, search = '', sortBy = 'created_at',
   // Count total untuk pagination
   let countQuery = db(TABLE_NAME)
     .where({ is_delete: false });
+    
+  // Filter by master_category_id untuk count query
+  if (masterCategoryId) {
+    countQuery = countQuery.where({ master_category_id: masterCategoryId });
+  }
     
   if (search) {
     countQuery = countQuery.where(function() {
