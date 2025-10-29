@@ -6,7 +6,8 @@ const {
   createValidation,
   updateValidation,
   getByIdValidation,
-  deleteValidation
+  deleteValidation,
+  duplicateValidation
 } = require('./validation');
 const { verifyToken } = require('../../middlewares');
 const { validateMiddleware } = require('../../middlewares/validation');
@@ -22,6 +23,19 @@ router.post(
   getValidation,
   validateMiddleware,
   handler.getAll
+);
+
+/**
+ * @route   POST /api/epc/dokumen/duplikat/:dokumen_id
+ * @desc    Duplicate document with all related data
+ * @access  Private
+ */
+router.post(
+  '/duplikat/:dokumen_id',
+  verifyToken,
+  duplicateValidation,
+  validateMiddleware,
+  handler.duplicate
 );
 
 /**

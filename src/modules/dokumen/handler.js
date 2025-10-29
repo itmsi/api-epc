@@ -137,12 +137,39 @@ const restore = async (req, res) => {
   }
 };
 
+/**
+ * Duplicate document with all related data
+ */
+const duplicate = async (req, res) => {
+  try {
+    const { dokumen_id } = req.params;
+    
+    // Get user ID from token
+    const userId = req.user?.employee_id || req.user?.user_id;
+    
+    if (!userId) {
+      return errorResponse(res, 'User ID tidak ditemukan dalam token', 401);
+    }
+
+    const result = await repository.duplicate(dokumen_id, userId);
+    
+    if (!result) {
+      return errorResponse(res, 'Data tidak ditemukan', 404);
+    }
+    
+    return baseResponse(res, { data: result, code: 201 });
+  } catch (error) {
+    return errorResponse(res, error.message || 'Terjadi kesalahan', 500);
+  }
+};
+
 module.exports = {
   getAll,
   getById,
   create,
   update,
   remove,
-  restore
+  restore,
+  duplicate
 };
 

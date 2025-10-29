@@ -64,6 +64,80 @@ const dokumenPaths = {
     }
   },
 
+  '/dokumen/duplikat/{dokumen_id}': {
+    post: {
+      tags: ['Dokumen'],
+      summary: 'Duplicate document with all related data',
+      description: 'Duplicate a document with all related item_categories and item_categories_details. The new document will have a name in format: dokumen_name_duplikat_{original_name}',
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'dokumen_id',
+          in: 'path',
+          required: true,
+          description: 'Document ID to duplicate',
+          schema: {
+            type: 'string',
+            format: 'uuid'
+          },
+          example: '123e4567-e89b-12d3-a456-426614174000'
+        }
+      ],
+      responses: {
+        201: {
+          description: 'Successfully duplicated document',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/DokumenResponse'
+              }
+            }
+          }
+        },
+        404: {
+          description: 'Document not found',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        400: {
+          description: 'Bad Request',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        500: {
+          description: 'Internal Server Error',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
   '/dokumen/{id}': {
     get: {
       tags: ['Dokumen'],

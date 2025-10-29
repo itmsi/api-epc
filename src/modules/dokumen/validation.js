@@ -86,11 +86,23 @@ const deleteValidation = [
     .withMessage('Format ID tidak valid'),
 ];
 
+/**
+ * Validation rules for duplicating document
+ */
+const duplicateValidation = [
+  param('dokumen_id')
+    .notEmpty()
+    .withMessage('Dokumen ID wajib diisi')
+    .isUUID()
+    .withMessage('Format Dokumen ID tidak valid'),
+];
+
 module.exports = {
   getValidation,
   createValidation,
   updateValidation,
   getByIdValidation,
-  deleteValidation
+  deleteValidation,
+  duplicateValidation
 };
 

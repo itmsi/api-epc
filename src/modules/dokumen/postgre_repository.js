@@ -184,12 +184,111 @@ const restore = async (id, userId) => {
   return result;
 };
 
+/**
+ * Duplicate document with all related item_categories and item_categories_details
+ */
+const duplicate = async (dokumenId, userId) => {
+  const trx = await db.transaction();
+  
+  try {
+    // 1. Get original dokumen
+    const originalDokumen = await trx(TABLE_NAME)
+      .where('dokumen_id', dokumenId)
+      .where('deleted_at', null)
+      .where('is_delete', false)
+      .first();
+    
+    if (!originalDokumen) {
+      await trx.rollback();
+      return null;
+    }
+    
+    // 2. Create new dokumen with duplicate name
+    const newDokumenName = `dokumen_name_duplikat_${originalDokumen.dokumen_name}`;
+    const [newDokumen] = await trx(TABLE_NAME)
+      .insert({
+        dokumen_name: newDokumenName,
+        dokumen_description: originalDokumen.dokumen_description,
+        created_by: userId,
+        updated_by: userId,
+        created_at: db.fn.now(),
+        updated_at: db.fn.now()
+      })
+      .returning('*');
+    
+    // 3. Get all item_categories for this dokumen
+    const itemCategories = await trx('item_categories')
+      .where('dokumen_id', dokumenId)
+      .where('deleted_at', null)
+      .where('is_delete', false);
+    
+    // 4. Duplicate each item_category and its details
+    const itemCategoryMap = {}; // Map old item_category_id to new item_category_id
+    
+    for (const itemCategory of itemCategories) {
+      // Create new item_category
+      const [newItemCategory] = await trx('item_categories')
+        .insert({
+          type_category_id: itemCategory.type_category_id,
+          category_id: itemCategory.category_id,
+          dokumen_id: newDokumen.dokumen_id,
+          item_category_name_en: itemCategory.item_category_name_en,
+          item_category_name_cn: itemCategory.item_category_name_cn,
+          item_category_description: itemCategory.item_category_description,
+          item_category_foto: itemCategory.item_category_foto,
+          created_by: userId,
+          updated_by: userId,
+          created_at: db.fn.now(),
+          updated_at: db.fn.now()
+        })
+        .returning('*');
+      
+      itemCategoryMap[itemCategory.item_category_id] = newItemCategory.item_category_id;
+      
+      // Get all details for this item_category
+      const itemCategoriesDetails = await trx('item_categories_details')
+        .where('item_category_id', itemCategory.item_category_id)
+        .where('deleted_at', null)
+        .where('is_delete', false);
+      
+      // Duplicate item_categories_details
+      if (itemCategoriesDetails.length > 0) {
+        const newDetails = itemCategoriesDetails.map(detail => ({
+          item_category_id: newItemCategory.item_category_id,
+          target_id: detail.target_id,
+          part_number: detail.part_number,
+          catalog_item_name_en: detail.catalog_item_name_en,
+          catalog_item_name_ch: detail.catalog_item_name_ch,
+          description: detail.description,
+          quantity: detail.quantity,
+          unit: detail.unit,
+          created_by: userId,
+          updated_by: userId,
+          created_at: db.fn.now(),
+          updated_at: db.fn.now()
+        }));
+        
+        await trx('item_categories_details').insert(newDetails);
+      }
+    }
+    
+    await trx.commit();
+    
+    // Return the new dokumen with all relations
+    return await findById(newDokumen.dokumen_id);
+  } catch (error) {
+    await trx.rollback();
+    throw error;
+  }
+};
+
 module.exports = {
   findAll,
   findById,
   create,
   update,
   remove,
-  restore
+  restore,
+  duplicate
 };
 
