@@ -68,6 +68,11 @@ const createValidation = [
     .isString()
     .withMessage('Category description harus berupa string')
     .trim(),
+  body('categories_code')
+    .optional()
+    .isString()
+    .withMessage('Categories code harus berupa string')
+    .trim(),
   body('data_type')
     .optional()
     .isArray()
@@ -85,6 +90,11 @@ const createValidation = [
     .optional()
     .isLength({ max: 255 })
     .withMessage('Type category name CN maksimal 255 karakter')
+    .trim(),
+  body('data_type.*.type_category_code')
+    .optional()
+    .isString()
+    .withMessage('Type category code harus berupa string')
     .trim(),
   body('data_type.*.type_category_description')
     .optional()
@@ -127,6 +137,11 @@ const updateValidation = [
     .isString()
     .withMessage('Category description harus berupa string')
     .trim(),
+  body('categories_code')
+    .optional()
+    .isString()
+    .withMessage('Categories code harus berupa string')
+    .trim(),
   body('data_type')
     .optional()
     .isArray()
@@ -144,6 +159,11 @@ const updateValidation = [
     .optional()
     .isLength({ max: 255 })
     .withMessage('Type category name CN maksimal 255 karakter')
+    .trim(),
+  body('data_type.*.type_category_code')
+    .optional()
+    .isString()
+    .withMessage('Type category code harus berupa string')
     .trim(),
   body('data_type.*.type_category_description')
     .optional()

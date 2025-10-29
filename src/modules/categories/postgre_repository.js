@@ -83,7 +83,7 @@ const findById = async (id) => {
   // Ambil data type_categories yang terkait
   const typeCategories = await db('type_categories')
     .where({ category_id: id, is_delete: false })
-    .select('type_category_id', 'type_category_name_en', 'type_category_name_cn', 'type_category_description');
+    .select('type_category_id', 'type_category_code', 'type_category_name_en', 'type_category_name_cn', 'type_category_description');
     
   return {
     ...category,

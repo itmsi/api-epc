@@ -43,6 +43,12 @@ const categoriesSchemas = {
         description: 'Category description',
         example: 'Electronic devices and components'
       },
+      categories_code: {
+        type: 'string',
+        nullable: true,
+        description: 'Categories code',
+        example: '1234567890'
+      },
       created_at: {
         type: 'string',
         format: 'date-time',
@@ -116,6 +122,12 @@ const categoriesSchemas = {
               description: 'Type category name in Chinese',
               example: '电子产品'
             },
+            type_category_code: {
+              type: 'string',
+              nullable: true,
+              description: 'Type category code',
+              example: '1234567890'
+            },
             type_category_description: {
               type: 'string',
               nullable: true,
@@ -157,6 +169,13 @@ const categoriesSchemas = {
         description: 'Category description',
         example: 'Electronic devices and components'
       },
+      categories_code: {
+        type: 'string',
+        maxLength: 255,
+        nullable: true,
+        description: 'Categories code',
+        example: '1234567890'
+      },
       data_type: {
         type: 'array',
         nullable: true,
@@ -177,6 +196,13 @@ const categoriesSchemas = {
               nullable: true,
               description: 'Type category name in Chinese',
               example: '电子产品'
+            },
+            type_category_code: {
+              type: 'string',
+              maxLength: 255,
+              nullable: true,
+              description: 'Type category code',
+              example: '1234567890'
             },
             type_category_description: {
               type: 'string',

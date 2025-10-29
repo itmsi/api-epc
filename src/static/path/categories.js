@@ -143,8 +143,10 @@ const categoriesPaths = {
               master_category_name_en: 'Updated Electronics',
               category_name_cn: '更新的电子产品',
               category_description: 'Updated electronic devices and components',
+              categories_code: '1234567890',
               data_type: [
                 {
+                  type_category_code: '1234567890',
                   type_category_name_en: 'Updated Electronics',
                   type_category_name_cn: '更新的电子产品',
                   type_category_description: 'Updated electronic devices and components'
@@ -267,8 +269,10 @@ const categoriesPaths = {
               master_category_name_en: 'Electronics',
               category_name_cn: '电子产品',
               category_description: 'Electronic devices and components',
+              categories_code: '1234567890',
               data_type: [
                 {
+                  type_category_code: '1234567890',
                   type_category_name_en: 'Electronics',
                   type_category_name_cn: '电子产品',
                   type_category_description: 'Electronic devices and components'
