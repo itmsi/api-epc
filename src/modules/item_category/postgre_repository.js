@@ -13,13 +13,17 @@ const TABLES = {
 /**
  * Find all item categories with pagination and joins
  */
-const findAll = async (page = 1, limit = 10, search = '', sortBy = 'created_at', sortOrder = 'desc', filters = {}) => {
+const findAll = async (page = 1, limit = 10, search = '', sortBy = 'd.created_at', sortOrder = 'desc', filters = {}) => {
   const offset = (page - 1) * limit;
+  
+  // Determine sort column - add table prefix if not present
+  const sortColumn = sortBy.includes('.') ? sortBy : `d.${sortBy}`;
   
   let query = db(TABLES.ITEM_CATEGORIES)
     .select([
       'd.dokumen_id',
       'd.dokumen_name',
+      'd.created_at',
       db.raw('COALESCE(mc_type.master_category_id, mc_direct.master_category_id) as master_category_id'),
       db.raw('COALESCE(mc_type.master_category_name_en, mc_direct.master_category_name_en) as master_category_name_en'),
       db.raw('COALESCE(mc_type.master_category_name_cn, mc_direct.master_category_name_cn) as master_category_name_cn')
@@ -58,8 +62,8 @@ const findAll = async (page = 1, limit = 10, search = '', sortBy = 'created_at',
     query = query.where('d.dokumen_name', 'ilike', `%${filters.dokumen_name}%`);
   }
 
-  // Add sorting
-  query = query.orderBy('d.dokumen_name', sortOrder).orderBy('master_category_name_en', sortOrder);
+  // Add sorting - sortColumn already determined above
+  query = query.orderBy(sortColumn, sortOrder);
 
   const data = await query.limit(limit).offset(offset);
   

@@ -13,7 +13,7 @@ const getAll = async (req, res) => {
       page = 1, 
       limit = 10, 
       search = '', 
-      sort_by = 'created_at', 
+      sort_by = 'd.created_at', 
       sort_order = 'desc',
       master_category_name_en,
       dokumen_name
