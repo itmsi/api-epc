@@ -53,7 +53,7 @@ const create = async (req, res) => {
     }
 
     const result = await repository.create(req.body, userId);
-    return baseResponse(res, { data: result, code: 201 });
+    return successResponse(res, result, 'Data berhasil dibuat', 201);
   } catch (error) {
     return errorResponse(res, error.message || 'Terjadi kesalahan', 500);
   }
@@ -79,7 +79,7 @@ const update = async (req, res) => {
       return errorResponse(res, 'Data tidak ditemukan', 404);
     }
     
-    return baseResponse(res, { data: result, code: 200 });
+    return successResponse(res, result, 'Data berhasil diupdate');
   } catch (error) {
     return errorResponse(res, error.message || 'Terjadi kesalahan', 500);
   }
@@ -105,7 +105,7 @@ const remove = async (req, res) => {
       return errorResponse(res, 'Data tidak ditemukan', 404);
     }
     
-    return baseResponse(res, { data: null, code: 200 });
+    return successResponse(res, null, 'Data berhasil dihapus');
   } catch (error) {
     return errorResponse(res, error.message || 'Terjadi kesalahan', 500);
   }
@@ -131,7 +131,7 @@ const restore = async (req, res) => {
       return errorResponse(res, 'Data tidak ditemukan', 404);
     }
     
-    return baseResponse(res, { data: result, code: 200 });
+    return successResponse(res, result, 'Data berhasil direstore');
   } catch (error) {
     return errorResponse(res, error.message || 'Terjadi kesalahan', 500);
   }
