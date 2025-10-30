@@ -1,5 +1,5 @@
 const repository = require('./postgre_repository');
-const { baseResponse, errorResponse } = require('../../utils/response');
+const { successResponse, errorResponse } = require('../../utils/response');
 
 /**
  * Get all items with pagination
@@ -8,7 +8,7 @@ const getAll = async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
     const data = await repository.findAll(page, limit);
-    return baseResponse(res, { data });
+    return successResponse(res, data, 'Data berhasil diambil');
   } catch (error) {
     return errorResponse(res, error);
   }
@@ -26,7 +26,7 @@ const getById = async (req, res) => {
       return errorResponse(res, { message: 'Data tidak ditemukan' }, 404);
     }
     
-    return baseResponse(res, { data });
+    return successResponse(res, data, 'Data berhasil diambil');
   } catch (error) {
     return errorResponse(res, error);
   }
@@ -38,10 +38,7 @@ const getById = async (req, res) => {
 const create = async (req, res) => {
   try {
     const data = await repository.create(req.body);
-    return baseResponse(res, { 
-      data,
-      message: 'Data berhasil dibuat' 
-    }, 201);
+    return successResponse(res, data, 'Data berhasil dibuat', 201);
   } catch (error) {
     return errorResponse(res, error);
   }
@@ -59,10 +56,7 @@ const update = async (req, res) => {
       return errorResponse(res, { message: 'Data tidak ditemukan' }, 404);
     }
     
-    return baseResponse(res, { 
-      data,
-      message: 'Data berhasil diupdate' 
-    });
+    return successResponse(res, data, 'Data berhasil diupdate');
   } catch (error) {
     return errorResponse(res, error);
   }
@@ -80,9 +74,7 @@ const remove = async (req, res) => {
       return errorResponse(res, { message: 'Data tidak ditemukan' }, 404);
     }
     
-    return baseResponse(res, { 
-      message: 'Data berhasil dihapus' 
-    });
+    return successResponse(res, null, 'Data berhasil dihapus');
   } catch (error) {
     return errorResponse(res, error);
   }
@@ -100,10 +92,7 @@ const restore = async (req, res) => {
       return errorResponse(res, { message: 'Data tidak ditemukan' }, 404);
     }
     
-    return baseResponse(res, { 
-      data,
-      message: 'Data berhasil direstore' 
-    });
+    return successResponse(res, data, 'Data berhasil direstore');
   } catch (error) {
     return errorResponse(res, error);
   }
