@@ -16,7 +16,7 @@ const getAll = async (req, res) => {
     } = req.body;
     
     const data = await repository.findAll(page, limit, search, sort_by, sort_order);
-    return baseResponse(res, { data, code: 200 });
+    return successResponse(res, data, 'Data berhasil diambil');
   } catch (error) {
     return errorResponse(res, error.message || 'Terjadi kesalahan', 500);
   }
@@ -34,7 +34,7 @@ const getById = async (req, res) => {
       return errorResponse(res, 'Data tidak ditemukan', 404);
     }
     
-    return baseResponse(res, { data, code: 200 });
+    return successResponse(res, data, 'Data berhasil diambil');
   } catch (error) {
     return errorResponse(res, error.message || 'Terjadi kesalahan', 500);
   }
