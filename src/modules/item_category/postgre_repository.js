@@ -135,6 +135,7 @@ const findById = async (id) => {
       'tc.type_category_name_cn',
       db.raw('COALESCE(c_type.category_name_en, c_direct.category_name_en) as category_name_en'),
       db.raw('COALESCE(c_type.category_name_cn, c_direct.category_name_cn) as category_name_cn'),
+      db.raw('COALESCE(mc_type.master_category_id, mc_direct.master_category_id) as master_category_id'),
       db.raw('COALESCE(mc_type.master_category_name_en, mc_direct.master_category_name_en) as master_category_name_en'),
       db.raw('COALESCE(mc_type.master_category_name_cn, mc_direct.master_category_name_cn) as master_category_name_cn')
     ])
