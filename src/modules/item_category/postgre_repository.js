@@ -495,6 +495,10 @@ const findByDokumenId = async (dokumenId, page = 1, limit = 10, search = '', sor
     .select([
       'ic.item_category_id',
       'ic.dokumen_id',
+      'tc.type_category_name_en',
+      'tc.type_category_name_cn',
+      db.raw('c_direct.category_name_en as category_name_en'),
+      db.raw('c_direct.category_name_cn as category_name_cn'),
       db.raw('COALESCE(mc_type.master_category_id, mc_direct.master_category_id) as master_category_id'),
       db.raw('COALESCE(mc_type.master_category_name_en, mc_direct.master_category_name_en) as master_category_name_en'),
       db.raw('COALESCE(mc_type.master_category_name_cn, mc_direct.master_category_name_cn) as master_category_name_cn')
@@ -566,7 +570,11 @@ const findByDokumenId = async (dokumenId, page = 1, limit = 10, search = '', sor
       dokumen_id: item.dokumen_id,
       master_category_id: item.master_category_id,
       master_category_name_en: item.master_category_name_en,
-      master_category_name_cn: item.master_category_name_cn
+      master_category_name_cn: item.master_category_name_cn,
+      category_name_en: item.category_name_en,
+      category_name_cn: item.category_name_cn,
+      type_category_name_en: item.type_category_name_en,
+      type_category_name_cn: item.type_category_name_cn
     })),
     pagination: {
       page: parseInt(page),
