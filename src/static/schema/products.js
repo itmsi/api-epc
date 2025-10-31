@@ -93,6 +93,24 @@ const productsSchemas = {
         description: 'Vehicle identification number',
         example: 'WBAFR9C50DD123456'
       },
+      model_type: {
+        type: 'string',
+        nullable: true,
+        description: 'Model type',
+        example: 'Sedan'
+      },
+      dimensi: {
+        type: 'string',
+        nullable: true,
+        description: 'Dimensions',
+        example: '2000x1500x1000 mm'
+      },
+      model_engine: {
+        type: 'string',
+        nullable: true,
+        description: 'Model engine',
+        example: '2.0L Turbo'
+      },
       details: {
         type: 'array',
         items: {
@@ -172,6 +190,27 @@ const productsSchemas = {
         maxLength: 255,
         description: 'Vehicle identification number',
         example: 'WBAFR9C50DD123456'
+      },
+      model_type: {
+        type: 'string',
+        maxLength: 255,
+        nullable: true,
+        description: 'Model type',
+        example: 'Sedan'
+      },
+      dimensi: {
+        type: 'string',
+        maxLength: 255,
+        nullable: true,
+        description: 'Dimensions',
+        example: '2000x1500x1000 mm'
+      },
+      model_engine: {
+        type: 'string',
+        maxLength: 255,
+        nullable: true,
+        description: 'Model engine',
+        example: '2.0L Turbo'
       },
       data_details: {
         type: 'array',
