@@ -37,17 +37,32 @@ const findAll = async (page = 1, limit = 10, search = '', sortBy = 'd.created_at
     .leftJoin(`${TABLES.MASTER_CATEGORIES} as mc_direct`, 'c_direct.master_category_id', 'mc_direct.master_category_id')
     .where('ic.deleted_at', null)
     .where('ic.is_delete', false)
-    .distinct();
+    .groupBy([
+      'd.dokumen_id',
+      'd.dokumen_name',
+      'd.created_at',
+      db.raw('COALESCE(mc_type.master_category_id, mc_direct.master_category_id)'),
+      db.raw('COALESCE(mc_type.master_category_name_en, mc_direct.master_category_name_en)'),
+      db.raw('COALESCE(mc_type.master_category_name_cn, mc_direct.master_category_name_cn)')
+    ]);
 
-  // Add search functionality
+  // Add search functionality - if search is provided, we need to join with details
   if (search) {
-    query = query.where(function() {
-      this.where('d.dokumen_name', 'ilike', `%${search}%`)
-        .orWhere('mc_type.master_category_name_en', 'ilike', `%${search}%`)
-        .orWhere('mc_direct.master_category_name_en', 'ilike', `%${search}%`)
-        .orWhere('mc_type.master_category_name_cn', 'ilike', `%${search}%`)
-        .orWhere('mc_direct.master_category_name_cn', 'ilike', `%${search}%`);
-    });
+    query = query
+      .leftJoin(`${TABLES.ITEM_CATEGORIES_DETAILS} as icd`, function() {
+        this.on('ic.item_category_id', '=', 'icd.item_category_id')
+          .andOn(db.raw('icd.deleted_at IS NULL'))
+          .andOn(db.raw('icd.is_delete = false'));
+      })
+      .where(function() {
+        this.where('d.dokumen_name', 'ilike', `%${search}%`)
+          .orWhere('mc_type.master_category_name_en', 'ilike', `%${search}%`)
+          .orWhere('mc_direct.master_category_name_en', 'ilike', `%${search}%`)
+          .orWhere('mc_type.master_category_name_cn', 'ilike', `%${search}%`)
+          .orWhere('mc_direct.master_category_name_cn', 'ilike', `%${search}%`)
+          .orWhere('icd.part_number', 'ilike', `%${search}%`)
+          .orWhere('icd.catalog_item_name_en', 'ilike', `%${search}%`);
+      });
   }
 
   // Add filters
@@ -87,13 +102,21 @@ const findAll = async (page = 1, limit = 10, search = '', sortBy = 'd.created_at
     .where('ic.is_delete', false);
 
   if (search) {
-    countQuery = countQuery.where(function() {
-      this.where('d.dokumen_name', 'ilike', `%${search}%`)
-        .orWhere('mc_type.master_category_name_en', 'ilike', `%${search}%`)
-        .orWhere('mc_direct.master_category_name_en', 'ilike', `%${search}%`)
-        .orWhere('mc_type.master_category_name_cn', 'ilike', `%${search}%`)
-        .orWhere('mc_direct.master_category_name_cn', 'ilike', `%${search}%`);
-    });
+    countQuery = countQuery
+      .leftJoin(`${TABLES.ITEM_CATEGORIES_DETAILS} as icd`, function() {
+        this.on('ic.item_category_id', '=', 'icd.item_category_id')
+          .andOn(db.raw('icd.deleted_at IS NULL'))
+          .andOn(db.raw('icd.is_delete = false'));
+      })
+      .where(function() {
+        this.where('d.dokumen_name', 'ilike', `%${search}%`)
+          .orWhere('mc_type.master_category_name_en', 'ilike', `%${search}%`)
+          .orWhere('mc_direct.master_category_name_en', 'ilike', `%${search}%`)
+          .orWhere('mc_type.master_category_name_cn', 'ilike', `%${search}%`)
+          .orWhere('mc_direct.master_category_name_cn', 'ilike', `%${search}%`)
+          .orWhere('icd.part_number', 'ilike', `%${search}%`)
+          .orWhere('icd.catalog_item_name_en', 'ilike', `%${search}%`);
+      });
   }
 
   // Add filters to count query
@@ -120,6 +143,10 @@ const findAll = async (page = 1, limit = 10, search = '', sortBy = 'd.created_at
     .select([
       'd.dokumen_id',
       db.raw('COALESCE(mc_type.master_category_id, mc_direct.master_category_id) as master_category_id')
+    ])
+    .groupBy([
+      'd.dokumen_id',
+      db.raw('COALESCE(mc_type.master_category_id, mc_direct.master_category_id)')
     ])
     .distinct();
   
