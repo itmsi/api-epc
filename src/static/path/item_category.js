@@ -23,6 +23,7 @@ const itemCategoryPaths = {
               sort_by: 'created_at',
               sort_order: 'desc',
               master_category_name_en: '',
+              master_category_name_id: '',
               category_name_en: '',
               type_category_name_en: '',
               dokumen_name: ''

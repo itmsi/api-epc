@@ -58,6 +58,13 @@ const findAll = async (page = 1, limit = 10, search = '', sortBy = 'd.created_at
     });
   }
 
+  if (filters.master_category_name_id) {
+    query = query.where(function() {
+      this.where('mc_type.master_category_id', filters.master_category_name_id)
+        .orWhere('mc_direct.master_category_id', filters.master_category_name_id);
+    });
+  }
+
   if (filters.dokumen_name) {
     query = query.where('d.dokumen_name', 'ilike', `%${filters.dokumen_name}%`);
   }
@@ -94,6 +101,13 @@ const findAll = async (page = 1, limit = 10, search = '', sortBy = 'd.created_at
     countQuery = countQuery.where(function() {
       this.where('mc_type.master_category_name_en', 'ilike', `%${filters.master_category_name_en}%`)
         .orWhere('mc_direct.master_category_name_en', 'ilike', `%${filters.master_category_name_en}%`);
+    });
+  }
+
+  if (filters.master_category_name_id) {
+    countQuery = countQuery.where(function() {
+      this.where('mc_type.master_category_id', filters.master_category_name_id)
+        .orWhere('mc_direct.master_category_id', filters.master_category_name_id);
     });
   }
 

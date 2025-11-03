@@ -331,6 +331,13 @@ const itemCategorySchemas = {
         description: 'Filter by master category name in English',
         example: 'Vehicle Components'
       },
+      master_category_name_id: {
+        type: 'string',
+        format: 'uuid',
+        description: 'Filter by master category ID (UUID)',
+        example: '123e4567-e89b-12d3-a456-426614174000',
+        nullable: true
+      },
       dokumen_name: {
         type: 'string',
         maxLength: 255,

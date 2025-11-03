@@ -25,6 +25,18 @@ const getValidation = [
     .optional()
     .isIn(['asc', 'desc'])
     .withMessage('Sort order harus asc atau desc'),
+  body('master_category_name_id')
+    .optional({ checkFalsy: true })
+    .custom((value) => {
+      if (!value || value.trim() === '') {
+        return true;
+      }
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(value)) {
+        throw new Error('Format Master category ID tidak valid');
+      }
+      return true;
+    }),
 ];
 
 /**
