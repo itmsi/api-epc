@@ -46,6 +46,10 @@ routing.use(`${API_TAG}/products`, productsModule)
 const dokumenModule = require('../../modules/dokumen')
 routing.use(`${API_TAG}/dokumen`, dokumenModule)
 
+// Spareparts Module
+const sparepartsModule = require('../../modules/spareparts')
+routing.use(`${API_TAG}/spareparts`, sparepartsModule)
+
 // Tambahkan routes module Anda di sini
 // Example:
 // const yourModule = require('../../modules/yourModule')
