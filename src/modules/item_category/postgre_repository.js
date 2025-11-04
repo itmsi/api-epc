@@ -544,6 +544,7 @@ const findByDokumenId = async (dokumenId, page = 1, limit = 10, search = '', sor
     .select([
       'ic.item_category_id',
       'ic.dokumen_id',
+      'ic.created_at',
       'tc.type_category_name_en',
       'tc.type_category_name_cn',
       db.raw('c_direct.category_name_en as category_name_en'),
@@ -573,8 +574,9 @@ const findByDokumenId = async (dokumenId, page = 1, limit = 10, search = '', sor
     });
   }
 
-  // Add sorting
-  query = query.orderBy('master_category_name_en', sortOrder);
+  // Add sorting - default to ic.created_at desc
+  const sortColumn = sortBy === 'created_at' ? 'ic.created_at' : `ic.${sortBy}`;
+  query = query.orderBy(sortColumn, sortOrder || 'desc');
 
   const data = await query.limit(limit).offset(offset);
   
@@ -618,6 +620,7 @@ const findByDokumenId = async (dokumenId, page = 1, limit = 10, search = '', sor
     items: data.map(item => ({
       item_category_id: item.item_category_id,
       dokumen_id: item.dokumen_id,
+      created_at: item.created_at,
       master_category_id: item.master_category_id,
       master_category_name_en: item.master_category_name_en,
       master_category_name_cn: item.master_category_name_cn,
