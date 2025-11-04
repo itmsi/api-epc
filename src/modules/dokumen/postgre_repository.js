@@ -255,13 +255,9 @@ const duplicate = async (dokumenId, userId) => {
       if (itemCategoriesDetails.length > 0) {
         const newDetails = itemCategoriesDetails.map(detail => ({
           item_category_id: newItemCategory.item_category_id,
+          master_item_id: detail.master_item_id,
           target_id: detail.target_id,
-          part_number: detail.part_number,
-          catalog_item_name_en: detail.catalog_item_name_en,
-          catalog_item_name_ch: detail.catalog_item_name_ch,
-          description: detail.description,
           quantity: detail.quantity,
-          unit: detail.unit,
           created_by: userId,
           updated_by: userId,
           created_at: db.fn.now(),

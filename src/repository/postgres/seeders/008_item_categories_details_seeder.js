@@ -43,15 +43,40 @@ exports.seed = async function(knex) {
     const partNum = partNumbers[i % partNumbers.length];
     const targetId = targetIds[i % targetIds.length];
 
+    // First, create or find master_item
+    let masterItem = await knex('master_items')
+      .where({
+        part_number: partNum,
+        target_id: targetId,
+        description: item.desc
+      })
+      .whereNull('deleted_at')
+      .where('is_delete', false)
+      .first();
+
+    if (!masterItem) {
+      const [newMasterItem] = await knex('master_items')
+        .insert({
+          target_id: targetId,
+          part_number: partNum,
+          master_item_name_en: item.nameEn,
+          master_item_name_ch: item.nameCn,
+          description: item.desc,
+          quantity: Math.floor(Math.random() * 10) + 1,
+          unit: 'pcs',
+          created_at: knex.fn.now(),
+          updated_at: knex.fn.now()
+        })
+        .returning('master_item_id');
+      
+      masterItem = { master_item_id: newMasterItem.master_item_id };
+    }
+
     itemDetails.push({
       item_category_id: itemCategories[i].item_category_id,
+      master_item_id: masterItem.master_item_id,
       target_id: targetId,
-      part_number: partNum,
-      catalog_item_name_en: item.nameEn,
-      catalog_item_name_ch: item.nameCn,
-      description: item.desc,
-      quantity: Math.floor(Math.random() * 10) + 1,
-      unit: 'pcs'
+      quantity: Math.floor(Math.random() * 10) + 1
     });
   }
 

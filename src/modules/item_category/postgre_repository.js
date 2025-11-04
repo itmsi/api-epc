@@ -47,13 +47,18 @@ const findAll = async (page = 1, limit = 10, search = '', sortBy = 'd.created_at
       db.raw('COALESCE(mc_type.master_category_name_cn, mc_direct.master_category_name_cn)')
     ]);
 
-  // Add search functionality - if search is provided, we need to join with details
+  // Add search functionality - if search is provided, we need to join with details and master_items
   if (search) {
     query = query
       .leftJoin(`${TABLES.ITEM_CATEGORIES_DETAILS} as icd`, function() {
         this.on('ic.item_category_id', '=', 'icd.item_category_id')
           .andOn(db.raw('icd.deleted_at IS NULL'))
           .andOn(db.raw('icd.is_delete = false'));
+      })
+      .leftJoin(`${TABLES.MASTER_ITEMS} as mi`, function() {
+        this.on('icd.master_item_id', '=', 'mi.master_item_id')
+          .andOn(db.raw('mi.deleted_at IS NULL'))
+          .andOn(db.raw('mi.is_delete = false'));
       })
       .where(function() {
         this.where('d.dokumen_name', 'ilike', `%${search}%`)
@@ -64,8 +69,8 @@ const findAll = async (page = 1, limit = 10, search = '', sortBy = 'd.created_at
           .orWhere('c_type.category_name_en', 'ilike', `%${search}%`)
           .orWhere('c_direct.category_name_en', 'ilike', `%${search}%`)
           .orWhere('tc.type_category_name_en', 'ilike', `%${search}%`)
-          .orWhere('icd.part_number', 'ilike', `%${search}%`)
-          .orWhere('icd.catalog_item_name_en', 'ilike', `%${search}%`);
+          .orWhere('mi.part_number', 'ilike', `%${search}%`)
+          .orWhere('mi.master_item_name_en', 'ilike', `%${search}%`);
       });
   }
 
@@ -112,6 +117,11 @@ const findAll = async (page = 1, limit = 10, search = '', sortBy = 'd.created_at
           .andOn(db.raw('icd.deleted_at IS NULL'))
           .andOn(db.raw('icd.is_delete = false'));
       })
+      .leftJoin(`${TABLES.MASTER_ITEMS} as mi`, function() {
+        this.on('icd.master_item_id', '=', 'mi.master_item_id')
+          .andOn(db.raw('mi.deleted_at IS NULL'))
+          .andOn(db.raw('mi.is_delete = false'));
+      })
       .where(function() {
         this.where('d.dokumen_name', 'ilike', `%${search}%`)
           .orWhere('mc_type.master_category_name_en', 'ilike', `%${search}%`)
@@ -121,8 +131,8 @@ const findAll = async (page = 1, limit = 10, search = '', sortBy = 'd.created_at
           .orWhere('c_type.category_name_en', 'ilike', `%${search}%`)
           .orWhere('c_direct.category_name_en', 'ilike', `%${search}%`)
           .orWhere('tc.type_category_name_en', 'ilike', `%${search}%`)
-          .orWhere('icd.part_number', 'ilike', `%${search}%`)
-          .orWhere('icd.catalog_item_name_en', 'ilike', `%${search}%`);
+          .orWhere('mi.part_number', 'ilike', `%${search}%`)
+          .orWhere('mi.master_item_name_en', 'ilike', `%${search}%`);
       });
   }
 
@@ -203,15 +213,25 @@ const findById = async (id) => {
     return null;
   }
 
-  // Get item category details
+  // Get item category details with master_items data
   const details = await db(TABLES.ITEM_CATEGORIES_DETAILS)
     .select([
       'icd.*',
+      'mi.part_number',
+      'mi.master_item_name_en as catalog_item_name_en',
+      'mi.master_item_name_ch as catalog_item_name_ch',
+      'mi.description',
+      'mi.unit',
       'u.unit_name_en',
       'u.unit_name_cn'
     ])
     .from(`${TABLES.ITEM_CATEGORIES_DETAILS} as icd`)
-    .leftJoin(`${TABLES.UNITS} as u`, 'icd.unit', 'u.unit_name_en')
+    .leftJoin(`${TABLES.MASTER_ITEMS} as mi`, function() {
+      this.on('icd.master_item_id', '=', 'mi.master_item_id')
+        .andOn(db.raw('mi.deleted_at IS NULL'))
+        .andOn(db.raw('mi.is_delete = false'));
+    })
+    .leftJoin(`${TABLES.UNITS} as u`, 'mi.unit', 'u.unit_name_en')
     .where('icd.item_category_id', id)
     .where('icd.deleted_at', null)
     .where('icd.is_delete', false);
@@ -481,12 +501,7 @@ const create = async (data, userId) => {
             item_category_id: itemCategory.item_category_id,
             master_item_id: masterItemId,
             target_id: item.target_id,
-            part_number: item.part_number,
-            catalog_item_name_en: item.catalog_item_name_en,
-            catalog_item_name_ch: item.catalog_item_name_ch,
-            description: item.description,
             quantity: item.quantity,
-            unit: item.unit,
             created_by: userId,
             updated_by: userId,
             created_at: db.fn.now(),
@@ -711,12 +726,7 @@ const update = async (id, data, userId) => {
             item_category_id: id,
             master_item_id: masterItemId,
             target_id: item.target_id,
-            part_number: item.part_number,
-            catalog_item_name_en: item.catalog_item_name_en,
-            catalog_item_name_ch: item.catalog_item_name_ch,
-            description: item.description,
             quantity: item.quantity,
-            unit: item.unit,
             created_by: userId,
             updated_by: userId,
             created_at: db.fn.now(),
