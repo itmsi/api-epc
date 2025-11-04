@@ -1,9 +1,9 @@
 const db = require('../../config/database').pgCore;
 
-const TABLE_NAME = 'spareparts';
+const TABLE_NAME = 'master_items';
 
 /**
- * Find all spareparts with pagination and search
+ * Find all master items with pagination and search
  */
 const findAll = async (page = 1, limit = 10, search = '', sortBy = 'created_at', sortOrder = 'desc') => {
   const offset = (page - 1) * limit;
@@ -17,8 +17,8 @@ const findAll = async (page = 1, limit = 10, search = '', sortBy = 'created_at',
     query = query.where(function() {
       this.where('target_id', 'ilike', `%${search}%`)
         .orWhere('part_number', 'ilike', `%${search}%`)
-        .orWhere('sparepart_name_en', 'ilike', `%${search}%`)
-        .orWhere('sparepart_name_ch', 'ilike', `%${search}%`)
+        .orWhere('master_item_name_en', 'ilike', `%${search}%`)
+        .orWhere('master_item_name_ch', 'ilike', `%${search}%`)
         .orWhere('description', 'ilike', `%${search}%`)
         .orWhere('unit', 'ilike', `%${search}%`);
     });
@@ -39,15 +39,15 @@ const findAll = async (page = 1, limit = 10, search = '', sortBy = 'created_at',
     countQuery = countQuery.where(function() {
       this.where('target_id', 'ilike', `%${search}%`)
         .orWhere('part_number', 'ilike', `%${search}%`)
-        .orWhere('sparepart_name_en', 'ilike', `%${search}%`)
-        .orWhere('sparepart_name_ch', 'ilike', `%${search}%`)
+        .orWhere('master_item_name_en', 'ilike', `%${search}%`)
+        .orWhere('master_item_name_ch', 'ilike', `%${search}%`)
         .orWhere('description', 'ilike', `%${search}%`)
         .orWhere('unit', 'ilike', `%${search}%`);
     });
   }
   
   const total = await countQuery
-    .count('sparepart_id as count')
+    .count('master_item_id as count')
     .first();
     
   return {
@@ -62,16 +62,16 @@ const findAll = async (page = 1, limit = 10, search = '', sortBy = 'created_at',
 };
 
 /**
- * Find single sparepart by ID
+ * Find single master item by ID
  */
 const findById = async (id) => {
   return await db(TABLE_NAME)
-    .where({ sparepart_id: id, is_delete: false })
+    .where({ master_item_id: id, is_delete: false })
     .first();
 };
 
 /**
- * Check if sparepart with same part_number, target_id, and description exists
+ * Check if master item with same part_number, target_id, and description exists
  */
 const findDuplicate = async (partNumber, targetId, description) => {
   return await db(TABLE_NAME)
@@ -86,7 +86,7 @@ const findDuplicate = async (partNumber, targetId, description) => {
 };
 
 /**
- * Create new sparepart
+ * Create new master item
  */
 const create = async (data, userId) => {
   const [result] = await db(TABLE_NAME)
@@ -102,11 +102,11 @@ const create = async (data, userId) => {
 };
 
 /**
- * Update existing sparepart
+ * Update existing master item
  */
 const update = async (id, data, userId) => {
   const [result] = await db(TABLE_NAME)
-    .where({ sparepart_id: id, is_delete: false })
+    .where({ master_item_id: id, is_delete: false })
     .update({
       ...data,
       updated_by: userId,
@@ -117,11 +117,11 @@ const update = async (id, data, userId) => {
 };
 
 /**
- * Soft delete sparepart
+ * Soft delete master item
  */
 const remove = async (id, userId) => {
   const [result] = await db(TABLE_NAME)
-    .where({ sparepart_id: id, is_delete: false })
+    .where({ master_item_id: id, is_delete: false })
     .update({
       deleted_at: db.fn.now(),
       deleted_by: userId,
@@ -134,11 +134,11 @@ const remove = async (id, userId) => {
 };
 
 /**
- * Restore soft deleted sparepart
+ * Restore soft deleted master item
  */
 const restore = async (id, userId) => {
   const [result] = await db(TABLE_NAME)
-    .where({ sparepart_id: id })
+    .where({ master_item_id: id })
     .whereNotNull('deleted_at')
     .where('is_delete', true)
     .update({

@@ -1,11 +1,11 @@
-# Spareparts Module
+# Master Items Module
 
-Module untuk mengelola data spareparts dengan fitur CRUD lengkap.
+Module untuk mengelola data master items dengan fitur CRUD lengkap.
 
 ## 📁 Struktur File
 
 ```
-src/modules/spareparts/
+src/modules/master_items/
 ├── handler.js              # Request handlers / Controllers
 ├── postgre_repository.js   # Database operations
 ├── validation.js           # Input validation rules
@@ -29,16 +29,16 @@ Module ini menyediakan:
 
 ## 📊 Database Schema
 
-Tabel `spareparts`:
+Tabel `master_items`:
 
 | Column | Type | Description |
 |--------|------|-------------|
-| sparepart_id | UUID | Primary key (auto-generated) |
+| master_item_id | UUID | Primary key (auto-generated) |
 | target_id | VARCHAR(255) | Target ID (nullable) |
 | part_number | VARCHAR(255) | Part number (nullable) |
-| sparepart_name_en | VARCHAR(255) | Nama sparepart dalam bahasa Inggris (nullable) |
-| sparepart_name_ch | VARCHAR(255) | Nama sparepart dalam bahasa Cina (nullable) |
-| description | TEXT | Deskripsi sparepart (nullable) |
+| master_item_name_en | VARCHAR(255) | Nama master item dalam bahasa Inggris (nullable) |
+| master_item_name_ch | VARCHAR(255) | Nama master item dalam bahasa Cina (nullable) |
+| description | TEXT | Deskripsi master item (nullable) |
 | quantity | INTEGER | Jumlah (default: 0) |
 | unit | VARCHAR(255) | Satuan (nullable) |
 | created_at | TIMESTAMP | Waktu pembuatan |
@@ -50,17 +50,17 @@ Tabel `spareparts`:
 | is_delete | BOOLEAN | Flag soft delete (default: false) |
 
 Indexes:
-- `idx_spareparts_deleted_at` - untuk soft delete queries
-- `idx_spareparts_is_delete` - untuk filter by is_delete
-- `idx_spareparts_created_at` - untuk sorting
-- `idx_spareparts_part_number` - untuk search part number
-- `idx_spareparts_target_id` - untuk search target id
+- `idx_master_items_deleted_at` - untuk soft delete queries
+- `idx_master_items_is_delete` - untuk filter by is_delete
+- `idx_master_items_created_at` - untuk sorting
+- `idx_master_items_part_number` - untuk search part number
+- `idx_master_items_target_id` - untuk search target id
 
 ## 🔌 API Endpoints
 
-### 1. Get All Spareparts (with pagination)
+### 1. Get All Master Items (with pagination)
 ```http
-POST /api/epc/spareparts/get
+POST /api/epc/master_items/get
 Authorization: Bearer <token>
 Content-Type: application/json
 
@@ -97,9 +97,9 @@ Content-Type: application/json
 }
 ```
 
-### 2. Get Sparepart by ID
+### 2. Get Master Item by ID
 ```http
-GET /api/epc/spareparts/:id
+GET /api/epc/master_items/:id
 Authorization: Bearer <token>
 ```
 
@@ -108,7 +108,7 @@ Authorization: Bearer <token>
 {
   "success": true,
   "data": {
-    "sparepart_id": "...",
+    "master_item_id": "...",
     "target_id": "...",
     "part_number": "...",
     ...
@@ -117,17 +117,17 @@ Authorization: Bearer <token>
 }
 ```
 
-### 3. Create Sparepart
+### 3. Create Master Item
 ```http
-POST /api/epc/spareparts/create
+POST /api/epc/master_items/create
 Authorization: Bearer <token>
 Content-Type: application/json
 
 {
   "target_id": "T001",
   "part_number": "PN-12345",
-  "sparepart_name_en": "Engine Oil Filter",
-  "sparepart_name_ch": "机油滤清器",
+  "master_item_name_en": "Engine Oil Filter",
+  "master_item_name_ch": "机油滤清器",
   "description": "High quality engine oil filter",
   "quantity": 2,
   "unit": "pcs"
@@ -143,24 +143,24 @@ Content-Type: application/json
 }
 ```
 
-### 4. Update Sparepart
+### 4. Update Master Item
 ```http
-PUT /api/epc/spareparts/:id
+PUT /api/epc/master_items/:id
 Authorization: Bearer <token>
 Content-Type: application/json
 
 {
   "target_id": "T001",
   "part_number": "PN-12345",
-  "sparepart_name_en": "Engine Oil Filter",
+  "master_item_name_en": "Engine Oil Filter",
   "quantity": 3,
   ...
 }
 ```
 
-### 5. Delete Sparepart (Soft Delete)
+### 5. Delete Master Item (Soft Delete)
 ```http
-DELETE /api/epc/spareparts/:id
+DELETE /api/epc/master_items/:id
 Authorization: Bearer <token>
 ```
 
@@ -197,8 +197,8 @@ Semua input akan divalidasi menggunakan express-validator:
 Search dilakukan pada kolom:
 - `target_id`
 - `part_number`
-- `sparepart_name_en`
-- `sparepart_name_ch`
+- `master_item_name_en`
+- `master_item_name_ch`
 - `description`
 - `unit`
 
@@ -209,5 +209,5 @@ Dokumentasi lengkap tersedia di:
 http://localhost:9566/documentation
 ```
 
-Tag: **Spareparts**
+Tag: **Master Items**
 

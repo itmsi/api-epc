@@ -1,7 +1,7 @@
 const { body, param } = require('express-validator');
 
 /**
- * Validation rules for getting spareparts list
+ * Validation rules for getting master items list
  */
 const getValidation = [
   body('page')
@@ -27,7 +27,7 @@ const getValidation = [
 ];
 
 /**
- * Validation rules for creating sparepart
+ * Validation rules for creating master item
  */
 const createValidation = [
   body('target_id')
@@ -42,17 +42,17 @@ const createValidation = [
     .isLength({ max: 255 })
     .withMessage('Part number maksimal 255 karakter')
     .trim(),
-  body('sparepart_name_en')
+  body('master_item_name_en')
     .optional()
     .isString()
     .isLength({ max: 255 })
-    .withMessage('Sparepart name EN maksimal 255 karakter')
+    .withMessage('Master item name EN maksimal 255 karakter')
     .trim(),
-  body('sparepart_name_ch')
+  body('master_item_name_ch')
     .optional()
     .isString()
     .isLength({ max: 255 })
-    .withMessage('Sparepart name CH maksimal 255 karakter')
+    .withMessage('Master item name CH maksimal 255 karakter')
     .trim(),
   body('description')
     .optional()
@@ -72,7 +72,7 @@ const createValidation = [
 ];
 
 /**
- * Validation rules for updating sparepart
+ * Validation rules for updating master item
  */
 const updateValidation = [
   param('id')
@@ -92,17 +92,17 @@ const updateValidation = [
     .isLength({ max: 255 })
     .withMessage('Part number maksimal 255 karakter')
     .trim(),
-  body('sparepart_name_en')
+  body('master_item_name_en')
     .optional()
     .isString()
     .isLength({ max: 255 })
-    .withMessage('Sparepart name EN maksimal 255 karakter')
+    .withMessage('Master item name EN maksimal 255 karakter')
     .trim(),
-  body('sparepart_name_ch')
+  body('master_item_name_ch')
     .optional()
     .isString()
     .isLength({ max: 255 })
-    .withMessage('Sparepart name CH maksimal 255 karakter')
+    .withMessage('Master item name CH maksimal 255 karakter')
     .trim(),
   body('description')
     .optional()
@@ -122,7 +122,7 @@ const updateValidation = [
 ];
 
 /**
- * Validation rules for getting sparepart by ID
+ * Validation rules for getting master item by ID
  */
 const getByIdValidation = [
   param('id')
@@ -133,7 +133,7 @@ const getByIdValidation = [
 ];
 
 /**
- * Validation rules for deleting sparepart
+ * Validation rules for deleting master item
  */
 const deleteValidation = [
   param('id')

@@ -2,7 +2,7 @@ const repository = require('./postgre_repository');
 const { successResponse, errorResponse } = require('../../utils/response');
 
 /**
- * Get all spareparts with pagination
+ * Get all master items with pagination
  */
 const getAll = async (req, res) => {
   try {
@@ -22,7 +22,7 @@ const getAll = async (req, res) => {
 };
 
 /**
- * Get single sparepart by ID
+ * Get single master item by ID
  */
 const getById = async (req, res) => {
   try {
@@ -40,7 +40,7 @@ const getById = async (req, res) => {
 };
 
 /**
- * Create new sparepart
+ * Create new master item
  */
 const create = async (req, res) => {
   try {
@@ -59,7 +59,7 @@ const create = async (req, res) => {
 };
 
 /**
- * Update existing sparepart
+ * Update existing master item
  */
 const update = async (req, res) => {
   try {
@@ -85,7 +85,7 @@ const update = async (req, res) => {
 };
 
 /**
- * Soft delete sparepart
+ * Soft delete master item
  */
 const remove = async (req, res) => {
   try {
@@ -111,7 +111,7 @@ const remove = async (req, res) => {
 };
 
 /**
- * Restore soft deleted sparepart
+ * Restore soft deleted master item
  */
 const restore = async (req, res) => {
   try {

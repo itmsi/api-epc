@@ -1,20 +1,20 @@
 /**
- * Swagger Path Definitions for Spareparts Module
+ * Swagger Path Definitions for Master Items Module
  */
 
-const sparepartsPaths = {
-  '/spareparts/get': {
+const masterItemsPaths = {
+  '/master_items/get': {
     post: {
-      tags: ['Spareparts'],
-      summary: 'Get all spareparts with pagination and filters',
-      description: 'Retrieve spareparts with pagination, search, and sorting capabilities',
+      tags: ['Master Items'],
+      summary: 'Get all master items with pagination and filters',
+      description: 'Retrieve master items with pagination, search, and sorting capabilities',
       security: [{ bearerAuth: [] }],
       requestBody: {
         required: true,
         content: {
           'application/json': {
             schema: {
-              $ref: '#/components/schemas/SparepartGetRequest'
+              $ref: '#/components/schemas/MasterItemGetRequest'
             },
             example: {
               page: 1,
@@ -28,11 +28,11 @@ const sparepartsPaths = {
       },
       responses: {
         200: {
-          description: 'Successfully retrieved spareparts',
+          description: 'Successfully retrieved master items',
           content: {
             'application/json': {
               schema: {
-                $ref: '#/components/schemas/SparepartListResponse'
+                $ref: '#/components/schemas/MasterItemListResponse'
               }
             }
           }
@@ -71,24 +71,24 @@ const sparepartsPaths = {
     }
   },
 
-  '/spareparts/create': {
+  '/master_items/create': {
     post: {
-      tags: ['Spareparts'],
-      summary: 'Create new sparepart',
-      description: 'Create a new sparepart',
+      tags: ['Master Items'],
+      summary: 'Create new master item',
+      description: 'Create a new master item',
       security: [{ bearerAuth: [] }],
       requestBody: {
         required: true,
         content: {
           'application/json': {
             schema: {
-              $ref: '#/components/schemas/SparepartInput'
+              $ref: '#/components/schemas/MasterItemInput'
             },
             example: {
               target_id: 'T001',
               part_number: 'PN-12345',
-              sparepart_name_en: 'Engine Oil Filter',
-              sparepart_name_ch: '机油滤清器',
+              master_item_name_en: 'Engine Oil Filter',
+              master_item_name_ch: '机油滤清器',
               description: 'High quality engine oil filter',
               quantity: 2,
               unit: 'pcs'
@@ -98,11 +98,11 @@ const sparepartsPaths = {
       },
       responses: {
         201: {
-          description: 'Successfully created sparepart',
+          description: 'Successfully created master item',
           content: {
             'application/json': {
               schema: {
-                $ref: '#/components/schemas/SparepartResponse'
+                $ref: '#/components/schemas/MasterItemResponse'
               }
             }
           }
@@ -141,18 +141,18 @@ const sparepartsPaths = {
     }
   },
 
-  '/spareparts/{id}': {
+  '/master_items/{id}': {
     get: {
-      tags: ['Spareparts'],
-      summary: 'Get sparepart by ID',
-      description: 'Retrieve a specific sparepart by ID',
+      tags: ['Master Items'],
+      summary: 'Get master item by ID',
+      description: 'Retrieve a specific master item by ID',
       security: [{ bearerAuth: [] }],
       parameters: [
         {
           name: 'id',
           in: 'path',
           required: true,
-          description: 'Sparepart ID',
+          description: 'Master Item ID',
           schema: {
             type: 'string',
             format: 'uuid'
@@ -161,17 +161,17 @@ const sparepartsPaths = {
       ],
       responses: {
         200: {
-          description: 'Successfully retrieved sparepart',
+          description: 'Successfully retrieved master item',
           content: {
             'application/json': {
               schema: {
-                $ref: '#/components/schemas/SparepartResponse'
+                $ref: '#/components/schemas/MasterItemResponse'
               }
             }
           }
         },
         404: {
-          description: 'Sparepart not found',
+          description: 'Master item not found',
           content: {
             'application/json': {
               schema: {
@@ -204,16 +204,16 @@ const sparepartsPaths = {
     },
 
     put: {
-      tags: ['Spareparts'],
-      summary: 'Update sparepart',
-      description: 'Update an existing sparepart',
+      tags: ['Master Items'],
+      summary: 'Update master item',
+      description: 'Update an existing master item',
       security: [{ bearerAuth: [] }],
       parameters: [
         {
           name: 'id',
           in: 'path',
           required: true,
-          description: 'Sparepart ID',
+          description: 'Master Item ID',
           schema: {
             type: 'string',
             format: 'uuid'
@@ -225,13 +225,13 @@ const sparepartsPaths = {
         content: {
           'application/json': {
             schema: {
-              $ref: '#/components/schemas/SparepartInput'
+              $ref: '#/components/schemas/MasterItemInput'
             },
             example: {
               target_id: 'T001',
               part_number: 'PN-12345',
-              sparepart_name_en: 'Engine Oil Filter',
-              sparepart_name_ch: '机油滤清器',
+              master_item_name_en: 'Engine Oil Filter',
+              master_item_name_ch: '机油滤清器',
               description: 'High quality engine oil filter',
               quantity: 3,
               unit: 'pcs'
@@ -241,17 +241,17 @@ const sparepartsPaths = {
       },
       responses: {
         200: {
-          description: 'Successfully updated sparepart',
+          description: 'Successfully updated master item',
           content: {
             'application/json': {
               schema: {
-                $ref: '#/components/schemas/SparepartResponse'
+                $ref: '#/components/schemas/MasterItemResponse'
               }
             }
           }
         },
         404: {
-          description: 'Sparepart not found',
+          description: 'Master item not found',
           content: {
             'application/json': {
               schema: {
@@ -294,16 +294,16 @@ const sparepartsPaths = {
     },
 
     delete: {
-      tags: ['Spareparts'],
-      summary: 'Delete sparepart',
-      description: 'Soft delete a sparepart',
+      tags: ['Master Items'],
+      summary: 'Delete master item',
+      description: 'Soft delete a master item',
       security: [{ bearerAuth: [] }],
       parameters: [
         {
           name: 'id',
           in: 'path',
           required: true,
-          description: 'Sparepart ID',
+          description: 'Master Item ID',
           schema: {
             type: 'string',
             format: 'uuid'
@@ -312,7 +312,7 @@ const sparepartsPaths = {
       ],
       responses: {
         200: {
-          description: 'Successfully deleted sparepart',
+          description: 'Successfully deleted master item',
           content: {
             'application/json': {
               schema: {
@@ -332,7 +332,7 @@ const sparepartsPaths = {
           }
         },
         404: {
-          description: 'Sparepart not found',
+          description: 'Master item not found',
           content: {
             'application/json': {
               schema: {
@@ -366,5 +366,5 @@ const sparepartsPaths = {
   }
 };
 
-module.exports = sparepartsPaths;
+module.exports = masterItemsPaths;
 

@@ -1,15 +1,15 @@
 /**
- * Swagger Schema Definitions for Spareparts Module
+ * Swagger Schema Definitions for Master Items Module
  */
 
-const sparepartsSchemas = {
-  Sparepart: {
+const masterItemsSchemas = {
+  MasterItem: {
     type: 'object',
     properties: {
-      sparepart_id: {
+      master_item_id: {
         type: 'string',
         format: 'uuid',
-        description: 'Unique identifier for sparepart',
+        description: 'Unique identifier for master item',
         example: '123e4567-e89b-12d3-a456-426614174000'
       },
       target_id: {
@@ -26,23 +26,23 @@ const sparepartsSchemas = {
         example: 'PN-12345',
         nullable: true
       },
-      sparepart_name_en: {
+      master_item_name_en: {
         type: 'string',
         maxLength: 255,
-        description: 'Sparepart name in English',
+        description: 'Master item name in English',
         example: 'Engine Oil Filter',
         nullable: true
       },
-      sparepart_name_ch: {
+      master_item_name_ch: {
         type: 'string',
         maxLength: 255,
-        description: 'Sparepart name in Chinese',
+        description: 'Master item name in Chinese',
         example: '机油滤清器',
         nullable: true
       },
       description: {
         type: 'string',
-        description: 'Description of the sparepart',
+        description: 'Description of the master item',
         example: 'High quality engine oil filter',
         nullable: true
       },
@@ -109,7 +109,7 @@ const sparepartsSchemas = {
     }
   },
 
-  SparepartInput: {
+  MasterItemInput: {
     type: 'object',
     properties: {
       target_id: {
@@ -124,21 +124,21 @@ const sparepartsSchemas = {
         description: 'Part number',
         example: 'PN-12345'
       },
-      sparepart_name_en: {
+      master_item_name_en: {
         type: 'string',
         maxLength: 255,
-        description: 'Sparepart name in English',
+        description: 'Master item name in English',
         example: 'Engine Oil Filter'
       },
-      sparepart_name_ch: {
+      master_item_name_ch: {
         type: 'string',
         maxLength: 255,
-        description: 'Sparepart name in Chinese',
+        description: 'Master item name in Chinese',
         example: '机油滤清器'
       },
       description: {
         type: 'string',
-        description: 'Description of the sparepart',
+        description: 'Description of the master item',
         example: 'High quality engine oil filter'
       },
       quantity: {
@@ -157,7 +157,7 @@ const sparepartsSchemas = {
     }
   },
 
-  SparepartGetRequest: {
+  MasterItemGetRequest: {
     type: 'object',
     properties: {
       page: {
@@ -184,7 +184,7 @@ const sparepartsSchemas = {
       },
       sort_by: {
         type: 'string',
-        enum: ['created_at', 'updated_at', 'sparepart_name_en', 'sparepart_name_ch', 'part_number', 'target_id'],
+        enum: ['created_at', 'updated_at', 'master_item_name_en', 'master_item_name_ch', 'part_number', 'target_id'],
         description: 'Sort field',
         example: 'created_at',
         default: 'created_at'
@@ -225,7 +225,7 @@ const sparepartsSchemas = {
     }
   },
 
-  SparepartListResponse: {
+  MasterItemListResponse: {
     type: 'object',
     properties: {
       success: {
@@ -238,7 +238,7 @@ const sparepartsSchemas = {
           items: {
             type: 'array',
             items: {
-              $ref: '#/components/schemas/Sparepart'
+              $ref: '#/components/schemas/MasterItem'
             }
           },
           pagination: {
@@ -254,7 +254,7 @@ const sparepartsSchemas = {
     }
   },
 
-  SparepartResponse: {
+  MasterItemResponse: {
     type: 'object',
     properties: {
       success: {
@@ -262,7 +262,7 @@ const sparepartsSchemas = {
         example: true
       },
       data: {
-        $ref: '#/components/schemas/Sparepart'
+        $ref: '#/components/schemas/MasterItem'
       },
       message: {
         type: 'string',
@@ -293,5 +293,5 @@ const sparepartsSchemas = {
   }
 };
 
-module.exports = sparepartsSchemas;
+module.exports = masterItemsSchemas;
 

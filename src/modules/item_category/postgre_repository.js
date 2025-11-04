@@ -8,7 +8,7 @@ const TABLES = {
   MASTER_CATEGORIES: 'master_categories',
   CATEGORIES: 'categories',
   TYPE_CATEGORIES: 'type_categories',
-  SPAREPARTS: 'spareparts'
+  MASTER_ITEMS: 'master_items'
 };
 
 /**
@@ -397,7 +397,7 @@ const create = async (data, userId) => {
         
         // Validasi: jika ada part_number yang sama tapi description berbeda, maka gagal
         if (item.part_number) {
-          const existingSparepart = await trx(TABLES.SPAREPARTS)
+          const existingMasterItem = await trx(TABLES.MASTER_ITEMS)
             .where({
               part_number: item.part_number,
               is_delete: false
@@ -405,9 +405,9 @@ const create = async (data, userId) => {
             .whereNull('deleted_at')
             .first();
           
-          if (existingSparepart) {
+          if (existingMasterItem) {
             // Jika part_number sama tapi description berbeda, maka gagal
-            if (existingSparepart.description !== item.description) {
+            if (existingMasterItem.description !== item.description) {
               await trx.rollback();
               throw new Error('Data gagal tersimpan: Data dengan part_number yang sama sudah ada dengan description yang berbeda');
             }
@@ -415,9 +415,9 @@ const create = async (data, userId) => {
         }
         
         // Cek apakah ada data yang sama semua (part_number, target_id, description)
-        let sparepartId = null;
+        let masterItemId = null;
         if (item.part_number && item.target_id && item.description) {
-          const duplicateSparepart = await trx(TABLES.SPAREPARTS)
+          const duplicateMasterItem = await trx(TABLES.MASTER_ITEMS)
             .where({
               part_number: item.part_number,
               target_id: item.target_id,
@@ -427,18 +427,18 @@ const create = async (data, userId) => {
             .whereNull('deleted_at')
             .first();
           
-          if (duplicateSparepart) {
-            // Jika data sama semua, gunakan sparepart_id yang sudah ada
-            sparepartId = duplicateSparepart.sparepart_id;
+          if (duplicateMasterItem) {
+            // Jika data sama semua, gunakan master_item_id yang sudah ada
+            masterItemId = duplicateMasterItem.master_item_id;
           } else {
-            // Jika tidak ada duplikat, simpan ke tabel spareparts
+            // Jika tidak ada duplikat, simpan ke tabel master_items
             if (item.part_number || item.target_id || item.description) {
-              const [sparepart] = await trx(TABLES.SPAREPARTS)
+              const [masterItem] = await trx(TABLES.MASTER_ITEMS)
                 .insert({
                   target_id: item.target_id || null,
                   part_number: item.part_number || null,
-                  sparepart_name_en: item.catalog_item_name_en || null,
-                  sparepart_name_ch: item.catalog_item_name_ch || null,
+                  master_item_name_en: item.catalog_item_name_en || null,
+                  master_item_name_ch: item.catalog_item_name_ch || null,
                   description: item.description || null,
                   quantity: item.quantity || 0,
                   unit: item.unit || null,
@@ -447,20 +447,20 @@ const create = async (data, userId) => {
                   created_at: db.fn.now(),
                   updated_at: db.fn.now()
                 })
-                .returning('sparepart_id');
+                .returning('master_item_id');
               
-              sparepartId = sparepart ? sparepart.sparepart_id : null;
+              masterItemId = masterItem ? masterItem.master_item_id : null;
             }
           }
         } else {
-          // Jika tidak ada part_number, target_id, dan description, tetap simpan ke spareparts jika ada data minimal
+          // Jika tidak ada part_number, target_id, dan description, tetap simpan ke master_items jika ada data minimal
           if (item.part_number || item.target_id || item.description) {
-            const [sparepart] = await trx(TABLES.SPAREPARTS)
+            const [masterItem] = await trx(TABLES.MASTER_ITEMS)
               .insert({
                 target_id: item.target_id || null,
                 part_number: item.part_number || null,
-                sparepart_name_en: item.catalog_item_name_en || null,
-                sparepart_name_ch: item.catalog_item_name_ch || null,
+                master_item_name_en: item.catalog_item_name_en || null,
+                master_item_name_ch: item.catalog_item_name_ch || null,
                 description: item.description || null,
                 quantity: item.quantity || 0,
                 unit: item.unit || null,
@@ -469,17 +469,17 @@ const create = async (data, userId) => {
                 created_at: db.fn.now(),
                 updated_at: db.fn.now()
               })
-              .returning('sparepart_id');
+              .returning('master_item_id');
             
-            sparepartId = sparepart ? sparepart.sparepart_id : null;
+            masterItemId = masterItem ? masterItem.master_item_id : null;
           }
         }
         
-        // Simpan ke item_category_details dengan sparepart_id
+        // Simpan ke item_category_details dengan master_item_id
         await trx(TABLES.ITEM_CATEGORIES_DETAILS)
           .insert({
             item_category_id: itemCategory.item_category_id,
-            sparepart_id: sparepartId,
+            master_item_id: masterItemId,
             target_id: item.target_id,
             part_number: item.part_number,
             catalog_item_name_en: item.catalog_item_name_en,
@@ -627,7 +627,7 @@ const update = async (id, data, userId) => {
         
         // Validasi: jika ada part_number yang sama tapi description berbeda, maka gagal
         if (item.part_number) {
-          const existingSparepart = await trx(TABLES.SPAREPARTS)
+          const existingMasterItem = await trx(TABLES.MASTER_ITEMS)
             .where({
               part_number: item.part_number,
               is_delete: false
@@ -635,9 +635,9 @@ const update = async (id, data, userId) => {
             .whereNull('deleted_at')
             .first();
           
-          if (existingSparepart) {
+          if (existingMasterItem) {
             // Jika part_number sama tapi description berbeda, maka gagal
-            if (existingSparepart.description !== item.description) {
+            if (existingMasterItem.description !== item.description) {
               await trx.rollback();
               throw new Error('Data gagal tersimpan: Data dengan part_number yang sama sudah ada dengan description yang berbeda');
             }
@@ -645,9 +645,9 @@ const update = async (id, data, userId) => {
         }
         
         // Cek apakah ada data yang sama semua (part_number, target_id, description)
-        let sparepartId = null;
+        let masterItemId = null;
         if (item.part_number && item.target_id && item.description) {
-          const duplicateSparepart = await trx(TABLES.SPAREPARTS)
+          const duplicateMasterItem = await trx(TABLES.MASTER_ITEMS)
             .where({
               part_number: item.part_number,
               target_id: item.target_id,
@@ -657,18 +657,18 @@ const update = async (id, data, userId) => {
             .whereNull('deleted_at')
             .first();
           
-          if (duplicateSparepart) {
-            // Jika data sama semua, gunakan sparepart_id yang sudah ada
-            sparepartId = duplicateSparepart.sparepart_id;
+          if (duplicateMasterItem) {
+            // Jika data sama semua, gunakan master_item_id yang sudah ada
+            masterItemId = duplicateMasterItem.master_item_id;
           } else {
-            // Jika tidak ada duplikat, simpan ke tabel spareparts
+            // Jika tidak ada duplikat, simpan ke tabel master_items
             if (item.part_number || item.target_id || item.description) {
-              const [sparepart] = await trx(TABLES.SPAREPARTS)
+              const [masterItem] = await trx(TABLES.MASTER_ITEMS)
                 .insert({
                   target_id: item.target_id || null,
                   part_number: item.part_number || null,
-                  sparepart_name_en: item.catalog_item_name_en || null,
-                  sparepart_name_ch: item.catalog_item_name_ch || null,
+                  master_item_name_en: item.catalog_item_name_en || null,
+                  master_item_name_ch: item.catalog_item_name_ch || null,
                   description: item.description || null,
                   quantity: item.quantity || 0,
                   unit: item.unit || null,
@@ -677,20 +677,20 @@ const update = async (id, data, userId) => {
                   created_at: db.fn.now(),
                   updated_at: db.fn.now()
                 })
-                .returning('sparepart_id');
+                .returning('master_item_id');
               
-              sparepartId = sparepart ? sparepart.sparepart_id : null;
+              masterItemId = masterItem ? masterItem.master_item_id : null;
             }
           }
         } else {
-          // Jika tidak ada part_number, target_id, dan description, tetap simpan ke spareparts jika ada data minimal
+          // Jika tidak ada part_number, target_id, dan description, tetap simpan ke master_items jika ada data minimal
           if (item.part_number || item.target_id || item.description) {
-            const [sparepart] = await trx(TABLES.SPAREPARTS)
+            const [masterItem] = await trx(TABLES.MASTER_ITEMS)
               .insert({
                 target_id: item.target_id || null,
                 part_number: item.part_number || null,
-                sparepart_name_en: item.catalog_item_name_en || null,
-                sparepart_name_ch: item.catalog_item_name_ch || null,
+                master_item_name_en: item.catalog_item_name_en || null,
+                master_item_name_ch: item.catalog_item_name_ch || null,
                 description: item.description || null,
                 quantity: item.quantity || 0,
                 unit: item.unit || null,
@@ -699,17 +699,17 @@ const update = async (id, data, userId) => {
                 created_at: db.fn.now(),
                 updated_at: db.fn.now()
               })
-              .returning('sparepart_id');
+              .returning('master_item_id');
             
-            sparepartId = sparepart ? sparepart.sparepart_id : null;
+            masterItemId = masterItem ? masterItem.master_item_id : null;
           }
         }
         
-        // Simpan ke item_category_details dengan sparepart_id
+        // Simpan ke item_category_details dengan master_item_id
         await trx(TABLES.ITEM_CATEGORIES_DETAILS)
           .insert({
             item_category_id: id,
-            sparepart_id: sparepartId,
+            master_item_id: masterItemId,
             target_id: item.target_id,
             part_number: item.part_number,
             catalog_item_name_en: item.catalog_item_name_en,

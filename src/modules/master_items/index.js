@@ -12,8 +12,8 @@ const { verifyToken } = require('../../middlewares');
 const { validateMiddleware } = require('../../middlewares/validation');
 
 /**
- * @route   POST /api/epc/spareparts/get
- * @desc    Get all spareparts with pagination and filters
+ * @route   POST /api/epc/master_items/get
+ * @desc    Get all master items with pagination and filters
  * @access  Private
  */
 router.post(
@@ -25,8 +25,8 @@ router.post(
 );
 
 /**
- * @route   POST /api/epc/spareparts/create
- * @desc    Create new sparepart
+ * @route   POST /api/epc/master_items/create
+ * @desc    Create new master item
  * @access  Private
  */
 router.post(
@@ -38,8 +38,8 @@ router.post(
 );
 
 /**
- * @route   GET /api/epc/spareparts/:id
- * @desc    Get sparepart by ID
+ * @route   GET /api/epc/master_items/:id
+ * @desc    Get master item by ID
  * @access  Private
  */
 router.get(
@@ -51,8 +51,8 @@ router.get(
 );
 
 /**
- * @route   PUT /api/epc/spareparts/:id
- * @desc    Update sparepart
+ * @route   PUT /api/epc/master_items/:id
+ * @desc    Update master item
  * @access  Private
  */
 router.put(
@@ -64,8 +64,8 @@ router.put(
 );
 
 /**
- * @route   DELETE /api/epc/spareparts/:id
- * @desc    Soft delete sparepart
+ * @route   DELETE /api/epc/master_items/:id
+ * @desc    Soft delete master item
  * @access  Private
  */
 router.delete(
