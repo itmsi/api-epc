@@ -527,6 +527,7 @@ const findByDokumenId = async (dokumenId, page = 1, limit = 10, search = '', sor
   if (!dokumen) {
     return {
       dokumen_name: null,
+      master_category_id: null,
       master_category_name_en: null,
       master_category_name_cn: null,
       items: [],
@@ -611,6 +612,7 @@ const findByDokumenId = async (dokumenId, page = 1, limit = 10, search = '', sor
   
   return {
     dokumen_name: dokumen.dokumen_name,
+    master_category_id: firstMasterCategory ? firstMasterCategory.master_category_id : null,
     master_category_name_en: firstMasterCategory ? firstMasterCategory.master_category_name_en : null,
     master_category_name_cn: firstMasterCategory ? firstMasterCategory.master_category_name_cn : null,
     items: data.map(item => ({
