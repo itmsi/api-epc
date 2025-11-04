@@ -60,6 +60,9 @@ const findAll = async (page = 1, limit = 10, search = '', sortBy = 'd.created_at
           .orWhere('mc_direct.master_category_name_en', 'ilike', `%${search}%`)
           .orWhere('mc_type.master_category_name_cn', 'ilike', `%${search}%`)
           .orWhere('mc_direct.master_category_name_cn', 'ilike', `%${search}%`)
+          .orWhere('c_type.category_name_en', 'ilike', `%${search}%`)
+          .orWhere('c_direct.category_name_en', 'ilike', `%${search}%`)
+          .orWhere('tc.type_category_name_en', 'ilike', `%${search}%`)
           .orWhere('icd.part_number', 'ilike', `%${search}%`)
           .orWhere('icd.catalog_item_name_en', 'ilike', `%${search}%`);
       });
@@ -114,6 +117,9 @@ const findAll = async (page = 1, limit = 10, search = '', sortBy = 'd.created_at
           .orWhere('mc_direct.master_category_name_en', 'ilike', `%${search}%`)
           .orWhere('mc_type.master_category_name_cn', 'ilike', `%${search}%`)
           .orWhere('mc_direct.master_category_name_cn', 'ilike', `%${search}%`)
+          .orWhere('c_type.category_name_en', 'ilike', `%${search}%`)
+          .orWhere('c_direct.category_name_en', 'ilike', `%${search}%`)
+          .orWhere('tc.type_category_name_en', 'ilike', `%${search}%`)
           .orWhere('icd.part_number', 'ilike', `%${search}%`)
           .orWhere('icd.catalog_item_name_en', 'ilike', `%${search}%`);
       });
