@@ -7,7 +7,8 @@ const TABLES = {
   UNITS: 'units',
   MASTER_CATEGORIES: 'master_categories',
   CATEGORIES: 'categories',
-  TYPE_CATEGORIES: 'type_categories'
+  TYPE_CATEGORIES: 'type_categories',
+  SPAREPARTS: 'spareparts'
 };
 
 /**
@@ -222,6 +223,74 @@ const findById = async (id) => {
 };
 
 /**
+ * Check if combination of dokumen_name, master_category_id, category_id, type_category_id already exists
+ */
+const checkDuplicateCombination = async (trx, dokumenName, masterCategoryId, categoryId, typeCategoryId, excludeItemCategoryId = null) => {
+  // Find dokumen by name
+  const dokumen = await trx(TABLES.DOKUMEN)
+    .where('dokumen_name', dokumenName)
+    .where('deleted_at', null)
+    .where('is_delete', false)
+    .first();
+  
+  if (!dokumen) {
+    return false; // No dokumen found, so no duplicate
+  }
+  
+  // Check if there's an item_category with same dokumen_id, category_id, type_category_id
+  // and verify master_category_id matches
+  let query = trx(TABLES.ITEM_CATEGORIES)
+    .select('ic.*')
+    .from(`${TABLES.ITEM_CATEGORIES} as ic`)
+    .where('ic.dokumen_id', dokumen.dokumen_id)
+    .where('ic.deleted_at', null)
+    .where('ic.is_delete', false);
+  
+  // Exclude current item_category_id if provided (for update case)
+  if (excludeItemCategoryId) {
+    query = query.where('ic.item_category_id', '!=', excludeItemCategoryId);
+  }
+  
+  // Add category_id check
+  if (categoryId) {
+    query = query.where('ic.category_id', categoryId);
+  } else {
+    query = query.whereNull('ic.category_id');
+  }
+  
+  // Add type_category_id check
+  if (typeCategoryId) {
+    query = query.where('ic.type_category_id', typeCategoryId);
+  } else {
+    query = query.whereNull('ic.type_category_id');
+  }
+  
+  // Join with categories and master_categories to check master_category_id
+  query = query
+    .leftJoin(`${TABLES.TYPE_CATEGORIES} as tc`, 'ic.type_category_id', 'tc.type_category_id')
+    .leftJoin(`${TABLES.CATEGORIES} as c_type`, 'tc.category_id', 'c_type.category_id')
+    .leftJoin(`${TABLES.CATEGORIES} as c_direct`, 'ic.category_id', 'c_direct.category_id')
+    .leftJoin(`${TABLES.MASTER_CATEGORIES} as mc_type`, 'c_type.master_category_id', 'mc_type.master_category_id')
+    .leftJoin(`${TABLES.MASTER_CATEGORIES} as mc_direct`, 'c_direct.master_category_id', 'mc_direct.master_category_id');
+  
+  // Check master_category_id match
+  if (masterCategoryId) {
+    query = query.where(function() {
+      this.where('mc_type.master_category_id', masterCategoryId)
+        .orWhere('mc_direct.master_category_id', masterCategoryId);
+    });
+  } else {
+    query = query.where(function() {
+      this.whereNull('mc_type.master_category_id')
+        .andWhereNull('mc_direct.master_category_id');
+    });
+  }
+  
+  const duplicate = await query.first();
+  return !!duplicate;
+};
+
+/**
  * Find or create dokumen
  */
 const findOrCreateDokumen = async (dokumenName, userId) => {
@@ -285,6 +354,22 @@ const create = async (data, userId) => {
   const trx = await db.transaction();
   
   try {
+    // Validasi kombinasi dokumen_name, master_category_id, category_id, type_category_id
+    if (data.dokumen_name && data.master_category_id && (data.category_id || data.type_category_id)) {
+      const isDuplicate = await checkDuplicateCombination(
+        trx,
+        data.dokumen_name,
+        data.master_category_id,
+        data.category_id || null,
+        data.type_category_id || null
+      );
+      
+      if (isDuplicate) {
+        await trx.rollback();
+        throw new Error('Data gagal tersimpan: Kombinasi dokumen_name, master_category_id, category_id, dan type_category_id sudah ada');
+      }
+    }
+    
     // Find or create dokumen
     const dokumen = await findOrCreateDokumen(data.dokumen_name, userId);
     
@@ -310,9 +395,91 @@ const create = async (data, userId) => {
       for (const item of data.data_items) {
         const unit = await findOrCreateUnit(item.unit, userId);
         
+        // Validasi: jika ada part_number yang sama tapi description berbeda, maka gagal
+        if (item.part_number) {
+          const existingSparepart = await trx(TABLES.SPAREPARTS)
+            .where({
+              part_number: item.part_number,
+              is_delete: false
+            })
+            .whereNull('deleted_at')
+            .first();
+          
+          if (existingSparepart) {
+            // Jika part_number sama tapi description berbeda, maka gagal
+            if (existingSparepart.description !== item.description) {
+              await trx.rollback();
+              throw new Error('Data gagal tersimpan: Data dengan part_number yang sama sudah ada dengan description yang berbeda');
+            }
+          }
+        }
+        
+        // Cek apakah ada data yang sama semua (part_number, target_id, description)
+        let sparepartId = null;
+        if (item.part_number && item.target_id && item.description) {
+          const duplicateSparepart = await trx(TABLES.SPAREPARTS)
+            .where({
+              part_number: item.part_number,
+              target_id: item.target_id,
+              description: item.description,
+              is_delete: false
+            })
+            .whereNull('deleted_at')
+            .first();
+          
+          if (duplicateSparepart) {
+            // Jika data sama semua, gunakan sparepart_id yang sudah ada
+            sparepartId = duplicateSparepart.sparepart_id;
+          } else {
+            // Jika tidak ada duplikat, simpan ke tabel spareparts
+            if (item.part_number || item.target_id || item.description) {
+              const [sparepart] = await trx(TABLES.SPAREPARTS)
+                .insert({
+                  target_id: item.target_id || null,
+                  part_number: item.part_number || null,
+                  sparepart_name_en: item.catalog_item_name_en || null,
+                  sparepart_name_ch: item.catalog_item_name_ch || null,
+                  description: item.description || null,
+                  quantity: item.quantity || 0,
+                  unit: item.unit || null,
+                  created_by: userId,
+                  updated_by: userId,
+                  created_at: db.fn.now(),
+                  updated_at: db.fn.now()
+                })
+                .returning('sparepart_id');
+              
+              sparepartId = sparepart ? sparepart.sparepart_id : null;
+            }
+          }
+        } else {
+          // Jika tidak ada part_number, target_id, dan description, tetap simpan ke spareparts jika ada data minimal
+          if (item.part_number || item.target_id || item.description) {
+            const [sparepart] = await trx(TABLES.SPAREPARTS)
+              .insert({
+                target_id: item.target_id || null,
+                part_number: item.part_number || null,
+                sparepart_name_en: item.catalog_item_name_en || null,
+                sparepart_name_ch: item.catalog_item_name_ch || null,
+                description: item.description || null,
+                quantity: item.quantity || 0,
+                unit: item.unit || null,
+                created_by: userId,
+                updated_by: userId,
+                created_at: db.fn.now(),
+                updated_at: db.fn.now()
+              })
+              .returning('sparepart_id');
+            
+            sparepartId = sparepart ? sparepart.sparepart_id : null;
+          }
+        }
+        
+        // Simpan ke item_category_details dengan sparepart_id
         await trx(TABLES.ITEM_CATEGORIES_DETAILS)
           .insert({
             item_category_id: itemCategory.item_category_id,
+            sparepart_id: sparepartId,
             target_id: item.target_id,
             part_number: item.part_number,
             catalog_item_name_en: item.catalog_item_name_en,
@@ -355,6 +522,73 @@ const update = async (id, data, userId) => {
       return null;
     }
 
+    // Get dokumen_name - use existing or new
+    let dokumenName = data.dokumen_name;
+    if (!dokumenName && existingItem.dokumen_id) {
+      const existingDokumen = await trx(TABLES.DOKUMEN)
+        .where('dokumen_id', existingItem.dokumen_id)
+        .first();
+      dokumenName = existingDokumen ? existingDokumen.dokumen_name : null;
+    }
+
+    // Get master_category_id from existing item if not provided in data
+    // Need to get it from category_id or type_category_id relationship
+    let masterCategoryIdToCheck = data.master_category_id;
+    if (!masterCategoryIdToCheck) {
+      // Get master_category_id from existing item's category_id or type_category_id
+      const categoryIdToGetMaster = existingItem.category_id || null;
+      const typeCategoryIdToGetMaster = existingItem.type_category_id || null;
+      
+      if (categoryIdToGetMaster) {
+        const category = await trx(TABLES.CATEGORIES)
+          .where('category_id', categoryIdToGetMaster)
+          .where('deleted_at', null)
+          .where('is_delete', false)
+          .first();
+        if (category) {
+          masterCategoryIdToCheck = category.master_category_id;
+        }
+      } else if (typeCategoryIdToGetMaster) {
+        const typeCategory = await trx(TABLES.TYPE_CATEGORIES)
+          .where('type_category_id', typeCategoryIdToGetMaster)
+          .where('deleted_at', null)
+          .where('is_delete', false)
+          .first();
+        if (typeCategory && typeCategory.category_id) {
+          const category = await trx(TABLES.CATEGORIES)
+            .where('category_id', typeCategory.category_id)
+            .where('deleted_at', null)
+            .where('is_delete', false)
+            .first();
+          if (category) {
+            masterCategoryIdToCheck = category.master_category_id;
+          }
+        }
+      }
+    }
+
+    // Validasi kombinasi dokumen_name, master_category_id, category_id, type_category_id
+    // Hanya validasi jika semua field diperlukan ada
+    if (dokumenName && masterCategoryIdToCheck && (data.category_id !== undefined || data.type_category_id !== undefined || existingItem.category_id || existingItem.type_category_id)) {
+      const categoryIdToCheck = data.category_id !== undefined ? (data.category_id || null) : existingItem.category_id;
+      const typeCategoryIdToCheck = data.type_category_id !== undefined ? (data.type_category_id || null) : existingItem.type_category_id;
+      
+      // Cek duplikasi dengan mengecualikan record yang sedang diupdate
+      const isDuplicate = await checkDuplicateCombination(
+        trx,
+        dokumenName,
+        masterCategoryIdToCheck,
+        categoryIdToCheck,
+        typeCategoryIdToCheck,
+        id // Exclude current item_category_id
+      );
+      
+      if (isDuplicate) {
+        await trx.rollback();
+        throw new Error('Data gagal tersimpan: Kombinasi dokumen_name, master_category_id, category_id, dan type_category_id sudah ada');
+      }
+    }
+
     // Update dokumen if dokumen_id exists and dokumen_name is provided
     if (existingItem.dokumen_id && data.dokumen_name) {
       await trx(TABLES.DOKUMEN)
@@ -391,9 +625,91 @@ const update = async (id, data, userId) => {
       for (const item of data.data_items) {
         const unit = await findOrCreateUnit(item.unit, userId);
         
+        // Validasi: jika ada part_number yang sama tapi description berbeda, maka gagal
+        if (item.part_number) {
+          const existingSparepart = await trx(TABLES.SPAREPARTS)
+            .where({
+              part_number: item.part_number,
+              is_delete: false
+            })
+            .whereNull('deleted_at')
+            .first();
+          
+          if (existingSparepart) {
+            // Jika part_number sama tapi description berbeda, maka gagal
+            if (existingSparepart.description !== item.description) {
+              await trx.rollback();
+              throw new Error('Data gagal tersimpan: Data dengan part_number yang sama sudah ada dengan description yang berbeda');
+            }
+          }
+        }
+        
+        // Cek apakah ada data yang sama semua (part_number, target_id, description)
+        let sparepartId = null;
+        if (item.part_number && item.target_id && item.description) {
+          const duplicateSparepart = await trx(TABLES.SPAREPARTS)
+            .where({
+              part_number: item.part_number,
+              target_id: item.target_id,
+              description: item.description,
+              is_delete: false
+            })
+            .whereNull('deleted_at')
+            .first();
+          
+          if (duplicateSparepart) {
+            // Jika data sama semua, gunakan sparepart_id yang sudah ada
+            sparepartId = duplicateSparepart.sparepart_id;
+          } else {
+            // Jika tidak ada duplikat, simpan ke tabel spareparts
+            if (item.part_number || item.target_id || item.description) {
+              const [sparepart] = await trx(TABLES.SPAREPARTS)
+                .insert({
+                  target_id: item.target_id || null,
+                  part_number: item.part_number || null,
+                  sparepart_name_en: item.catalog_item_name_en || null,
+                  sparepart_name_ch: item.catalog_item_name_ch || null,
+                  description: item.description || null,
+                  quantity: item.quantity || 0,
+                  unit: item.unit || null,
+                  created_by: userId,
+                  updated_by: userId,
+                  created_at: db.fn.now(),
+                  updated_at: db.fn.now()
+                })
+                .returning('sparepart_id');
+              
+              sparepartId = sparepart ? sparepart.sparepart_id : null;
+            }
+          }
+        } else {
+          // Jika tidak ada part_number, target_id, dan description, tetap simpan ke spareparts jika ada data minimal
+          if (item.part_number || item.target_id || item.description) {
+            const [sparepart] = await trx(TABLES.SPAREPARTS)
+              .insert({
+                target_id: item.target_id || null,
+                part_number: item.part_number || null,
+                sparepart_name_en: item.catalog_item_name_en || null,
+                sparepart_name_ch: item.catalog_item_name_ch || null,
+                description: item.description || null,
+                quantity: item.quantity || 0,
+                unit: item.unit || null,
+                created_by: userId,
+                updated_by: userId,
+                created_at: db.fn.now(),
+                updated_at: db.fn.now()
+              })
+              .returning('sparepart_id');
+            
+            sparepartId = sparepart ? sparepart.sparepart_id : null;
+          }
+        }
+        
+        // Simpan ke item_category_details dengan sparepart_id
         await trx(TABLES.ITEM_CATEGORIES_DETAILS)
           .insert({
             item_category_id: id,
+            sparepart_id: sparepartId,
             target_id: item.target_id,
             part_number: item.part_number,
             catalog_item_name_en: item.catalog_item_name_en,

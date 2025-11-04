@@ -71,6 +71,21 @@ const findById = async (id) => {
 };
 
 /**
+ * Check if sparepart with same part_number, target_id, and description exists
+ */
+const findDuplicate = async (partNumber, targetId, description) => {
+  return await db(TABLE_NAME)
+    .where({
+      part_number: partNumber,
+      target_id: targetId,
+      description: description,
+      is_delete: false
+    })
+    .whereNull('deleted_at')
+    .first();
+};
+
+/**
  * Create new sparepart
  */
 const create = async (data, userId) => {
@@ -140,6 +155,7 @@ const restore = async (id, userId) => {
 module.exports = {
   findAll,
   findById,
+  findDuplicate,
   create,
   update,
   remove,

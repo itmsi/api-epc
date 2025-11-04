@@ -108,6 +108,10 @@ const create = async (req, res) => {
     const result = await repository.create(data, userId);
     return successResponse(res, result, 'Data berhasil dibuat', 201);
   } catch (error) {
+    // Check if error is validation error (duplicate data)
+    if (error.message && error.message.includes('Data gagal tersimpan')) {
+      return errorResponse(res, error.message, 400);
+    }
     return errorResponse(res, error.message || 'Terjadi kesalahan', 500);
   }
 };
@@ -176,6 +180,10 @@ const update = async (req, res) => {
     
     return successResponse(res, result, 'Data berhasil diupdate');
   } catch (error) {
+    // Check if error is validation error (duplicate data)
+    if (error.message && error.message.includes('Data gagal tersimpan')) {
+      return errorResponse(res, error.message, 400);
+    }
     return errorResponse(res, error.message || 'Terjadi kesalahan', 500);
   }
 };
