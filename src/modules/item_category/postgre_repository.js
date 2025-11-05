@@ -918,14 +918,33 @@ const findByDokumenId = async (dokumenId, page = 1, limit = 10, search = '', sor
     .where('ic.is_delete', false)
     .distinct();
 
-  // Add search functionality
+  // Add search functionality - if search is provided, we need to join with details and master_items
   if (search) {
-    query = query.where(function() {
-      this.where('mc_type.master_category_name_en', 'ilike', `%${search}%`)
-        .orWhere('mc_direct.master_category_name_en', 'ilike', `%${search}%`)
-        .orWhere('mc_type.master_category_name_cn', 'ilike', `%${search}%`)
-        .orWhere('mc_direct.master_category_name_cn', 'ilike', `%${search}%`);
-    });
+    query = query
+      .leftJoin(`${TABLES.ITEM_CATEGORIES_DETAILS} as icd`, function() {
+        this.on('ic.item_category_id', '=', 'icd.item_category_id')
+          .andOn(db.raw('icd.deleted_at IS NULL'))
+          .andOn(db.raw('icd.is_delete = false'));
+      })
+      .leftJoin(`${TABLES.MASTER_ITEMS} as mi`, function() {
+        this.on('icd.master_item_id', '=', 'mi.master_item_id')
+          .andOn(db.raw('mi.deleted_at IS NULL'))
+          .andOn(db.raw('mi.is_delete = false'));
+      })
+      .where(function() {
+        this.where('mc_type.master_category_name_en', 'ilike', `%${search}%`)
+          .orWhere('mc_direct.master_category_name_en', 'ilike', `%${search}%`)
+          .orWhere('mc_type.master_category_name_cn', 'ilike', `%${search}%`)
+          .orWhere('mc_direct.master_category_name_cn', 'ilike', `%${search}%`)
+          .orWhere('c_type.category_name_en', 'ilike', `%${search}%`)
+          .orWhere('c_direct.category_name_en', 'ilike', `%${search}%`)
+          .orWhere('c_type.category_name_cn', 'ilike', `%${search}%`)
+          .orWhere('c_direct.category_name_cn', 'ilike', `%${search}%`)
+          .orWhere('tc.type_category_name_en', 'ilike', `%${search}%`)
+          .orWhere('tc.type_category_name_cn', 'ilike', `%${search}%`)
+          .orWhere('mi.part_number', 'ilike', `%${search}%`)
+          .orWhere('mi.master_item_name_en', 'ilike', `%${search}%`);
+      });
   }
 
   // Add sorting - default to ic.created_at desc
@@ -946,14 +965,33 @@ const findByDokumenId = async (dokumenId, page = 1, limit = 10, search = '', sor
     .where('ic.deleted_at', null)
     .where('ic.is_delete', false);
 
-  // Add search functionality to count query
+  // Add search functionality to count query - if search is provided, we need to join with details and master_items
   if (search) {
-    countQuery = countQuery.where(function() {
-      this.where('mc_type.master_category_name_en', 'ilike', `%${search}%`)
-        .orWhere('mc_direct.master_category_name_en', 'ilike', `%${search}%`)
-        .orWhere('mc_type.master_category_name_cn', 'ilike', `%${search}%`)
-        .orWhere('mc_direct.master_category_name_cn', 'ilike', `%${search}%`);
-    });
+    countQuery = countQuery
+      .leftJoin(`${TABLES.ITEM_CATEGORIES_DETAILS} as icd`, function() {
+        this.on('ic.item_category_id', '=', 'icd.item_category_id')
+          .andOn(db.raw('icd.deleted_at IS NULL'))
+          .andOn(db.raw('icd.is_delete = false'));
+      })
+      .leftJoin(`${TABLES.MASTER_ITEMS} as mi`, function() {
+        this.on('icd.master_item_id', '=', 'mi.master_item_id')
+          .andOn(db.raw('mi.deleted_at IS NULL'))
+          .andOn(db.raw('mi.is_delete = false'));
+      })
+      .where(function() {
+        this.where('mc_type.master_category_name_en', 'ilike', `%${search}%`)
+          .orWhere('mc_direct.master_category_name_en', 'ilike', `%${search}%`)
+          .orWhere('mc_type.master_category_name_cn', 'ilike', `%${search}%`)
+          .orWhere('mc_direct.master_category_name_cn', 'ilike', `%${search}%`)
+          .orWhere('c_type.category_name_en', 'ilike', `%${search}%`)
+          .orWhere('c_direct.category_name_en', 'ilike', `%${search}%`)
+          .orWhere('c_type.category_name_cn', 'ilike', `%${search}%`)
+          .orWhere('c_direct.category_name_cn', 'ilike', `%${search}%`)
+          .orWhere('tc.type_category_name_en', 'ilike', `%${search}%`)
+          .orWhere('tc.type_category_name_cn', 'ilike', `%${search}%`)
+          .orWhere('mi.part_number', 'ilike', `%${search}%`)
+          .orWhere('mi.master_item_name_en', 'ilike', `%${search}%`);
+      });
   }
 
   // Count unique master categories
