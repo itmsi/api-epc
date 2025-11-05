@@ -932,18 +932,10 @@ const findByDokumenId = async (dokumenId, page = 1, limit = 10, search = '', sor
           .andOn(db.raw('mi.is_delete = false'));
       })
       .where(function() {
-        this.where('mc_type.master_category_name_en', 'ilike', `%${search}%`)
-          .orWhere('mc_direct.master_category_name_en', 'ilike', `%${search}%`)
-          .orWhere('mc_type.master_category_name_cn', 'ilike', `%${search}%`)
-          .orWhere('mc_direct.master_category_name_cn', 'ilike', `%${search}%`)
-          .orWhere('c_type.category_name_en', 'ilike', `%${search}%`)
+        this.where('c_type.category_name_en', 'ilike', `%${search}%`)
           .orWhere('c_direct.category_name_en', 'ilike', `%${search}%`)
-          .orWhere('c_type.category_name_cn', 'ilike', `%${search}%`)
-          .orWhere('c_direct.category_name_cn', 'ilike', `%${search}%`)
           .orWhere('tc.type_category_name_en', 'ilike', `%${search}%`)
-          .orWhere('tc.type_category_name_cn', 'ilike', `%${search}%`)
           .orWhere('mi.part_number', 'ilike', `%${search}%`)
-          .orWhere('mi.master_item_name_en', 'ilike', `%${search}%`);
       });
   }
 
@@ -979,18 +971,10 @@ const findByDokumenId = async (dokumenId, page = 1, limit = 10, search = '', sor
           .andOn(db.raw('mi.is_delete = false'));
       })
       .where(function() {
-        this.where('mc_type.master_category_name_en', 'ilike', `%${search}%`)
-          .orWhere('mc_direct.master_category_name_en', 'ilike', `%${search}%`)
-          .orWhere('mc_type.master_category_name_cn', 'ilike', `%${search}%`)
-          .orWhere('mc_direct.master_category_name_cn', 'ilike', `%${search}%`)
-          .orWhere('c_type.category_name_en', 'ilike', `%${search}%`)
+        this.where('c_type.category_name_en', 'ilike', `%${search}%`)
           .orWhere('c_direct.category_name_en', 'ilike', `%${search}%`)
-          .orWhere('c_type.category_name_cn', 'ilike', `%${search}%`)
-          .orWhere('c_direct.category_name_cn', 'ilike', `%${search}%`)
           .orWhere('tc.type_category_name_en', 'ilike', `%${search}%`)
-          .orWhere('tc.type_category_name_cn', 'ilike', `%${search}%`)
           .orWhere('mi.part_number', 'ilike', `%${search}%`)
-          .orWhere('mi.master_item_name_en', 'ilike', `%${search}%`);
       });
   }
 
