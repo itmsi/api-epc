@@ -434,33 +434,48 @@ const create = async (data, userId) => {
           }
         }
         
-        // Cek apakah ada data yang sama semua (part_number, target_id, description)
+        // Cek apakah ada data yang sama semua (part_number, target_id dari item_categories_details, description)
         let masterItemId = null;
         if (item.part_number && item.target_id && item.description) {
-          const duplicateMasterItem = await trx(TABLES.MASTER_ITEMS)
+          // Cari master_item dengan part_number dan description yang sama
+          const existingMasterItem = await trx(TABLES.MASTER_ITEMS)
             .where({
               part_number: item.part_number,
-              target_id: item.target_id,
               description: item.description,
               is_delete: false
             })
             .whereNull('deleted_at')
             .first();
           
-          if (duplicateMasterItem) {
-            // Jika data sama semua, gunakan master_item_id yang sudah ada
-            masterItemId = duplicateMasterItem.master_item_id;
+          if (existingMasterItem) {
+            // Cek apakah ada item_categories_details dengan master_item_id dan target_id yang sama
+            const duplicateDetail = await trx(TABLES.ITEM_CATEGORIES_DETAILS)
+              .where({
+                master_item_id: existingMasterItem.master_item_id,
+                target_id: item.target_id,
+                is_delete: false
+              })
+              .whereNull('deleted_at')
+              .first();
+            
+            if (duplicateDetail) {
+              // Jika data sama semua, gunakan master_item_id yang sudah ada
+              masterItemId = existingMasterItem.master_item_id;
+            } else {
+              // Jika master_item ada tapi target_id berbeda, buat master_item baru atau gunakan yang ada
+              // Gunakan master_item yang sudah ada karena part_number dan description sama
+              masterItemId = existingMasterItem.master_item_id;
+            }
           } else {
             // Jika tidak ada duplikat, simpan ke tabel master_items
             if (item.part_number || item.target_id || item.description) {
               const [masterItem] = await trx(TABLES.MASTER_ITEMS)
                 .insert({
-                  target_id: item.target_id || null,
                   part_number: item.part_number || null,
                   master_item_name_en: item.catalog_item_name_en || null,
                   master_item_name_ch: item.catalog_item_name_ch || null,
                   description: item.description || null,
-                  quantity: item.quantity || 0,
+                  quantity: 0,
                   unit: item.unit || null,
                   created_by: userId,
                   updated_by: userId,
@@ -477,12 +492,11 @@ const create = async (data, userId) => {
           if (item.part_number || item.target_id || item.description) {
             const [masterItem] = await trx(TABLES.MASTER_ITEMS)
               .insert({
-                target_id: item.target_id || null,
                 part_number: item.part_number || null,
                 master_item_name_en: item.catalog_item_name_en || null,
                 master_item_name_ch: item.catalog_item_name_ch || null,
                 description: item.description || null,
-                quantity: item.quantity || 0,
+                quantity: 0,
                 unit: item.unit || null,
                 created_by: userId,
                 updated_by: userId,
@@ -659,33 +673,48 @@ const update = async (id, data, userId) => {
           }
         }
         
-        // Cek apakah ada data yang sama semua (part_number, target_id, description)
+        // Cek apakah ada data yang sama semua (part_number, target_id dari item_categories_details, description)
         let masterItemId = null;
         if (item.part_number && item.target_id && item.description) {
-          const duplicateMasterItem = await trx(TABLES.MASTER_ITEMS)
+          // Cari master_item dengan part_number dan description yang sama
+          const existingMasterItem = await trx(TABLES.MASTER_ITEMS)
             .where({
               part_number: item.part_number,
-              target_id: item.target_id,
               description: item.description,
               is_delete: false
             })
             .whereNull('deleted_at')
             .first();
           
-          if (duplicateMasterItem) {
-            // Jika data sama semua, gunakan master_item_id yang sudah ada
-            masterItemId = duplicateMasterItem.master_item_id;
+          if (existingMasterItem) {
+            // Cek apakah ada item_categories_details dengan master_item_id dan target_id yang sama
+            const duplicateDetail = await trx(TABLES.ITEM_CATEGORIES_DETAILS)
+              .where({
+                master_item_id: existingMasterItem.master_item_id,
+                target_id: item.target_id,
+                is_delete: false
+              })
+              .whereNull('deleted_at')
+              .first();
+            
+            if (duplicateDetail) {
+              // Jika data sama semua, gunakan master_item_id yang sudah ada
+              masterItemId = existingMasterItem.master_item_id;
+            } else {
+              // Jika master_item ada tapi target_id berbeda, buat master_item baru atau gunakan yang ada
+              // Gunakan master_item yang sudah ada karena part_number dan description sama
+              masterItemId = existingMasterItem.master_item_id;
+            }
           } else {
             // Jika tidak ada duplikat, simpan ke tabel master_items
             if (item.part_number || item.target_id || item.description) {
               const [masterItem] = await trx(TABLES.MASTER_ITEMS)
                 .insert({
-                  target_id: item.target_id || null,
                   part_number: item.part_number || null,
                   master_item_name_en: item.catalog_item_name_en || null,
                   master_item_name_ch: item.catalog_item_name_ch || null,
                   description: item.description || null,
-                  quantity: item.quantity || 0,
+                  quantity: 0,
                   unit: item.unit || null,
                   created_by: userId,
                   updated_by: userId,
@@ -702,12 +731,11 @@ const update = async (id, data, userId) => {
           if (item.part_number || item.target_id || item.description) {
             const [masterItem] = await trx(TABLES.MASTER_ITEMS)
               .insert({
-                target_id: item.target_id || null,
                 part_number: item.part_number || null,
                 master_item_name_en: item.catalog_item_name_en || null,
                 master_item_name_ch: item.catalog_item_name_ch || null,
                 description: item.description || null,
-                quantity: item.quantity || 0,
+                quantity: 0,
                 unit: item.unit || null,
                 created_by: userId,
                 updated_by: userId,
