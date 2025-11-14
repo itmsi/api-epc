@@ -13,6 +13,163 @@ const TABLES = {
 
 const RAW_FALSE = db.raw('false');
 
+let tempKeyCounter = 0;
+const generateTempKey = () => `__temp_${Date.now()}_${tempKeyCounter++}`;
+
+const buildKey = (primaryValue, fallbackValues = []) => {
+  if (primaryValue) {
+    return primaryValue;
+  }
+  const fallback = fallbackValues.filter(Boolean).join('|');
+  if (fallback) {
+    return fallback;
+  }
+  return generateTempKey();
+};
+
+const mergeItemDetailData = (details = []) => {
+  const map = new Map();
+
+  details.forEach((detail) => {
+    if (!detail) {
+      return;
+    }
+    const key = buildKey(
+      detail.item_category_detail_id,
+      [detail.part_number, detail.catalog_item_name_en, detail.catalog_item_name_ch]
+    );
+    if (!map.has(key)) {
+      map.set(key, { ...detail });
+    }
+  });
+
+  return Array.from(map.values());
+};
+
+const mergeItemData = (items = []) => {
+  const map = new Map();
+
+  items.forEach((item) => {
+    if (!item) {
+      return;
+    }
+
+    const key = buildKey(
+      item.item_category_id,
+      [item.item_category_name_en, item.item_category_name_cn, item.item_category_foto]
+    );
+    const normalizedDetails = mergeItemDetailData(item.item_detail_data || []);
+
+    if (map.has(key)) {
+      const existing = map.get(key);
+      existing.item_detail_data = mergeItemDetailData([
+        ...(existing.item_detail_data || []),
+        ...normalizedDetails
+      ]);
+    } else {
+      map.set(key, {
+        ...item,
+        item_detail_data: normalizedDetails
+      });
+    }
+  });
+
+  return Array.from(map.values());
+};
+
+const mergeTypeData = (types = []) => {
+  const map = new Map();
+
+  types.forEach((type) => {
+    if (!type) {
+      return;
+    }
+
+    const key = buildKey(
+      type.type_category_id,
+      [type.type_category_code, type.type_category_name_en, type.type_category_name_cn]
+    );
+    const normalizedItems = mergeItemData(type.item_data || []);
+
+    if (map.has(key)) {
+      const existing = map.get(key);
+      existing.item_data = mergeItemData([
+        ...(existing.item_data || []),
+        ...normalizedItems
+      ]);
+    } else {
+      map.set(key, {
+        ...type,
+        item_data: normalizedItems
+      });
+    }
+  });
+
+  return Array.from(map.values());
+};
+
+const mergeCategoryData = (categories = []) => {
+  const map = new Map();
+
+  categories.forEach((category) => {
+    if (!category) {
+      return;
+    }
+
+    const key = buildKey(
+      category.category_id,
+      [category.categories_code, category.category_name_en, category.category_name_cn]
+    );
+    const normalizedSub = mergeTypeData(category.sub_data || []);
+
+    if (map.has(key)) {
+      const existing = map.get(key);
+      existing.sub_data = mergeTypeData([
+        ...(existing.sub_data || []),
+        ...normalizedSub
+      ]);
+    } else {
+      map.set(key, {
+        ...category,
+        sub_data: normalizedSub
+      });
+    }
+  });
+
+  return Array.from(map.values());
+};
+
+const mergeMasterData = (masterData = []) => {
+  const map = new Map();
+
+  masterData.forEach((master) => {
+    if (!master) {
+      return;
+    }
+
+    const key = buildKey(
+      master.master_category_id,
+      [master.master_category_name_en, master.master_category_name_cn]
+    );
+    const normalizedCategories = mergeCategoryData(master.category_data || []);
+
+    if (map.has(key)) {
+      const existing = map.get(key);
+      existing.category_data = mergeCategoryData([
+        ...(existing.category_data || []),
+        ...normalizedCategories
+      ]);
+    } else {
+      map.set(key, {
+        ...master,
+        category_data: normalizedCategories
+      });
+    }
+  });
+
+  return Array.from(map.values());
+};
+
 const SELECT_FIELDS = [
   db.raw('COALESCE(mc_type.master_category_id, mc_direct.master_category_id) as master_category_id'),
   db.raw('COALESCE(mc_type.master_category_name_en, mc_direct.master_category_name_en) as master_category_name_en'),
@@ -160,7 +317,7 @@ const formatMasterData = (rows) => {
     }
   });
 
-  return Array.from(masterMap.values()).map((master) => {
+  const masterArray = Array.from(masterMap.values()).map((master) => {
     master.category_data.forEach((category) => {
       category.sub_data.forEach((type) => {
         type.item_data.forEach((item) => {
@@ -173,6 +330,8 @@ const formatMasterData = (rows) => {
     delete master.__categoryMap;
     return master;
   });
+
+  return mergeMasterData(masterArray);
 };
 
 const extractCategoryData = (masterData) => {
@@ -181,16 +340,13 @@ const extractCategoryData = (masterData) => {
   masterData.forEach((master) => {
     master.category_data.forEach((category) => {
       categories.push({
-        category_id: category.category_id,
-        categories_code: category.categories_code,
-        category_name_en: category.category_name_en,
-        category_name_cn: category.category_name_cn,
-        sub_data: category.sub_data
+        ...category,
+        sub_data: mergeTypeData(category.sub_data || [])
       });
     });
   });
 
-  return categories;
+  return mergeCategoryData(categories);
 };
 
 const extractTypeData = (masterData) => {
@@ -200,17 +356,14 @@ const extractTypeData = (masterData) => {
     master.category_data.forEach((category) => {
       category.sub_data.forEach((type) => {
         types.push({
-          type_category_id: type.type_category_id,
-          type_category_name_en: type.type_category_name_en,
-          type_category_name_cn: type.type_category_name_cn,
-          type_category_code: type.type_category_code,
-          item_data: type.item_data
+          ...type,
+          item_data: mergeItemData(type.item_data || [])
         });
       });
     });
   });
 
-  return types;
+  return mergeTypeData(types);
 };
 
 const extractItemData = (masterData) => {
@@ -220,13 +373,16 @@ const extractItemData = (masterData) => {
     master.category_data.forEach((category) => {
       category.sub_data.forEach((type) => {
         type.item_data.forEach((item) => {
-          items.push(item);
+          items.push({
+            ...item,
+            item_detail_data: mergeItemDetailData(item.item_detail_data || [])
+          });
         });
       });
     });
   });
 
-  return items;
+  return mergeItemData(items);
 };
 
 const searchByVinNumber = async (dataCode, pagination) => {
