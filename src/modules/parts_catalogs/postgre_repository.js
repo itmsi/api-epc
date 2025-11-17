@@ -683,7 +683,122 @@ const searchPartsCatalog = async (dataCode, options = {}) => {
   return null;
 };
 
+/**
+ * Get parts catalog by type_category_id
+ * Mengambil data dari parts_catalogs dengan filter type_category_id
+ * dan join ke item_categories, item_categories_details, master_items
+ */
+const getByTypeCategoryId = async (typeCategoryId, options = {}) => {
+  if (!typeCategoryId) {
+    return null;
+  }
+
+  const { page, limit } = sanitizePagination(options.page, options.limit);
+
+  const rows = await buildTypeCategoryQuery((query) =>
+    query.where('tc.type_category_id', typeCategoryId)
+  );
+
+  if (rows.length === 0) {
+    return null;
+  }
+
+  const masterData = formatMasterData(rows);
+  const types = extractTypeData(masterData);
+  const { data, pagination: meta } = paginateArray(types, page, limit);
+
+  return {
+    type_data: 'type_category_id',
+    sub_data: data,
+    pagination: meta
+  };
+};
+
+/**
+ * Build query untuk item category dengan join ke tabel terkait
+ */
+const buildItemCategoryQuery = (filterCallback) => {
+  const query = db({ ic: TABLES.ITEM_CATEGORIES })
+    .select(SELECT_FIELDS)
+    .leftJoin({ tc: TABLES.TYPE_CATEGORIES }, function() {
+      this.on('ic.type_category_id', '=', 'tc.type_category_id')
+        .andOnNull('tc.deleted_at')
+        .andOn('tc.is_delete', '=', RAW_FALSE);
+    })
+    .leftJoin({ c_type: TABLES.CATEGORIES }, function() {
+      this.on('tc.category_id', '=', 'c_type.category_id')
+        .andOnNull('c_type.deleted_at')
+        .andOn('c_type.is_delete', '=', RAW_FALSE);
+    })
+    .leftJoin({ mc_type: TABLES.MASTER_CATEGORIES }, function() {
+      this.on('c_type.master_category_id', '=', 'mc_type.master_category_id')
+        .andOnNull('mc_type.deleted_at')
+        .andOn('mc_type.is_delete', '=', RAW_FALSE);
+    })
+    .leftJoin({ c_direct: TABLES.CATEGORIES }, function() {
+      this.on('ic.category_id', '=', 'c_direct.category_id')
+        .andOnNull('c_direct.deleted_at')
+        .andOn('c_direct.is_delete', '=', RAW_FALSE);
+    })
+    .leftJoin({ mc_direct: TABLES.MASTER_CATEGORIES }, function() {
+      this.on('c_direct.master_category_id', '=', 'mc_direct.master_category_id')
+        .andOnNull('mc_direct.deleted_at')
+        .andOn('mc_direct.is_delete', '=', RAW_FALSE);
+    })
+    .leftJoin({ icd: TABLES.ITEM_CATEGORIES_DETAILS }, function() {
+      this.on('ic.item_category_id', '=', 'icd.item_category_id')
+        .andOnNull('icd.deleted_at')
+        .andOn('icd.is_delete', '=', RAW_FALSE);
+    })
+    .leftJoin({ mi: TABLES.MASTER_ITEMS }, function() {
+      this.on('icd.master_item_id', '=', 'mi.master_item_id')
+        .andOnNull('mi.deleted_at')
+        .andOn('mi.is_delete', '=', RAW_FALSE);
+    })
+    .whereNull('ic.deleted_at')
+    .where('ic.is_delete', false);
+
+  if (typeof filterCallback === 'function') {
+    filterCallback(query);
+  }
+
+  return query;
+};
+
+/**
+ * Get parts catalog by item_category_id
+ * Mengambil data dari parts_catalogs dengan filter item_category_id
+ * dan join ke item_categories, item_categories_details, master_items
+ */
+const getByItemCategoryId = async (itemCategoryId, options = {}) => {
+  if (!itemCategoryId) {
+    return null;
+  }
+
+  const { page, limit } = sanitizePagination(options.page, options.limit);
+
+  const rows = await buildItemCategoryQuery((query) =>
+    query.where('ic.item_category_id', itemCategoryId)
+  );
+
+  if (rows.length === 0) {
+    return null;
+  }
+
+  const masterData = formatMasterData(rows);
+  const items = extractItemData(masterData);
+  const { data, pagination: meta } = paginateArray(items, page, limit);
+
+  return {
+    type_data: 'item_category_id',
+    item_data: data,
+    pagination: meta
+  };
+};
+
 module.exports = {
-  searchPartsCatalog
+  searchPartsCatalog,
+  getByTypeCategoryId,
+  getByItemCategoryId
 };
 

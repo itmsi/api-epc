@@ -362,6 +362,82 @@ const partsCatalogSchemas = {
     }
   },
 
+  PartsCatalogResponseTypeCategoryId: {
+    type: 'object',
+    properties: {
+      success: {
+        type: 'boolean',
+        example: true
+      },
+      message: {
+        type: 'string',
+        example: 'Data berhasil diambil'
+      },
+      data: {
+        type: 'object',
+        properties: {
+          type_data: {
+            type: 'string',
+            enum: ['type_category_id'],
+            example: 'type_category_id'
+          },
+          sub_data: {
+            type: 'array',
+            items: {
+              $ref: '#/components/schemas/PartsCatalogType'
+            }
+          },
+          pagination: {
+            $ref: '#/components/schemas/PartsCatalogPagination'
+          }
+        }
+      },
+      timestamp: {
+        type: 'string',
+        format: 'date-time',
+        example: '2025-01-01T00:00:00.000Z'
+      }
+    }
+  },
+
+  PartsCatalogResponseItemCategoryId: {
+    type: 'object',
+    properties: {
+      success: {
+        type: 'boolean',
+        example: true
+      },
+      message: {
+        type: 'string',
+        example: 'Data berhasil diambil'
+      },
+      data: {
+        type: 'object',
+        properties: {
+          type_data: {
+            type: 'string',
+            enum: ['item_category_id'],
+            example: 'item_category_id'
+          },
+          item_data: {
+            type: 'array',
+            items: {
+              $ref: '#/components/schemas/PartsCatalogItem'
+            }
+          },
+          pagination: {
+            $ref: '#/components/schemas/PartsCatalogPagination'
+          }
+        }
+      },
+      timestamp: {
+        type: 'string',
+        format: 'date-time',
+        example: '2025-01-01T00:00:00.000Z'
+      }
+    }
+  },
+
   PartsCatalogErrorResponse: {
     type: 'object',
     properties: {
