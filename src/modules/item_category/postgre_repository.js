@@ -426,8 +426,12 @@ const create = async (data, userId) => {
             .first();
           
           if (existingMasterItem) {
+            // Normalisasi description untuk perbandingan (null, undefined, atau string kosong dianggap sama)
+            const existingDescription = (existingMasterItem.description || '').trim();
+            const newDescription = (item.description || '').trim();
+            
             // Jika part_number sama tapi description berbeda, maka gagal
-            if (existingMasterItem.description !== item.description) {
+            if (existingDescription !== newDescription) {
               await trx.rollback();
               throw new Error('Data gagal tersimpan: Data dengan part_number yang sama sudah ada dengan description yang berbeda');
             }
@@ -665,8 +669,12 @@ const update = async (id, data, userId) => {
             .first();
           
           if (existingMasterItem) {
+            // Normalisasi description untuk perbandingan (null, undefined, atau string kosong dianggap sama)
+            const existingDescription = (existingMasterItem.description || '').trim();
+            const newDescription = (item.description || '').trim();
+            
             // Jika part_number sama tapi description berbeda, maka gagal
-            if (existingMasterItem.description !== item.description) {
+            if (existingDescription !== newDescription) {
               await trx.rollback();
               throw new Error('Data gagal tersimpan: Data dengan part_number yang sama sudah ada dengan description yang berbeda');
             }
