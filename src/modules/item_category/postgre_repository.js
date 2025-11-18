@@ -415,7 +415,13 @@ const create = async (data, userId) => {
       for (const item of data.data_items) {
         const unit = await findOrCreateUnit(item.unit, userId);
         
-        // Validasi: jika ada part_number yang sama tapi description berbeda, maka gagal
+        // Cari master_item yang sudah ada berdasarkan kriteria
+        let masterItemId = null;
+        
+        // Normalisasi description untuk pencarian
+        const normalizedDescription = (item.description || '').trim();
+        
+        // Cari master_item berdasarkan part_number (prioritas utama)
         if (item.part_number) {
           const existingMasterItem = await trx(TABLES.MASTER_ITEMS)
             .where({
@@ -426,91 +432,54 @@ const create = async (data, userId) => {
             .first();
           
           if (existingMasterItem) {
-            // Normalisasi description untuk perbandingan (null, undefined, atau string kosong dianggap sama)
+            // Normalisasi description dari database
             const existingDescription = (existingMasterItem.description || '').trim();
-            const newDescription = (item.description || '').trim();
             
-            // Jika part_number sama tapi description berbeda, maka gagal
-            if (existingDescription !== newDescription) {
+            // Validasi: jika part_number sama tapi description berbeda, maka gagal
+            if (existingDescription !== normalizedDescription) {
               await trx.rollback();
               throw new Error('Data gagal tersimpan: Data dengan part_number yang sama sudah ada dengan description yang berbeda');
             }
+            
+            // Jika part_number dan description sama, gunakan master_item_id yang sudah ada
+            masterItemId = existingMasterItem.master_item_id;
           }
         }
         
-        // Cek apakah ada data yang sama semua (part_number, target_id dari item_categories_details, description)
-        let masterItemId = null;
-        if (item.part_number && item.target_id && item.description) {
-          // Cari master_item dengan part_number dan description yang sama
+        // Jika belum ditemukan berdasarkan part_number, cari berdasarkan description (jika ada)
+        if (!masterItemId && normalizedDescription) {
           const existingMasterItem = await trx(TABLES.MASTER_ITEMS)
             .where({
-              part_number: item.part_number,
-              description: item.description,
+              description: normalizedDescription,
               is_delete: false
             })
             .whereNull('deleted_at')
+            .whereNull('part_number') // Hanya yang tidak punya part_number
             .first();
           
           if (existingMasterItem) {
-            // Cek apakah ada item_categories_details dengan master_item_id dan target_id yang sama
-            const duplicateDetail = await trx(TABLES.ITEM_CATEGORIES_DETAILS)
-              .where({
-                master_item_id: existingMasterItem.master_item_id,
-                target_id: item.target_id,
-                is_delete: false
-              })
-              .whereNull('deleted_at')
-              .first();
-            
-            if (duplicateDetail) {
-              // Jika data sama semua, gunakan master_item_id yang sudah ada
-              masterItemId = existingMasterItem.master_item_id;
-            } else {
-              // Jika master_item ada tapi target_id berbeda, buat master_item baru atau gunakan yang ada
-              // Gunakan master_item yang sudah ada karena part_number dan description sama
-              masterItemId = existingMasterItem.master_item_id;
-            }
-          } else {
-            // Jika tidak ada duplikat, simpan ke tabel master_items
-            if (item.part_number || item.target_id || item.description) {
-              const [masterItem] = await trx(TABLES.MASTER_ITEMS)
-                .insert({
-                  part_number: item.part_number || null,
-                  master_item_name_en: item.catalog_item_name_en || null,
-                  master_item_name_ch: item.catalog_item_name_ch || null,
-                  description: item.description || null,
-                  quantity: 0,
-                  unit: item.unit || null,
-                  created_by: userId,
-                  updated_by: userId,
-                  created_at: db.fn.now(),
-                  updated_at: db.fn.now()
-                })
-                .returning('master_item_id');
-              
-              masterItemId = masterItem ? masterItem.master_item_id : null;
-            }
+            masterItemId = existingMasterItem.master_item_id;
           }
-        } else {
-          // Jika tidak ada part_number, target_id, dan description, tetap simpan ke master_items jika ada data minimal
-          if (item.part_number || item.target_id || item.description) {
-            const [masterItem] = await trx(TABLES.MASTER_ITEMS)
-              .insert({
-                part_number: item.part_number || null,
-                master_item_name_en: item.catalog_item_name_en || null,
-                master_item_name_ch: item.catalog_item_name_ch || null,
-                description: item.description || null,
-                quantity: 0,
-                unit: item.unit || null,
-                created_by: userId,
-                updated_by: userId,
-                created_at: db.fn.now(),
-                updated_at: db.fn.now()
-              })
-              .returning('master_item_id');
-            
-            masterItemId = masterItem ? masterItem.master_item_id : null;
-          }
+        }
+        
+        // Jika tidak ada yang ditemukan, baru create master_item baru
+        if (!masterItemId && (item.part_number || item.target_id || normalizedDescription)) {
+          const [masterItem] = await trx(TABLES.MASTER_ITEMS)
+            .insert({
+              part_number: item.part_number || null,
+              master_item_name_en: item.catalog_item_name_en || null,
+              master_item_name_ch: item.catalog_item_name_ch || null,
+              description: normalizedDescription || null,
+              quantity: 0,
+              unit: item.unit || null,
+              created_by: userId,
+              updated_by: userId,
+              created_at: db.fn.now(),
+              updated_at: db.fn.now()
+            })
+            .returning('master_item_id');
+          
+          masterItemId = masterItem ? masterItem.master_item_id : null;
         }
         
         // Simpan ke item_category_details dengan master_item_id
@@ -658,7 +627,13 @@ const update = async (id, data, userId) => {
       for (const item of data.data_items) {
         const unit = await findOrCreateUnit(item.unit, userId);
         
-        // Validasi: jika ada part_number yang sama tapi description berbeda, maka gagal
+        // Cari master_item yang sudah ada berdasarkan kriteria
+        let masterItemId = null;
+        
+        // Normalisasi description untuk pencarian
+        const normalizedDescription = (item.description || '').trim();
+        
+        // Cari master_item berdasarkan part_number (prioritas utama)
         if (item.part_number) {
           const existingMasterItem = await trx(TABLES.MASTER_ITEMS)
             .where({
@@ -669,91 +644,54 @@ const update = async (id, data, userId) => {
             .first();
           
           if (existingMasterItem) {
-            // Normalisasi description untuk perbandingan (null, undefined, atau string kosong dianggap sama)
+            // Normalisasi description dari database
             const existingDescription = (existingMasterItem.description || '').trim();
-            const newDescription = (item.description || '').trim();
             
-            // Jika part_number sama tapi description berbeda, maka gagal
-            if (existingDescription !== newDescription) {
+            // Validasi: jika part_number sama tapi description berbeda, maka gagal
+            if (existingDescription !== normalizedDescription) {
               await trx.rollback();
               throw new Error('Data gagal tersimpan: Data dengan part_number yang sama sudah ada dengan description yang berbeda');
             }
+            
+            // Jika part_number dan description sama, gunakan master_item_id yang sudah ada
+            masterItemId = existingMasterItem.master_item_id;
           }
         }
         
-        // Cek apakah ada data yang sama semua (part_number, target_id dari item_categories_details, description)
-        let masterItemId = null;
-        if (item.part_number && item.target_id && item.description) {
-          // Cari master_item dengan part_number dan description yang sama
+        // Jika belum ditemukan berdasarkan part_number, cari berdasarkan description (jika ada)
+        if (!masterItemId && normalizedDescription) {
           const existingMasterItem = await trx(TABLES.MASTER_ITEMS)
             .where({
-              part_number: item.part_number,
-              description: item.description,
+              description: normalizedDescription,
               is_delete: false
             })
             .whereNull('deleted_at')
+            .whereNull('part_number') // Hanya yang tidak punya part_number
             .first();
           
           if (existingMasterItem) {
-            // Cek apakah ada item_categories_details dengan master_item_id dan target_id yang sama
-            const duplicateDetail = await trx(TABLES.ITEM_CATEGORIES_DETAILS)
-              .where({
-                master_item_id: existingMasterItem.master_item_id,
-                target_id: item.target_id,
-                is_delete: false
-              })
-              .whereNull('deleted_at')
-              .first();
-            
-            if (duplicateDetail) {
-              // Jika data sama semua, gunakan master_item_id yang sudah ada
-              masterItemId = existingMasterItem.master_item_id;
-            } else {
-              // Jika master_item ada tapi target_id berbeda, buat master_item baru atau gunakan yang ada
-              // Gunakan master_item yang sudah ada karena part_number dan description sama
-              masterItemId = existingMasterItem.master_item_id;
-            }
-          } else {
-            // Jika tidak ada duplikat, simpan ke tabel master_items
-            if (item.part_number || item.target_id || item.description) {
-              const [masterItem] = await trx(TABLES.MASTER_ITEMS)
-                .insert({
-                  part_number: item.part_number || null,
-                  master_item_name_en: item.catalog_item_name_en || null,
-                  master_item_name_ch: item.catalog_item_name_ch || null,
-                  description: item.description || null,
-                  quantity: 0,
-                  unit: item.unit || null,
-                  created_by: userId,
-                  updated_by: userId,
-                  created_at: db.fn.now(),
-                  updated_at: db.fn.now()
-                })
-                .returning('master_item_id');
-              
-              masterItemId = masterItem ? masterItem.master_item_id : null;
-            }
+            masterItemId = existingMasterItem.master_item_id;
           }
-        } else {
-          // Jika tidak ada part_number, target_id, dan description, tetap simpan ke master_items jika ada data minimal
-          if (item.part_number || item.target_id || item.description) {
-            const [masterItem] = await trx(TABLES.MASTER_ITEMS)
-              .insert({
-                part_number: item.part_number || null,
-                master_item_name_en: item.catalog_item_name_en || null,
-                master_item_name_ch: item.catalog_item_name_ch || null,
-                description: item.description || null,
-                quantity: 0,
-                unit: item.unit || null,
-                created_by: userId,
-                updated_by: userId,
-                created_at: db.fn.now(),
-                updated_at: db.fn.now()
-              })
-              .returning('master_item_id');
-            
-            masterItemId = masterItem ? masterItem.master_item_id : null;
-          }
+        }
+        
+        // Jika tidak ada yang ditemukan, baru create master_item baru
+        if (!masterItemId && (item.part_number || item.target_id || normalizedDescription)) {
+          const [masterItem] = await trx(TABLES.MASTER_ITEMS)
+            .insert({
+              part_number: item.part_number || null,
+              master_item_name_en: item.catalog_item_name_en || null,
+              master_item_name_ch: item.catalog_item_name_ch || null,
+              description: normalizedDescription || null,
+              quantity: 0,
+              unit: item.unit || null,
+              created_by: userId,
+              updated_by: userId,
+              created_at: db.fn.now(),
+              updated_at: db.fn.now()
+            })
+            .returning('master_item_id');
+          
+          masterItemId = masterItem ? masterItem.master_item_id : null;
         }
         
         // Simpan ke item_category_details dengan master_item_id
