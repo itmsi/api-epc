@@ -189,7 +189,8 @@ const update = async (req, res) => {
 };
 
 /**
- * Soft delete item category
+ * Hard delete item category and related item_categories_details
+ * Also delete dokumen if no more item_categories exist for that dokumen
  */
 const remove = async (req, res) => {
   try {

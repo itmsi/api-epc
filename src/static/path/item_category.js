@@ -374,7 +374,7 @@ const itemCategoryPaths = {
     delete: {
       tags: ['Item Category'],
       summary: 'Delete item category',
-      description: 'Soft delete an item category',
+      description: 'Hard delete an item category and related item_categories_details. Also delete dokumen if no more item_categories exist for that dokumen.',
       security: [{ bearerAuth: [] }],
       parameters: [
         {

@@ -123,7 +123,7 @@ router.put(
 
 /**
  * @route   DELETE /api/epc/item_category/:id
- * @desc    Soft delete item category
+ * @desc    Hard delete item category and related item_categories_details. Also delete dokumen if no more item_categories exist.
  * @access  Private
  */
 router.delete(

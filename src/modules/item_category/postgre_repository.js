@@ -772,46 +772,63 @@ const update = async (id, data, userId) => {
 };
 
 /**
- * Soft delete item category
+ * Hard delete item category and related item_categories_details
+ * Also delete dokumen if no more item_categories exist for that dokumen
  */
 const remove = async (id, userId) => {
   const trx = await db.transaction();
   
   try {
-    // Soft delete item category
-    const [deletedItem] = await trx(TABLES.ITEM_CATEGORIES)
+    // 1. Get item category with dokumen_id before deleting
+    const itemCategory = await trx(TABLES.ITEM_CATEGORIES)
       .where('item_category_id', id)
       .where('deleted_at', null)
       .where('is_delete', false)
-      .update({
-        deleted_at: db.fn.now(),
-        deleted_by: userId,
-        is_delete: true,
-        updated_at: db.fn.now(),
-        updated_by: userId
-      })
-      .returning('*');
+      .first();
 
-    if (!deletedItem) {
+    if (!itemCategory) {
       await trx.rollback();
       return null;
     }
 
-    // Soft delete all related details
+    const dokumenId = itemCategory.dokumen_id;
+
+    // 2. Hard delete all related item_categories_details
     await trx(TABLES.ITEM_CATEGORIES_DETAILS)
       .where('item_category_id', id)
       .where('deleted_at', null)
       .where('is_delete', false)
-      .update({
-        deleted_at: db.fn.now(),
-        deleted_by: userId,
-        is_delete: true,
-        updated_at: db.fn.now(),
-        updated_by: userId
-      });
+      .delete();
+
+    // 3. Hard delete item category
+    await trx(TABLES.ITEM_CATEGORIES)
+      .where('item_category_id', id)
+      .where('deleted_at', null)
+      .where('is_delete', false)
+      .delete();
+
+    // 4. Check if there are any other item_categories for this dokumen
+    if (dokumenId) {
+      const remainingItemCategories = await trx(TABLES.ITEM_CATEGORIES)
+        .where('dokumen_id', dokumenId)
+        .where('deleted_at', null)
+        .where('is_delete', false)
+        .count('* as count')
+        .first();
+
+      // 5. If no more item_categories exist for this dokumen, hard delete the dokumen
+      const count = remainingItemCategories ? parseInt(remainingItemCategories.count) : 0;
+      if (count === 0) {
+        await trx(TABLES.DOKUMEN)
+          .where('dokumen_id', dokumenId)
+          .where('deleted_at', null)
+          .where('is_delete', false)
+          .delete();
+      }
+    }
 
     await trx.commit();
-    return deletedItem;
+    return itemCategory;
   } catch (error) {
     await trx.rollback();
     throw error;
