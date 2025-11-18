@@ -79,7 +79,7 @@ router.put(
 
 /**
  * @route   DELETE /api/epc/dokumen/:id
- * @desc    Soft delete document
+ * @desc    Hard delete document and related item_categories and item_categories_details
  * @access  Private
  */
 router.delete(

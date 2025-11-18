@@ -284,7 +284,7 @@ const dokumenPaths = {
     delete: {
       tags: ['Dokumen'],
       summary: 'Delete document',
-      description: 'Soft delete a document',
+      description: 'Hard delete a document and related item_categories and item_categories_details',
       security: [{ bearerAuth: [] }],
       parameters: [
         {

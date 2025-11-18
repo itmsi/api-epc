@@ -85,7 +85,7 @@ const update = async (req, res) => {
 };
 
 /**
- * Soft delete document
+ * Hard delete document and related item_categories and item_categories_details
  */
 const remove = async (req, res) => {
   try {
