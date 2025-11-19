@@ -74,6 +74,24 @@ const findOne = async (conditions) => {
 };
 
 /**
+ * Check if master category with same master_category_name_en exists
+ */
+const findByNameEn = async (nameEn, excludeId = null) => {
+  let query = db(TABLE_NAME)
+    .where({ 
+      master_category_name_en: nameEn,
+      is_delete: false 
+    });
+  
+  // Exclude current ID if provided (for update case)
+  if (excludeId) {
+    query = query.where('master_category_id', '!=', excludeId);
+  }
+  
+  return await query.first();
+};
+
+/**
  * Create new item
  */
 const create = async (data, userId) => {
@@ -152,6 +170,7 @@ module.exports = {
   findAll,
   findById,
   findOne,
+  findByNameEn,
   create,
   update,
   remove,
