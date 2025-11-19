@@ -57,6 +57,14 @@ const create = async (req, res) => {
       return errorResponse(res, 'User ID tidak ditemukan dalam token', 400);
     }
     
+    // Validasi duplikat category_name_en
+    if (req.body.category_name_en) {
+      const existingCategory = await repository.findByNameEn(req.body.category_name_en);
+      if (existingCategory) {
+        return errorResponse(res, 'Category name EN sudah ada', 409);
+      }
+    }
+    
     const data = await repository.create(req.body, userId);
     return successResponse(res, data, 'Category berhasil dibuat', 201);
   } catch (error) {
@@ -76,6 +84,14 @@ const update = async (req, res) => {
     
     if (!userId) {
       return errorResponse(res, 'User ID tidak ditemukan dalam token', 400);
+    }
+    
+    // Validasi duplikat category_name_en (exclude current ID)
+    if (req.body.category_name_en) {
+      const existingCategory = await repository.findByNameEn(req.body.category_name_en, id);
+      if (existingCategory) {
+        return errorResponse(res, 'Category name EN sudah ada', 409);
+      }
     }
     
     const data = await repository.update(id, req.body, userId);
