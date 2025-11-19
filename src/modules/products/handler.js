@@ -52,6 +52,14 @@ const create = async (req, res) => {
       return errorResponse(res, 'User ID tidak ditemukan dalam token', 401);
     }
 
+    // Validasi duplikat vin_number
+    if (req.body.vin_number) {
+      const existingProduct = await repository.findByVinNumber(req.body.vin_number);
+      if (existingProduct) {
+        return errorResponse(res, 'VIN number sudah ada', 409);
+      }
+    }
+
     const result = await repository.create(req.body, userId);
     return successResponse(res, result, 'Data berhasil dibuat', 201);
   } catch (error) {
@@ -71,6 +79,14 @@ const update = async (req, res) => {
     
     if (!userId) {
       return errorResponse(res, 'User ID tidak ditemukan dalam token', 401);
+    }
+
+    // Validasi duplikat vin_number (exclude current ID)
+    if (req.body.vin_number) {
+      const existingProduct = await repository.findByVinNumber(req.body.vin_number, id);
+      if (existingProduct) {
+        return errorResponse(res, 'VIN number sudah ada', 409);
+      }
     }
 
     const result = await repository.update(id, req.body, userId);

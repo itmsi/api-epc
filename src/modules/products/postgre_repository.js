@@ -158,6 +158,25 @@ const findById = async (id) => {
 };
 
 /**
+ * Check if product with same vin_number exists
+ */
+const findByVinNumber = async (vinNumber, excludeId = null) => {
+  let query = db(TABLES.PRODUCTS)
+    .where({ 
+      vin_number: vinNumber,
+      is_delete: false 
+    })
+    .whereNull('deleted_at');
+  
+  // Exclude current ID if provided (for update case)
+  if (excludeId) {
+    query = query.where('product_id', '!=', excludeId);
+  }
+  
+  return await query.first();
+};
+
+/**
  * Create new product with details
  */
 const create = async (data, userId) => {
@@ -370,6 +389,7 @@ const restore = async (id, userId) => {
 module.exports = {
   findAll,
   findById,
+  findByVinNumber,
   create,
   update,
   remove,
