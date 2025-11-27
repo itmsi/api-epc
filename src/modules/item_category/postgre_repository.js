@@ -832,7 +832,10 @@ const restore = async (id, userId) => {
  * Find all item categories by dokumen_id with category and type_category info with pagination
  */
 const findByDokumenId = async (dokumenId, page = 1, limit = 10, search = '', sortBy = 'created_at', sortOrder = 'desc') => {
-  const offset = (page - 1) * limit;
+  // Ensure page and limit are integers
+  const pageNum = parseInt(page, 10) || 1;
+  const limitNum = parseInt(limit, 10) || 10;
+  const offset = (pageNum - 1) * limitNum;
   
   // First, get dokumen info
   const dokumen = await db(TABLES.DOKUMEN)
@@ -849,8 +852,8 @@ const findByDokumenId = async (dokumenId, page = 1, limit = 10, search = '', sor
       master_category_name_cn: null,
       items: [],
       pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
+        page: pageNum,
+        limit: limitNum,
         total: 0,
         totalPages: 0
       }
@@ -906,7 +909,7 @@ const findByDokumenId = async (dokumenId, page = 1, limit = 10, search = '', sor
   const sortColumn = sortBy === 'created_at' ? 'ic.created_at' : `ic.${sortBy}`;
   query = query.orderBy(sortColumn, sortOrder || 'desc');
 
-  const data = await query.limit(limit).offset(offset);
+  const data = await query.limit(limitNum).offset(offset);
   
   // Get total count with same joins and filters
   let countQuery = db(TABLES.ITEM_CATEGORIES)
@@ -969,10 +972,10 @@ const findByDokumenId = async (dokumenId, page = 1, limit = 10, search = '', sor
       type_category_name_cn: item.type_category_name_cn
     })),
     pagination: {
-      page: parseInt(page),
-      limit: parseInt(limit),
+      page: pageNum,
+      limit: limitNum,
       total: parseInt(total.count),
-      totalPages: Math.ceil(total.count / limit)
+      totalPages: Math.ceil(total.count / limitNum)
     }
   };
 };
