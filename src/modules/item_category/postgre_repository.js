@@ -944,12 +944,13 @@ const findByDokumenId = async (dokumenId, page = 1, limit = 10, search = '', sor
       });
   }
 
-  // Count unique master categories
+  // Count distinct item_categories (matching the main query which uses .distinct())
+  // Use COUNT(DISTINCT) for better performance and accuracy
   const countResult = await countQuery
-    .select(db.raw('COALESCE(mc_type.master_category_id, mc_direct.master_category_id) as master_category_id'))
-    .distinct();
+    .select(db.raw('COUNT(DISTINCT ic.item_category_id) as count'))
+    .first();
   
-  const total = { count: countResult.length };
+  const total = { count: parseInt(countResult?.count || 0) };
   
   // Get first master category info if exists (for dokumen level info)
   const firstMasterCategory = data.length > 0 ? data[0] : null;
