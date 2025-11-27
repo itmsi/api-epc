@@ -1,31 +1,38 @@
 /**
- * Swagger Path Definitions for Dokumen Module
+ * Swagger Path Definitions for Master Items Module
  */
 
-const dokumenPaths = {
-  '/dokumen/get': {
+const masterItemsPaths = {
+  '/master_items/get': {
     post: {
-      tags: ['Dokumen'],
-      summary: 'Get all documents with pagination and filters',
-      description: 'Retrieve documents with pagination, search, and sorting capabilities',
+      tags: ['Master Items'],
+      summary: 'Get all master items with pagination and filters',
+      description: 'Retrieve master items with pagination, search, and sorting capabilities',
       security: [{ bearerAuth: [] }],
       requestBody: {
         required: true,
         content: {
           'application/json': {
             schema: {
-              $ref: '#/components/schemas/DokumenGetRequest'
+              $ref: '#/components/schemas/MasterItemGetRequest'
+            },
+            example: {
+              page: 1,
+              limit: 10,
+              search: '',
+              sort_by: 'created_at',
+              sort_order: 'desc'
             }
           }
         }
       },
       responses: {
         200: {
-          description: 'Successfully retrieved documents',
+          description: 'Successfully retrieved master items',
           content: {
             'application/json': {
               schema: {
-                $ref: '#/components/schemas/DokumenListResponse'
+                $ref: '#/components/schemas/MasterItemListResponse'
               }
             }
           }
@@ -64,38 +71,44 @@ const dokumenPaths = {
     }
   },
 
-  '/dokumen/duplikat/{dokumen_id}': {
+  '/master_items/create': {
     post: {
-      tags: ['Dokumen'],
-      summary: 'Duplicate document with all related data',
-      description: 'Duplicate a document with all related item_categories and item_categories_details. The new document will have a name in format: dokumen_name_duplikat_{original_name}',
+      tags: ['Master Items'],
+      summary: 'Create new master item',
+      description: 'Create a new master item',
       security: [{ bearerAuth: [] }],
-      parameters: [
-        {
-          name: 'dokumen_id',
-          in: 'path',
-          required: true,
-          description: 'Document ID to duplicate',
-          schema: {
-            type: 'string',
-            format: 'uuid'
-          },
-          example: '123e4567-e89b-12d3-a456-426614174000'
+      requestBody: {
+        required: true,
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/MasterItemInput'
+            },
+            example: {
+              target_id: 'T001',
+              part_number: 'PN-12345',
+              master_item_name_en: 'Engine Oil Filter',
+              master_item_name_ch: '机油滤清器',
+              description: 'High quality engine oil filter',
+              quantity: 2,
+              unit: 'pcs'
+            }
+          }
         }
-      ],
+      },
       responses: {
         201: {
-          description: 'Successfully duplicated document',
+          description: 'Successfully created master item',
           content: {
             'application/json': {
               schema: {
-                $ref: '#/components/schemas/DokumenResponse'
+                $ref: '#/components/schemas/MasterItemResponse'
               }
             }
           }
         },
-        404: {
-          description: 'Document not found',
+        400: {
+          description: 'Bad Request',
           content: {
             'application/json': {
               schema: {
@@ -106,16 +119,6 @@ const dokumenPaths = {
         },
         401: {
           description: 'Unauthorized',
-          content: {
-            'application/json': {
-              schema: {
-                $ref: '#/components/schemas/ErrorResponse'
-              }
-            }
-          }
-        },
-        400: {
-          description: 'Bad Request',
           content: {
             'application/json': {
               schema: {
@@ -138,18 +141,18 @@ const dokumenPaths = {
     }
   },
 
-  '/dokumen/{id}': {
+  '/master_items/{id}': {
     get: {
-      tags: ['Dokumen'],
-      summary: 'Get document by ID',
-      description: 'Retrieve a specific document by ID',
+      tags: ['Master Items'],
+      summary: 'Get master item by ID',
+      description: 'Retrieve a specific master item by ID',
       security: [{ bearerAuth: [] }],
       parameters: [
         {
           name: 'id',
           in: 'path',
           required: true,
-          description: 'Document ID',
+          description: 'Master Item ID',
           schema: {
             type: 'string',
             format: 'uuid'
@@ -158,17 +161,17 @@ const dokumenPaths = {
       ],
       responses: {
         200: {
-          description: 'Successfully retrieved document',
+          description: 'Successfully retrieved master item',
           content: {
             'application/json': {
               schema: {
-                $ref: '#/components/schemas/DokumenResponse'
+                $ref: '#/components/schemas/MasterItemResponse'
               }
             }
           }
         },
         404: {
-          description: 'Document not found',
+          description: 'Master item not found',
           content: {
             'application/json': {
               schema: {
@@ -201,16 +204,16 @@ const dokumenPaths = {
     },
 
     put: {
-      tags: ['Dokumen'],
-      summary: 'Update document',
-      description: 'Update an existing document',
+      tags: ['Master Items'],
+      summary: 'Update master item',
+      description: 'Update an existing master item',
       security: [{ bearerAuth: [] }],
       parameters: [
         {
           name: 'id',
           in: 'path',
           required: true,
-          description: 'Document ID',
+          description: 'Master Item ID',
           schema: {
             type: 'string',
             format: 'uuid'
@@ -222,24 +225,33 @@ const dokumenPaths = {
         content: {
           'application/json': {
             schema: {
-              $ref: '#/components/schemas/DokumenInput'
+              $ref: '#/components/schemas/MasterItemInput'
+            },
+            example: {
+              target_id: 'T001',
+              part_number: 'PN-12345',
+              master_item_name_en: 'Engine Oil Filter',
+              master_item_name_ch: '机油滤清器',
+              description: 'High quality engine oil filter',
+              quantity: 3,
+              unit: 'pcs'
             }
           }
         }
       },
       responses: {
         200: {
-          description: 'Successfully updated document',
+          description: 'Successfully updated master item',
           content: {
             'application/json': {
               schema: {
-                $ref: '#/components/schemas/DokumenResponse'
+                $ref: '#/components/schemas/MasterItemResponse'
               }
             }
           }
         },
         404: {
-          description: 'Document not found',
+          description: 'Master item not found',
           content: {
             'application/json': {
               schema: {
@@ -282,16 +294,16 @@ const dokumenPaths = {
     },
 
     delete: {
-      tags: ['Dokumen'],
-      summary: 'Delete document',
-      description: 'Hard delete a document and related item_categories and item_categories_details',
+      tags: ['Master Items'],
+      summary: 'Delete master item',
+      description: 'Soft delete a master item',
       security: [{ bearerAuth: [] }],
       parameters: [
         {
           name: 'id',
           in: 'path',
           required: true,
-          description: 'Document ID',
+          description: 'Master Item ID',
           schema: {
             type: 'string',
             format: 'uuid'
@@ -300,7 +312,7 @@ const dokumenPaths = {
       ],
       responses: {
         200: {
-          description: 'Successfully deleted document',
+          description: 'Successfully deleted master item',
           content: {
             'application/json': {
               schema: {
@@ -320,68 +332,7 @@ const dokumenPaths = {
           }
         },
         404: {
-          description: 'Document not found',
-          content: {
-            'application/json': {
-              schema: {
-                $ref: '#/components/schemas/ErrorResponse'
-              }
-            }
-          }
-        },
-        401: {
-          description: 'Unauthorized',
-          content: {
-            'application/json': {
-              schema: {
-                $ref: '#/components/schemas/ErrorResponse'
-              }
-            }
-          }
-        },
-        500: {
-          description: 'Internal Server Error',
-          content: {
-            'application/json': {
-              schema: {
-                $ref: '#/components/schemas/ErrorResponse'
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-
-  '/dokumen/create': {
-    post: {
-      tags: ['Dokumen'],
-      summary: 'Create new document',
-      description: 'Create a new document',
-      security: [{ bearerAuth: [] }],
-      requestBody: {
-        required: true,
-        content: {
-          'application/json': {
-            schema: {
-              $ref: '#/components/schemas/DokumenInput'
-            }
-          }
-        }
-      },
-      responses: {
-        201: {
-          description: 'Successfully created document',
-          content: {
-            'application/json': {
-              schema: {
-                $ref: '#/components/schemas/DokumenResponse'
-              }
-            }
-          }
-        },
-        400: {
-          description: 'Bad Request',
+          description: 'Master item not found',
           content: {
             'application/json': {
               schema: {
@@ -415,5 +366,5 @@ const dokumenPaths = {
   }
 };
 
-module.exports = dokumenPaths;
+module.exports = masterItemsPaths;
 

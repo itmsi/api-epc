@@ -23,6 +23,7 @@ const itemCategoryPaths = {
               sort_by: 'created_at',
               sort_order: 'desc',
               master_category_name_en: '',
+              master_category_name_id: '',
               category_name_en: '',
               type_category_name_en: '',
               dokumen_name: ''
@@ -373,7 +374,7 @@ const itemCategoryPaths = {
     delete: {
       tags: ['Item Category'],
       summary: 'Delete item category',
-      description: 'Soft delete an item category',
+      description: 'Hard delete an item category and related item_categories_details. Also delete dokumen if no more item_categories exist for that dokumen.',
       security: [{ bearerAuth: [] }],
       parameters: [
         {

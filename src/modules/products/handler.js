@@ -15,8 +15,23 @@ const getAll = async (req, res) => {
       sort_order = 'desc' 
     } = req.body;
     
-    const data = await repository.findAll(page, limit, search, sort_by, sort_order);
-    return baseResponse(res, { data, code: 200 });
+    // Convert page and limit to integers and validate
+    let pageNum = parseInt(page, 10) || 1;
+    let limitNum = parseInt(limit, 10) || 10;
+    
+    // Ensure limit doesn't exceed maximum (100)
+    if (limitNum > 100) {
+      limitNum = 100;
+    }
+    if (limitNum < 1) {
+      limitNum = 10;
+    }
+    if (pageNum < 1) {
+      pageNum = 1;
+    }
+    
+    const data = await repository.findAll(pageNum, limitNum, search, sort_by, sort_order);
+    return successResponse(res, data, 'Data berhasil diambil');
   } catch (error) {
     return errorResponse(res, error.message || 'Terjadi kesalahan', 500);
   }
@@ -34,7 +49,7 @@ const getById = async (req, res) => {
       return errorResponse(res, 'Data tidak ditemukan', 404);
     }
     
-    return baseResponse(res, { data, code: 200 });
+    return successResponse(res, data, 'Data berhasil diambil');
   } catch (error) {
     return errorResponse(res, error.message || 'Terjadi kesalahan', 500);
   }
@@ -52,8 +67,16 @@ const create = async (req, res) => {
       return errorResponse(res, 'User ID tidak ditemukan dalam token', 401);
     }
 
+    // Validasi duplikat vin_number
+    if (req.body.vin_number) {
+      const existingProduct = await repository.findByVinNumber(req.body.vin_number);
+      if (existingProduct) {
+        return errorResponse(res, 'VIN number sudah ada', 409);
+      }
+    }
+
     const result = await repository.create(req.body, userId);
-    return baseResponse(res, { data: result, code: 201 });
+    return successResponse(res, result, 'Data berhasil dibuat', 201);
   } catch (error) {
     return errorResponse(res, error.message || 'Terjadi kesalahan', 500);
   }
@@ -73,13 +96,21 @@ const update = async (req, res) => {
       return errorResponse(res, 'User ID tidak ditemukan dalam token', 401);
     }
 
+    // Validasi duplikat vin_number (exclude current ID)
+    if (req.body.vin_number) {
+      const existingProduct = await repository.findByVinNumber(req.body.vin_number, id);
+      if (existingProduct) {
+        return errorResponse(res, 'VIN number sudah ada', 409);
+      }
+    }
+
     const result = await repository.update(id, req.body, userId);
     
     if (!result) {
       return errorResponse(res, 'Data tidak ditemukan', 404);
     }
     
-    return baseResponse(res, { data: result, code: 200 });
+    return successResponse(res, result, 'Data berhasil diupdate');
   } catch (error) {
     return errorResponse(res, error.message || 'Terjadi kesalahan', 500);
   }
@@ -105,7 +136,7 @@ const remove = async (req, res) => {
       return errorResponse(res, 'Data tidak ditemukan', 404);
     }
     
-    return baseResponse(res, { data: null, code: 200 });
+    return successResponse(res, null, 'Data berhasil dihapus');
   } catch (error) {
     return errorResponse(res, error.message || 'Terjadi kesalahan', 500);
   }
@@ -131,7 +162,7 @@ const restore = async (req, res) => {
       return errorResponse(res, 'Data tidak ditemukan', 404);
     }
     
-    return baseResponse(res, { data: result, code: 200 });
+    return successResponse(res, result, 'Data berhasil direstore');
   } catch (error) {
     return errorResponse(res, error.message || 'Terjadi kesalahan', 500);
   }

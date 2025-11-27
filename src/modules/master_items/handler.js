@@ -2,7 +2,7 @@ const repository = require('./postgre_repository');
 const { successResponse, errorResponse } = require('../../utils/response');
 
 /**
- * Get all items dengan pagination dan filter
+ * Get all master items with pagination
  */
 const getAll = async (req, res) => {
   try {
@@ -11,7 +11,7 @@ const getAll = async (req, res) => {
       limit = 10, 
       search = '', 
       sort_by = 'created_at', 
-      sort_order = 'desc' 
+      sort_order = 'desc'
     } = req.body;
     
     // Convert page and limit to integers and validate
@@ -37,7 +37,7 @@ const getAll = async (req, res) => {
 };
 
 /**
- * Get single item by ID
+ * Get single master item by ID
  */
 const getById = async (req, res) => {
   try {
@@ -55,113 +55,97 @@ const getById = async (req, res) => {
 };
 
 /**
- * Create new item
+ * Create new master item
  */
 const create = async (req, res) => {
   try {
-    // Ambil user ID dari token
+    // Get user ID from token
     const userId = req.user?.employee_id || req.user?.user_id;
     
     if (!userId) {
-      return errorResponse(res, 'User ID tidak ditemukan dalam token', 400);
+      return errorResponse(res, 'User ID tidak ditemukan dalam token', 401);
     }
-    
-    // Validasi duplikat master_category_name_en
-    if (req.body.master_category_name_en) {
-      const existingCategory = await repository.findByNameEn(req.body.master_category_name_en);
-      if (existingCategory) {
-        return errorResponse(res, 'Master category name EN sudah ada', 409);
-      }
-    }
-    
-    const data = await repository.create(req.body, userId);
-    return successResponse(res, data, 'Master category berhasil dibuat', 201);
+
+    const result = await repository.create(req.body, userId);
+    return successResponse(res, result, 'Data berhasil dibuat', 201);
   } catch (error) {
     return errorResponse(res, error.message || 'Terjadi kesalahan', 500);
   }
 };
 
 /**
- * Update existing item
+ * Update existing master item
  */
 const update = async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Ambil user ID dari token
+    // Get user ID from token
     const userId = req.user?.employee_id || req.user?.user_id;
     
     if (!userId) {
-      return errorResponse(res, 'User ID tidak ditemukan dalam token', 400);
+      return errorResponse(res, 'User ID tidak ditemukan dalam token', 401);
     }
+
+    const result = await repository.update(id, req.body, userId);
     
-    // Validasi duplikat master_category_name_en (exclude current ID)
-    if (req.body.master_category_name_en) {
-      const existingCategory = await repository.findByNameEn(req.body.master_category_name_en, id);
-      if (existingCategory) {
-        return errorResponse(res, 'Master category name EN sudah ada', 409);
-      }
-    }
-    
-    const data = await repository.update(id, req.body, userId);
-    
-    if (!data) {
+    if (!result) {
       return errorResponse(res, 'Data tidak ditemukan', 404);
     }
     
-    return successResponse(res, data, 'Master category berhasil diupdate');
+    return successResponse(res, result, 'Data berhasil diupdate');
   } catch (error) {
     return errorResponse(res, error.message || 'Terjadi kesalahan', 500);
   }
 };
 
 /**
- * Soft delete item
+ * Soft delete master item
  */
 const remove = async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Ambil user ID dari token
+    // Get user ID from token
     const userId = req.user?.employee_id || req.user?.user_id;
     
     if (!userId) {
-      return errorResponse(res, 'User ID tidak ditemukan dalam token', 400);
+      return errorResponse(res, 'User ID tidak ditemukan dalam token', 401);
     }
-    
+
     const result = await repository.remove(id, userId);
     
     if (!result) {
       return errorResponse(res, 'Data tidak ditemukan', 404);
     }
     
-    return successResponse(res, null, 'Master category berhasil dihapus');
+    return successResponse(res, null, 'Data berhasil dihapus');
   } catch (error) {
     return errorResponse(res, error.message || 'Terjadi kesalahan', 500);
   }
 };
 
 /**
- * Restore soft deleted item
+ * Restore soft deleted master item
  */
 const restore = async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Ambil user ID dari token
+    // Get user ID from token
     const userId = req.user?.employee_id || req.user?.user_id;
     
     if (!userId) {
-      return errorResponse(res, 'User ID tidak ditemukan dalam token', 400);
+      return errorResponse(res, 'User ID tidak ditemukan dalam token', 401);
     }
+
+    const result = await repository.restore(id, userId);
     
-    const data = await repository.restore(id, userId);
-    
-    if (!data) {
+    if (!result) {
       return errorResponse(res, 'Data tidak ditemukan', 404);
     }
     
-    return successResponse(res, data, 'Master category berhasil direstore');
+    return successResponse(res, result, 'Data berhasil direstore');
   } catch (error) {
     return errorResponse(res, error.message || 'Terjadi kesalahan', 500);
   }
@@ -175,3 +159,4 @@ module.exports = {
   remove,
   restore
 };
+

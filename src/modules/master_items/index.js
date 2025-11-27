@@ -6,15 +6,14 @@ const {
   createValidation,
   updateValidation,
   getByIdValidation,
-  deleteValidation,
-  duplicateValidation
+  deleteValidation
 } = require('./validation');
 const { verifyToken } = require('../../middlewares');
 const { validateMiddleware } = require('../../middlewares/validation');
 
 /**
- * @route   POST /api/epc/dokumen/get
- * @desc    Get all documents with pagination and filters
+ * @route   POST /api/epc/master_items/get
+ * @desc    Get all master items with pagination and filters
  * @access  Private
  */
 router.post(
@@ -26,34 +25,8 @@ router.post(
 );
 
 /**
- * @route   POST /api/epc/dokumen/duplikat/:dokumen_id
- * @desc    Duplicate document with all related data
- * @access  Private
- */
-router.post(
-  '/duplikat/:dokumen_id',
-  verifyToken,
-  duplicateValidation,
-  validateMiddleware,
-  handler.duplicate
-);
-
-/**
- * @route   GET /api/epc/dokumen/:id
- * @desc    Get document by ID
- * @access  Private
- */
-router.get(
-  '/:id',
-  verifyToken,
-  getByIdValidation,
-  validateMiddleware,
-  handler.getById
-);
-
-/**
- * @route   POST /api/epc/dokumen/create
- * @desc    Create new document
+ * @route   POST /api/epc/master_items/create
+ * @desc    Create new master item
  * @access  Private
  */
 router.post(
@@ -65,8 +38,21 @@ router.post(
 );
 
 /**
- * @route   PUT /api/epc/dokumen/:id
- * @desc    Update document
+ * @route   GET /api/epc/master_items/:id
+ * @desc    Get master item by ID
+ * @access  Private
+ */
+router.get(
+  '/:id',
+  verifyToken,
+  getByIdValidation,
+  validateMiddleware,
+  handler.getById
+);
+
+/**
+ * @route   PUT /api/epc/master_items/:id
+ * @desc    Update master item
  * @access  Private
  */
 router.put(
@@ -78,8 +64,8 @@ router.put(
 );
 
 /**
- * @route   DELETE /api/epc/dokumen/:id
- * @desc    Hard delete document and related item_categories and item_categories_details
+ * @route   DELETE /api/epc/master_items/:id
+ * @desc    Soft delete master item
  * @access  Private
  */
 router.delete(

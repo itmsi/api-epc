@@ -31,7 +31,8 @@ const getValidation = [
  */
 const createValidation = [
   body('master_category_name_en')
-    .optional()
+    .notEmpty()
+    .withMessage('Master category name EN wajib diisi')
     .isLength({ max: 255 })
     .withMessage('Master category name EN maksimal 255 karakter')
     .trim(),
@@ -57,9 +58,9 @@ const updateValidation = [
     .isUUID()
     .withMessage('Format ID tidak valid'),
   body('master_category_name_en')
-    .optional()
-    .isLength({ max: 255 })
-    .withMessage('Master category name EN maksimal 255 karakter')
+    .optional({ checkFalsy: true })
+    .isLength({ min: 1, max: 255 })
+    .withMessage('Master category name EN harus antara 1-255 karakter jika diisi')
     .trim(),
   body('master_category_name_cn')
     .optional()

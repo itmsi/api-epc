@@ -7,7 +7,8 @@ const TABLES = {
   UNITS: 'units',
   MASTER_CATEGORIES: 'master_categories',
   CATEGORIES: 'categories',
-  TYPE_CATEGORIES: 'type_categories'
+  TYPE_CATEGORIES: 'type_categories',
+  MASTER_ITEMS: 'master_items'
 };
 
 /**
@@ -37,17 +38,40 @@ const findAll = async (page = 1, limit = 10, search = '', sortBy = 'd.created_at
     .leftJoin(`${TABLES.MASTER_CATEGORIES} as mc_direct`, 'c_direct.master_category_id', 'mc_direct.master_category_id')
     .where('ic.deleted_at', null)
     .where('ic.is_delete', false)
-    .distinct();
+    .groupBy([
+      'd.dokumen_id',
+      'd.dokumen_name',
+      'd.created_at',
+      db.raw('COALESCE(mc_type.master_category_id, mc_direct.master_category_id)'),
+      db.raw('COALESCE(mc_type.master_category_name_en, mc_direct.master_category_name_en)'),
+      db.raw('COALESCE(mc_type.master_category_name_cn, mc_direct.master_category_name_cn)')
+    ]);
 
-  // Add search functionality
+  // Add search functionality - if search is provided, we need to join with details and master_items
   if (search) {
-    query = query.where(function() {
-      this.where('d.dokumen_name', 'ilike', `%${search}%`)
-        .orWhere('mc_type.master_category_name_en', 'ilike', `%${search}%`)
-        .orWhere('mc_direct.master_category_name_en', 'ilike', `%${search}%`)
-        .orWhere('mc_type.master_category_name_cn', 'ilike', `%${search}%`)
-        .orWhere('mc_direct.master_category_name_cn', 'ilike', `%${search}%`);
-    });
+    query = query
+      .leftJoin(`${TABLES.ITEM_CATEGORIES_DETAILS} as icd`, function() {
+        this.on('ic.item_category_id', '=', 'icd.item_category_id')
+          .andOn(db.raw('icd.deleted_at IS NULL'))
+          .andOn(db.raw('icd.is_delete = false'));
+      })
+      .leftJoin(`${TABLES.MASTER_ITEMS} as mi`, function() {
+        this.on('icd.master_item_id', '=', 'mi.master_item_id')
+          .andOn(db.raw('mi.deleted_at IS NULL'))
+          .andOn(db.raw('mi.is_delete = false'));
+      })
+      .where(function() {
+        this.where('d.dokumen_name', 'ilike', `%${search}%`)
+          .orWhere('mc_type.master_category_name_en', 'ilike', `%${search}%`)
+          .orWhere('mc_direct.master_category_name_en', 'ilike', `%${search}%`)
+          .orWhere('mc_type.master_category_name_cn', 'ilike', `%${search}%`)
+          .orWhere('mc_direct.master_category_name_cn', 'ilike', `%${search}%`)
+          .orWhere('c_type.category_name_en', 'ilike', `%${search}%`)
+          .orWhere('c_direct.category_name_en', 'ilike', `%${search}%`)
+          .orWhere('tc.type_category_name_en', 'ilike', `%${search}%`)
+          .orWhere('mi.part_number', 'ilike', `%${search}%`)
+          .orWhere('mi.master_item_name_en', 'ilike', `%${search}%`);
+      });
   }
 
   // Add filters
@@ -55,6 +79,13 @@ const findAll = async (page = 1, limit = 10, search = '', sortBy = 'd.created_at
     query = query.where(function() {
       this.where('mc_type.master_category_name_en', 'ilike', `%${filters.master_category_name_en}%`)
         .orWhere('mc_direct.master_category_name_en', 'ilike', `%${filters.master_category_name_en}%`);
+    });
+  }
+
+  if (filters.master_category_name_id) {
+    query = query.where(function() {
+      this.where('mc_type.master_category_id', filters.master_category_name_id)
+        .orWhere('mc_direct.master_category_id', filters.master_category_name_id);
     });
   }
 
@@ -80,13 +111,29 @@ const findAll = async (page = 1, limit = 10, search = '', sortBy = 'd.created_at
     .where('ic.is_delete', false);
 
   if (search) {
-    countQuery = countQuery.where(function() {
-      this.where('d.dokumen_name', 'ilike', `%${search}%`)
-        .orWhere('mc_type.master_category_name_en', 'ilike', `%${search}%`)
-        .orWhere('mc_direct.master_category_name_en', 'ilike', `%${search}%`)
-        .orWhere('mc_type.master_category_name_cn', 'ilike', `%${search}%`)
-        .orWhere('mc_direct.master_category_name_cn', 'ilike', `%${search}%`);
-    });
+    countQuery = countQuery
+      .leftJoin(`${TABLES.ITEM_CATEGORIES_DETAILS} as icd`, function() {
+        this.on('ic.item_category_id', '=', 'icd.item_category_id')
+          .andOn(db.raw('icd.deleted_at IS NULL'))
+          .andOn(db.raw('icd.is_delete = false'));
+      })
+      .leftJoin(`${TABLES.MASTER_ITEMS} as mi`, function() {
+        this.on('icd.master_item_id', '=', 'mi.master_item_id')
+          .andOn(db.raw('mi.deleted_at IS NULL'))
+          .andOn(db.raw('mi.is_delete = false'));
+      })
+      .where(function() {
+        this.where('d.dokumen_name', 'ilike', `%${search}%`)
+          .orWhere('mc_type.master_category_name_en', 'ilike', `%${search}%`)
+          .orWhere('mc_direct.master_category_name_en', 'ilike', `%${search}%`)
+          .orWhere('mc_type.master_category_name_cn', 'ilike', `%${search}%`)
+          .orWhere('mc_direct.master_category_name_cn', 'ilike', `%${search}%`)
+          .orWhere('c_type.category_name_en', 'ilike', `%${search}%`)
+          .orWhere('c_direct.category_name_en', 'ilike', `%${search}%`)
+          .orWhere('tc.type_category_name_en', 'ilike', `%${search}%`)
+          .orWhere('mi.part_number', 'ilike', `%${search}%`)
+          .orWhere('mi.master_item_name_en', 'ilike', `%${search}%`);
+      });
   }
 
   // Add filters to count query
@@ -94,6 +141,13 @@ const findAll = async (page = 1, limit = 10, search = '', sortBy = 'd.created_at
     countQuery = countQuery.where(function() {
       this.where('mc_type.master_category_name_en', 'ilike', `%${filters.master_category_name_en}%`)
         .orWhere('mc_direct.master_category_name_en', 'ilike', `%${filters.master_category_name_en}%`);
+    });
+  }
+
+  if (filters.master_category_name_id) {
+    countQuery = countQuery.where(function() {
+      this.where('mc_type.master_category_id', filters.master_category_name_id)
+        .orWhere('mc_direct.master_category_id', filters.master_category_name_id);
     });
   }
 
@@ -106,6 +160,10 @@ const findAll = async (page = 1, limit = 10, search = '', sortBy = 'd.created_at
     .select([
       'd.dokumen_id',
       db.raw('COALESCE(mc_type.master_category_id, mc_direct.master_category_id) as master_category_id')
+    ])
+    .groupBy([
+      'd.dokumen_id',
+      db.raw('COALESCE(mc_type.master_category_id, mc_direct.master_category_id)')
     ])
     .distinct();
   
@@ -135,6 +193,7 @@ const findById = async (id) => {
       'tc.type_category_name_cn',
       db.raw('COALESCE(c_type.category_name_en, c_direct.category_name_en) as category_name_en'),
       db.raw('COALESCE(c_type.category_name_cn, c_direct.category_name_cn) as category_name_cn'),
+      db.raw('COALESCE(mc_type.master_category_id, mc_direct.master_category_id) as master_category_id'),
       db.raw('COALESCE(mc_type.master_category_name_en, mc_direct.master_category_name_en) as master_category_name_en'),
       db.raw('COALESCE(mc_type.master_category_name_cn, mc_direct.master_category_name_cn) as master_category_name_cn')
     ])
@@ -154,15 +213,25 @@ const findById = async (id) => {
     return null;
   }
 
-  // Get item category details
+  // Get item category details with master_items data
   const details = await db(TABLES.ITEM_CATEGORIES_DETAILS)
     .select([
       'icd.*',
+      'mi.part_number',
+      'mi.master_item_name_en as catalog_item_name_en',
+      'mi.master_item_name_ch as catalog_item_name_ch',
+      'mi.description',
+      'mi.unit',
       'u.unit_name_en',
       'u.unit_name_cn'
     ])
     .from(`${TABLES.ITEM_CATEGORIES_DETAILS} as icd`)
-    .leftJoin(`${TABLES.UNITS} as u`, 'icd.unit', 'u.unit_name_en')
+    .leftJoin(`${TABLES.MASTER_ITEMS} as mi`, function() {
+      this.on('icd.master_item_id', '=', 'mi.master_item_id')
+        .andOn(db.raw('mi.deleted_at IS NULL'))
+        .andOn(db.raw('mi.is_delete = false'));
+    })
+    .leftJoin(`${TABLES.UNITS} as u`, 'mi.unit', 'u.unit_name_en')
     .where('icd.item_category_id', id)
     .where('icd.deleted_at', null)
     .where('icd.is_delete', false);
@@ -171,6 +240,74 @@ const findById = async (id) => {
     ...itemCategory,
     details
   };
+};
+
+/**
+ * Check if combination of dokumen_name, master_category_id, category_id, type_category_id already exists
+ */
+const checkDuplicateCombination = async (trx, dokumenName, masterCategoryId, categoryId, typeCategoryId, excludeItemCategoryId = null) => {
+  // Find dokumen by name
+  const dokumen = await trx(TABLES.DOKUMEN)
+    .where('dokumen_name', dokumenName)
+    .where('deleted_at', null)
+    .where('is_delete', false)
+    .first();
+  
+  if (!dokumen) {
+    return false; // No dokumen found, so no duplicate
+  }
+  
+  // Check if there's an item_category with same dokumen_id, category_id, type_category_id
+  // and verify master_category_id matches
+  let query = trx(TABLES.ITEM_CATEGORIES)
+    .select('ic.*')
+    .from(`${TABLES.ITEM_CATEGORIES} as ic`)
+    .where('ic.dokumen_id', dokumen.dokumen_id)
+    .where('ic.deleted_at', null)
+    .where('ic.is_delete', false);
+  
+  // Exclude current item_category_id if provided (for update case)
+  if (excludeItemCategoryId) {
+    query = query.where('ic.item_category_id', '!=', excludeItemCategoryId);
+  }
+  
+  // Add category_id check
+  if (categoryId) {
+    query = query.where('ic.category_id', categoryId);
+  } else {
+    query = query.whereNull('ic.category_id');
+  }
+  
+  // Add type_category_id check
+  if (typeCategoryId) {
+    query = query.where('ic.type_category_id', typeCategoryId);
+  } else {
+    query = query.whereNull('ic.type_category_id');
+  }
+  
+  // Join with categories and master_categories to check master_category_id
+  query = query
+    .leftJoin(`${TABLES.TYPE_CATEGORIES} as tc`, 'ic.type_category_id', 'tc.type_category_id')
+    .leftJoin(`${TABLES.CATEGORIES} as c_type`, 'tc.category_id', 'c_type.category_id')
+    .leftJoin(`${TABLES.CATEGORIES} as c_direct`, 'ic.category_id', 'c_direct.category_id')
+    .leftJoin(`${TABLES.MASTER_CATEGORIES} as mc_type`, 'c_type.master_category_id', 'mc_type.master_category_id')
+    .leftJoin(`${TABLES.MASTER_CATEGORIES} as mc_direct`, 'c_direct.master_category_id', 'mc_direct.master_category_id');
+  
+  // Check master_category_id match
+  if (masterCategoryId) {
+    query = query.where(function() {
+      this.where('mc_type.master_category_id', masterCategoryId)
+        .orWhere('mc_direct.master_category_id', masterCategoryId);
+    });
+  } else {
+    query = query.where(function() {
+      this.whereNull('mc_type.master_category_id')
+        .andWhereNull('mc_direct.master_category_id');
+    });
+  }
+  
+  const duplicate = await query.first();
+  return !!duplicate;
 };
 
 /**
@@ -237,6 +374,22 @@ const create = async (data, userId) => {
   const trx = await db.transaction();
   
   try {
+    // Validasi kombinasi dokumen_name, master_category_id, category_id, type_category_id
+    if (data.dokumen_name && data.master_category_id && (data.category_id || data.type_category_id)) {
+      const isDuplicate = await checkDuplicateCombination(
+        trx,
+        data.dokumen_name,
+        data.master_category_id,
+        data.category_id || null,
+        data.type_category_id || null
+      );
+      
+      if (isDuplicate) {
+        await trx.rollback();
+        throw new Error('Data gagal tersimpan: Kombinasi dokumen_name, master_category_id, category_id, dan type_category_id sudah ada');
+      }
+    }
+    
     // Find or create dokumen
     const dokumen = await findOrCreateDokumen(data.dokumen_name, userId);
     
@@ -262,16 +415,80 @@ const create = async (data, userId) => {
       for (const item of data.data_items) {
         const unit = await findOrCreateUnit(item.unit, userId);
         
+        // Cari master_item yang sudah ada berdasarkan kriteria
+        let masterItemId = null;
+        
+        // Normalisasi description untuk pencarian
+        const normalizedDescription = (item.description || '').trim();
+        
+        // Cari master_item berdasarkan part_number (prioritas utama)
+        if (item.part_number) {
+          const existingMasterItem = await trx(TABLES.MASTER_ITEMS)
+            .where({
+              part_number: item.part_number,
+              is_delete: false
+            })
+            .whereNull('deleted_at')
+            .first();
+          
+          if (existingMasterItem) {
+            // Normalisasi description dari database
+            const existingDescription = (existingMasterItem.description || '').trim();
+            
+            // Validasi: jika part_number sama tapi description berbeda, maka gagal
+            if (existingDescription !== normalizedDescription) {
+              await trx.rollback();
+              throw new Error('Data gagal tersimpan: Data dengan part_number yang sama sudah ada dengan description yang berbeda');
+            }
+            
+            // Jika part_number dan description sama, gunakan master_item_id yang sudah ada
+            masterItemId = existingMasterItem.master_item_id;
+          }
+        }
+        
+        // Jika belum ditemukan berdasarkan part_number, cari berdasarkan description (jika ada)
+        if (!masterItemId && normalizedDescription) {
+          const existingMasterItem = await trx(TABLES.MASTER_ITEMS)
+            .where({
+              description: normalizedDescription,
+              is_delete: false
+            })
+            .whereNull('deleted_at')
+            .whereNull('part_number') // Hanya yang tidak punya part_number
+            .first();
+          
+          if (existingMasterItem) {
+            masterItemId = existingMasterItem.master_item_id;
+          }
+        }
+        
+        // Jika tidak ada yang ditemukan, baru create master_item baru
+        if (!masterItemId && (item.part_number || item.target_id || normalizedDescription)) {
+          const [masterItem] = await trx(TABLES.MASTER_ITEMS)
+            .insert({
+              part_number: item.part_number || null,
+              master_item_name_en: item.catalog_item_name_en || null,
+              master_item_name_ch: item.catalog_item_name_ch || null,
+              description: normalizedDescription || null,
+              quantity: 0,
+              unit: item.unit || null,
+              created_by: userId,
+              updated_by: userId,
+              created_at: db.fn.now(),
+              updated_at: db.fn.now()
+            })
+            .returning('master_item_id');
+          
+          masterItemId = masterItem ? masterItem.master_item_id : null;
+        }
+        
+        // Simpan ke item_category_details dengan master_item_id
         await trx(TABLES.ITEM_CATEGORIES_DETAILS)
           .insert({
             item_category_id: itemCategory.item_category_id,
+            master_item_id: masterItemId,
             target_id: item.target_id,
-            part_number: item.part_number,
-            catalog_item_name_en: item.catalog_item_name_en,
-            catalog_item_name_ch: item.catalog_item_name_ch,
-            description: item.description,
             quantity: item.quantity,
-            unit: item.unit,
             created_by: userId,
             updated_by: userId,
             created_at: db.fn.now(),
@@ -305,6 +522,73 @@ const update = async (id, data, userId) => {
     if (!existingItem) {
       await trx.rollback();
       return null;
+    }
+
+    // Get dokumen_name - use existing or new
+    let dokumenName = data.dokumen_name;
+    if (!dokumenName && existingItem.dokumen_id) {
+      const existingDokumen = await trx(TABLES.DOKUMEN)
+        .where('dokumen_id', existingItem.dokumen_id)
+        .first();
+      dokumenName = existingDokumen ? existingDokumen.dokumen_name : null;
+    }
+
+    // Get master_category_id from existing item if not provided in data
+    // Need to get it from category_id or type_category_id relationship
+    let masterCategoryIdToCheck = data.master_category_id;
+    if (!masterCategoryIdToCheck) {
+      // Get master_category_id from existing item's category_id or type_category_id
+      const categoryIdToGetMaster = existingItem.category_id || null;
+      const typeCategoryIdToGetMaster = existingItem.type_category_id || null;
+      
+      if (categoryIdToGetMaster) {
+        const category = await trx(TABLES.CATEGORIES)
+          .where('category_id', categoryIdToGetMaster)
+          .where('deleted_at', null)
+          .where('is_delete', false)
+          .first();
+        if (category) {
+          masterCategoryIdToCheck = category.master_category_id;
+        }
+      } else if (typeCategoryIdToGetMaster) {
+        const typeCategory = await trx(TABLES.TYPE_CATEGORIES)
+          .where('type_category_id', typeCategoryIdToGetMaster)
+          .where('deleted_at', null)
+          .where('is_delete', false)
+          .first();
+        if (typeCategory && typeCategory.category_id) {
+          const category = await trx(TABLES.CATEGORIES)
+            .where('category_id', typeCategory.category_id)
+            .where('deleted_at', null)
+            .where('is_delete', false)
+            .first();
+          if (category) {
+            masterCategoryIdToCheck = category.master_category_id;
+          }
+        }
+      }
+    }
+
+    // Validasi kombinasi dokumen_name, master_category_id, category_id, type_category_id
+    // Hanya validasi jika semua field diperlukan ada
+    if (dokumenName && masterCategoryIdToCheck && (data.category_id !== undefined || data.type_category_id !== undefined || existingItem.category_id || existingItem.type_category_id)) {
+      const categoryIdToCheck = data.category_id !== undefined ? (data.category_id || null) : existingItem.category_id;
+      const typeCategoryIdToCheck = data.type_category_id !== undefined ? (data.type_category_id || null) : existingItem.type_category_id;
+      
+      // Cek duplikasi dengan mengecualikan record yang sedang diupdate
+      const isDuplicate = await checkDuplicateCombination(
+        trx,
+        dokumenName,
+        masterCategoryIdToCheck,
+        categoryIdToCheck,
+        typeCategoryIdToCheck,
+        id // Exclude current item_category_id
+      );
+      
+      if (isDuplicate) {
+        await trx.rollback();
+        throw new Error('Data gagal tersimpan: Kombinasi dokumen_name, master_category_id, category_id, dan type_category_id sudah ada');
+      }
     }
 
     // Update dokumen if dokumen_id exists and dokumen_name is provided
@@ -343,16 +627,80 @@ const update = async (id, data, userId) => {
       for (const item of data.data_items) {
         const unit = await findOrCreateUnit(item.unit, userId);
         
+        // Cari master_item yang sudah ada berdasarkan kriteria
+        let masterItemId = null;
+        
+        // Normalisasi description untuk pencarian
+        const normalizedDescription = (item.description || '').trim();
+        
+        // Cari master_item berdasarkan part_number (prioritas utama)
+        if (item.part_number) {
+          const existingMasterItem = await trx(TABLES.MASTER_ITEMS)
+            .where({
+              part_number: item.part_number,
+              is_delete: false
+            })
+            .whereNull('deleted_at')
+            .first();
+          
+          if (existingMasterItem) {
+            // Normalisasi description dari database
+            const existingDescription = (existingMasterItem.description || '').trim();
+            
+            // Validasi: jika part_number sama tapi description berbeda, maka gagal
+            if (existingDescription !== normalizedDescription) {
+              await trx.rollback();
+              throw new Error('Data gagal tersimpan: Data dengan part_number yang sama sudah ada dengan description yang berbeda');
+            }
+            
+            // Jika part_number dan description sama, gunakan master_item_id yang sudah ada
+            masterItemId = existingMasterItem.master_item_id;
+          }
+        }
+        
+        // Jika belum ditemukan berdasarkan part_number, cari berdasarkan description (jika ada)
+        if (!masterItemId && normalizedDescription) {
+          const existingMasterItem = await trx(TABLES.MASTER_ITEMS)
+            .where({
+              description: normalizedDescription,
+              is_delete: false
+            })
+            .whereNull('deleted_at')
+            .whereNull('part_number') // Hanya yang tidak punya part_number
+            .first();
+          
+          if (existingMasterItem) {
+            masterItemId = existingMasterItem.master_item_id;
+          }
+        }
+        
+        // Jika tidak ada yang ditemukan, baru create master_item baru
+        if (!masterItemId && (item.part_number || item.target_id || normalizedDescription)) {
+          const [masterItem] = await trx(TABLES.MASTER_ITEMS)
+            .insert({
+              part_number: item.part_number || null,
+              master_item_name_en: item.catalog_item_name_en || null,
+              master_item_name_ch: item.catalog_item_name_ch || null,
+              description: normalizedDescription || null,
+              quantity: 0,
+              unit: item.unit || null,
+              created_by: userId,
+              updated_by: userId,
+              created_at: db.fn.now(),
+              updated_at: db.fn.now()
+            })
+            .returning('master_item_id');
+          
+          masterItemId = masterItem ? masterItem.master_item_id : null;
+        }
+        
+        // Simpan ke item_category_details dengan master_item_id
         await trx(TABLES.ITEM_CATEGORIES_DETAILS)
           .insert({
             item_category_id: id,
+            master_item_id: masterItemId,
             target_id: item.target_id,
-            part_number: item.part_number,
-            catalog_item_name_en: item.catalog_item_name_en,
-            catalog_item_name_ch: item.catalog_item_name_ch,
-            description: item.description,
             quantity: item.quantity,
-            unit: item.unit,
             created_by: userId,
             updated_by: userId,
             created_at: db.fn.now(),
@@ -370,46 +718,63 @@ const update = async (id, data, userId) => {
 };
 
 /**
- * Soft delete item category
+ * Hard delete item category and related item_categories_details
+ * Also delete dokumen if no more item_categories exist for that dokumen
  */
 const remove = async (id, userId) => {
   const trx = await db.transaction();
   
   try {
-    // Soft delete item category
-    const [deletedItem] = await trx(TABLES.ITEM_CATEGORIES)
+    // 1. Get item category with dokumen_id before deleting
+    const itemCategory = await trx(TABLES.ITEM_CATEGORIES)
       .where('item_category_id', id)
       .where('deleted_at', null)
       .where('is_delete', false)
-      .update({
-        deleted_at: db.fn.now(),
-        deleted_by: userId,
-        is_delete: true,
-        updated_at: db.fn.now(),
-        updated_by: userId
-      })
-      .returning('*');
+      .first();
 
-    if (!deletedItem) {
+    if (!itemCategory) {
       await trx.rollback();
       return null;
     }
 
-    // Soft delete all related details
+    const dokumenId = itemCategory.dokumen_id;
+
+    // 2. Hard delete all related item_categories_details
     await trx(TABLES.ITEM_CATEGORIES_DETAILS)
       .where('item_category_id', id)
       .where('deleted_at', null)
       .where('is_delete', false)
-      .update({
-        deleted_at: db.fn.now(),
-        deleted_by: userId,
-        is_delete: true,
-        updated_at: db.fn.now(),
-        updated_by: userId
-      });
+      .delete();
+
+    // 3. Hard delete item category
+    await trx(TABLES.ITEM_CATEGORIES)
+      .where('item_category_id', id)
+      .where('deleted_at', null)
+      .where('is_delete', false)
+      .delete();
+
+    // 4. Check if there are any other item_categories for this dokumen
+    if (dokumenId) {
+      const remainingItemCategories = await trx(TABLES.ITEM_CATEGORIES)
+        .where('dokumen_id', dokumenId)
+        .where('deleted_at', null)
+        .where('is_delete', false)
+        .count('* as count')
+        .first();
+
+      // 5. If no more item_categories exist for this dokumen, hard delete the dokumen
+      const count = remainingItemCategories ? parseInt(remainingItemCategories.count) : 0;
+      if (count === 0) {
+        await trx(TABLES.DOKUMEN)
+          .where('dokumen_id', dokumenId)
+          .where('deleted_at', null)
+          .where('is_delete', false)
+          .delete();
+      }
+    }
 
     await trx.commit();
-    return deletedItem;
+    return itemCategory;
   } catch (error) {
     await trx.rollback();
     throw error;
@@ -479,6 +844,7 @@ const findByDokumenId = async (dokumenId, page = 1, limit = 10, search = '', sor
   if (!dokumen) {
     return {
       dokumen_name: null,
+      master_category_id: null,
       master_category_name_en: null,
       master_category_name_cn: null,
       items: [],
@@ -495,6 +861,7 @@ const findByDokumenId = async (dokumenId, page = 1, limit = 10, search = '', sor
     .select([
       'ic.item_category_id',
       'ic.dokumen_id',
+      'ic.created_at',
       'tc.type_category_name_en',
       'tc.type_category_name_cn',
       db.raw('c_direct.category_name_en as category_name_en'),
@@ -514,18 +881,30 @@ const findByDokumenId = async (dokumenId, page = 1, limit = 10, search = '', sor
     .where('ic.is_delete', false)
     .distinct();
 
-  // Add search functionality
+  // Add search functionality - if search is provided, we need to join with details and master_items
   if (search) {
-    query = query.where(function() {
-      this.where('mc_type.master_category_name_en', 'ilike', `%${search}%`)
-        .orWhere('mc_direct.master_category_name_en', 'ilike', `%${search}%`)
-        .orWhere('mc_type.master_category_name_cn', 'ilike', `%${search}%`)
-        .orWhere('mc_direct.master_category_name_cn', 'ilike', `%${search}%`);
-    });
+    query = query
+      .leftJoin(`${TABLES.ITEM_CATEGORIES_DETAILS} as icd`, function() {
+        this.on('ic.item_category_id', '=', 'icd.item_category_id')
+          .andOn(db.raw('icd.deleted_at IS NULL'))
+          .andOn(db.raw('icd.is_delete = false'));
+      })
+      .leftJoin(`${TABLES.MASTER_ITEMS} as mi`, function() {
+        this.on('icd.master_item_id', '=', 'mi.master_item_id')
+          .andOn(db.raw('mi.deleted_at IS NULL'))
+          .andOn(db.raw('mi.is_delete = false'));
+      })
+      .where(function() {
+        this.where('c_type.category_name_en', 'ilike', `%${search}%`)
+          .orWhere('c_direct.category_name_en', 'ilike', `%${search}%`)
+          .orWhere('tc.type_category_name_en', 'ilike', `%${search}%`)
+          .orWhere('mi.part_number', 'ilike', `%${search}%`)
+      });
   }
 
-  // Add sorting
-  query = query.orderBy('master_category_name_en', sortOrder);
+  // Add sorting - default to ic.created_at desc
+  const sortColumn = sortBy === 'created_at' ? 'ic.created_at' : `ic.${sortBy}`;
+  query = query.orderBy(sortColumn, sortOrder || 'desc');
 
   const data = await query.limit(limit).offset(offset);
   
@@ -541,14 +920,25 @@ const findByDokumenId = async (dokumenId, page = 1, limit = 10, search = '', sor
     .where('ic.deleted_at', null)
     .where('ic.is_delete', false);
 
-  // Add search functionality to count query
+  // Add search functionality to count query - if search is provided, we need to join with details and master_items
   if (search) {
-    countQuery = countQuery.where(function() {
-      this.where('mc_type.master_category_name_en', 'ilike', `%${search}%`)
-        .orWhere('mc_direct.master_category_name_en', 'ilike', `%${search}%`)
-        .orWhere('mc_type.master_category_name_cn', 'ilike', `%${search}%`)
-        .orWhere('mc_direct.master_category_name_cn', 'ilike', `%${search}%`);
-    });
+    countQuery = countQuery
+      .leftJoin(`${TABLES.ITEM_CATEGORIES_DETAILS} as icd`, function() {
+        this.on('ic.item_category_id', '=', 'icd.item_category_id')
+          .andOn(db.raw('icd.deleted_at IS NULL'))
+          .andOn(db.raw('icd.is_delete = false'));
+      })
+      .leftJoin(`${TABLES.MASTER_ITEMS} as mi`, function() {
+        this.on('icd.master_item_id', '=', 'mi.master_item_id')
+          .andOn(db.raw('mi.deleted_at IS NULL'))
+          .andOn(db.raw('mi.is_delete = false'));
+      })
+      .where(function() {
+        this.where('c_type.category_name_en', 'ilike', `%${search}%`)
+          .orWhere('c_direct.category_name_en', 'ilike', `%${search}%`)
+          .orWhere('tc.type_category_name_en', 'ilike', `%${search}%`)
+          .orWhere('mi.part_number', 'ilike', `%${search}%`)
+      });
   }
 
   // Count unique master categories
@@ -563,11 +953,13 @@ const findByDokumenId = async (dokumenId, page = 1, limit = 10, search = '', sor
   
   return {
     dokumen_name: dokumen.dokumen_name,
+    master_category_id: firstMasterCategory ? firstMasterCategory.master_category_id : null,
     master_category_name_en: firstMasterCategory ? firstMasterCategory.master_category_name_en : null,
     master_category_name_cn: firstMasterCategory ? firstMasterCategory.master_category_name_cn : null,
     items: data.map(item => ({
       item_category_id: item.item_category_id,
       dokumen_id: item.dokumen_id,
+      created_at: item.created_at,
       master_category_id: item.master_category_id,
       master_category_name_en: item.master_category_name_en,
       master_category_name_cn: item.master_category_name_cn,

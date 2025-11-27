@@ -101,15 +101,17 @@ const syntaxError = (err, req, res, next) => {
 }
 
 const paginationResponse = (req, res, rows) => {
-  const limitPerPage = req.query?.limit || LIMIT
+  // Ensure limit doesn't exceed maximum (100) and is at least 1
+  let limitPerPage = parseInt(req.query?.limit) || LIMIT;
+  limitPerPage = Math.min(100, Math.max(1, limitPerPage));
   const countTotal = Number(rows?.data?.response?.count) || 0
   res.status(HTTP.OK).json({
     message: lang.__('get.success'),
     status: true,
     data: rows?.data?.response?.result || [],
     _meta: {
-      page: Number(req.query?.page) || +PAGE,
-      limit_per_page: +limitPerPage,
+      page: Math.max(1, Number(req.query?.page) || +PAGE),
+      limit_per_page: limitPerPage,
       total_page: Math.ceil(countTotal / limitPerPage),
       count_per_page: rows?.data?.response?.result?.length || 0,
       count_total: countTotal

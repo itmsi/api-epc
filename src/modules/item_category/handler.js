@@ -16,15 +16,32 @@ const getAll = async (req, res) => {
       sort_by = 'd.created_at', 
       sort_order = 'desc',
       master_category_name_en,
+      master_category_name_id,
       dokumen_name
     } = req.body;
+    
+    // Convert page and limit to integers and validate
+    let pageNum = parseInt(page, 10) || 1;
+    let limitNum = parseInt(limit, 10) || 10;
+    
+    // Ensure limit doesn't exceed maximum (100)
+    if (limitNum > 100) {
+      limitNum = 100;
+    }
+    if (limitNum < 1) {
+      limitNum = 10;
+    }
+    if (pageNum < 1) {
+      pageNum = 1;
+    }
     
     // Extract filters from request body
     const filters = {};
     if (master_category_name_en) filters.master_category_name_en = master_category_name_en;
+    if (master_category_name_id) filters.master_category_name_id = master_category_name_id;
     if (dokumen_name) filters.dokumen_name = dokumen_name;
     
-    const data = await repository.findAll(page, limit, search, sort_by, sort_order, filters);
+    const data = await repository.findAll(pageNum, limitNum, search, sort_by, sort_order, filters);
     return successResponse(res, data, 'Data berhasil diambil');
   } catch (error) {
     return errorResponse(res, error.message || 'Terjadi kesalahan', 500);
@@ -106,6 +123,10 @@ const create = async (req, res) => {
     const result = await repository.create(data, userId);
     return successResponse(res, result, 'Data berhasil dibuat', 201);
   } catch (error) {
+    // Check if error is validation error (duplicate data)
+    if (error.message && error.message.includes('Data gagal tersimpan')) {
+      return errorResponse(res, error.message, 400);
+    }
     return errorResponse(res, error.message || 'Terjadi kesalahan', 500);
   }
 };
@@ -174,12 +195,17 @@ const update = async (req, res) => {
     
     return successResponse(res, result, 'Data berhasil diupdate');
   } catch (error) {
+    // Check if error is validation error (duplicate data)
+    if (error.message && error.message.includes('Data gagal tersimpan')) {
+      return errorResponse(res, error.message, 400);
+    }
     return errorResponse(res, error.message || 'Terjadi kesalahan', 500);
   }
 };
 
 /**
- * Soft delete item category
+ * Hard delete item category and related item_categories_details
+ * Also delete dokumen if no more item_categories exist for that dokumen
  */
 const remove = async (req, res) => {
   try {
@@ -244,7 +270,22 @@ const getByDokumenId = async (req, res) => {
       sort_order = 'desc' 
     } = req.query;
     
-    const data = await repository.findByDokumenId(dokumen_id, page, limit, search, sort_by, sort_order);
+    // Convert page and limit to integers and validate
+    let pageNum = parseInt(page, 10) || 1;
+    let limitNum = parseInt(limit, 10) || 10;
+    
+    // Ensure limit doesn't exceed maximum (100)
+    if (limitNum > 100) {
+      limitNum = 100;
+    }
+    if (limitNum < 1) {
+      limitNum = 10;
+    }
+    if (pageNum < 1) {
+      pageNum = 1;
+    }
+    
+    const data = await repository.findByDokumenId(dokumen_id, pageNum, limitNum, search, sort_by, sort_order);
     
     return successResponse(res, data, 'Data berhasil diambil');
   } catch (error) {

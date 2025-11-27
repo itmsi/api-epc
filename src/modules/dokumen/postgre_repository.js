@@ -147,22 +147,66 @@ const update = async (id, data, userId) => {
 };
 
 /**
- * Soft delete document
+ * Hard delete document and related item_categories and item_categories_details
  */
 const remove = async (id, userId) => {
-  const [result] = await db(TABLE_NAME)
-    .where('dokumen_id', id)
-    .where('deleted_at', null)
-    .where('is_delete', false)
-    .update({
-      deleted_at: db.fn.now(),
-      deleted_by: userId,
-      is_delete: true,
-      updated_at: db.fn.now(),
-      updated_by: userId
-    })
-    .returning('*');
-  return result;
+  const trx = await db.transaction();
+  
+  try {
+    // 1. Check if dokumen exists
+    const dokumen = await trx(TABLE_NAME)
+      .where('dokumen_id', id)
+      .where('deleted_at', null)
+      .where('is_delete', false)
+      .first();
+    
+    if (!dokumen) {
+      await trx.rollback();
+      return null;
+    }
+    
+    // 2. Get all item_categories related to this dokumen
+    const itemCategories = await trx('item_categories')
+      .where('dokumen_id', id)
+      .where('deleted_at', null)
+      .where('is_delete', false)
+      .select('item_category_id');
+    
+    const itemCategoryIds = itemCategories.map(ic => ic.item_category_id);
+    
+    // 3. Hard delete item_categories_details that are related to these item_categories
+    // Note: We delete all item_categories_details related to these item_categories,
+    // but we do NOT delete data from master_items table (master_items is a master table)
+    if (itemCategoryIds.length > 0) {
+      await trx('item_categories_details')
+        .whereIn('item_category_id', itemCategoryIds)
+        .where('deleted_at', null)
+        .where('is_delete', false)
+        .delete();
+    }
+    
+    // 4. Hard delete item_categories related to this dokumen
+    if (itemCategoryIds.length > 0) {
+      await trx('item_categories')
+        .whereIn('item_category_id', itemCategoryIds)
+        .where('deleted_at', null)
+        .where('is_delete', false)
+        .delete();
+    }
+    
+    // 5. Hard delete dokumen
+    await trx(TABLE_NAME)
+      .where('dokumen_id', id)
+      .where('deleted_at', null)
+      .where('is_delete', false)
+      .delete();
+    
+    await trx.commit();
+    return dokumen;
+  } catch (error) {
+    await trx.rollback();
+    throw error;
+  }
 };
 
 /**
@@ -255,13 +299,9 @@ const duplicate = async (dokumenId, userId) => {
       if (itemCategoriesDetails.length > 0) {
         const newDetails = itemCategoriesDetails.map(detail => ({
           item_category_id: newItemCategory.item_category_id,
+          master_item_id: detail.master_item_id,
           target_id: detail.target_id,
-          part_number: detail.part_number,
-          catalog_item_name_en: detail.catalog_item_name_en,
-          catalog_item_name_ch: detail.catalog_item_name_ch,
-          description: detail.description,
           quantity: detail.quantity,
-          unit: detail.unit,
           created_by: userId,
           updated_by: userId,
           created_at: db.fn.now(),

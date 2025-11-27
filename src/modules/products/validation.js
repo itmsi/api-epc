@@ -51,6 +51,21 @@ const createValidation = [
     .isLength({ max: 255 })
     .withMessage('VIN number maksimal 255 karakter')
     .trim(),
+  body('model_type')
+    .optional()
+    .isLength({ max: 255 })
+    .withMessage('Model type maksimal 255 karakter')
+    .trim(),
+  body('dimensi')
+    .optional()
+    .isLength({ max: 255 })
+    .withMessage('Dimensi maksimal 255 karakter')
+    .trim(),
+  body('model_engine')
+    .optional()
+    .isLength({ max: 255 })
+    .withMessage('Model engine maksimal 255 karakter')
+    .trim(),
   body('data_details')
     .optional()
     .isArray()
@@ -104,6 +119,21 @@ const updateValidation = [
     .optional()
     .isLength({ max: 255 })
     .withMessage('VIN number maksimal 255 karakter')
+    .trim(),
+  body('model_type')
+    .optional()
+    .isLength({ max: 255 })
+    .withMessage('Model type maksimal 255 karakter')
+    .trim(),
+  body('dimensi')
+    .optional()
+    .isLength({ max: 255 })
+    .withMessage('Dimensi maksimal 255 karakter')
+    .trim(),
+  body('model_engine')
+    .optional()
+    .isLength({ max: 255 })
+    .withMessage('Model engine maksimal 255 karakter')
     .trim(),
   body('data_details')
     .optional()

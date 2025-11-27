@@ -59,6 +59,9 @@ const findAll = async (page = 1, limit = 10, search = '', sortBy = 'created_at',
         product_name_cn: row.product_name_cn,
         product_description: row.product_description,
         vin_number: row.vin_number,
+        model_type: row.model_type,
+        dimensi: row.dimensi,
+        model_engine: row.model_engine,
         created_at: row.created_at,
         created_by: row.created_by,
         updated_at: row.updated_at,
@@ -155,6 +158,25 @@ const findById = async (id) => {
 };
 
 /**
+ * Check if product with same vin_number exists
+ */
+const findByVinNumber = async (vinNumber, excludeId = null) => {
+  let query = db(TABLES.PRODUCTS)
+    .where({ 
+      vin_number: vinNumber,
+      is_delete: false 
+    })
+    .whereNull('deleted_at');
+  
+  // Exclude current ID if provided (for update case)
+  if (excludeId) {
+    query = query.where('product_id', '!=', excludeId);
+  }
+  
+  return await query.first();
+};
+
+/**
  * Create new product with details
  */
 const create = async (data, userId) => {
@@ -168,6 +190,9 @@ const create = async (data, userId) => {
         product_name_cn: data.product_name_cn,
         product_description: data.product_description,
         vin_number: data.vin_number,
+        model_type: data.model_type,
+        dimensi: data.dimensi,
+        model_engine: data.model_engine,
         created_by: userId,
         updated_by: userId,
         created_at: db.fn.now(),
@@ -228,6 +253,9 @@ const update = async (id, data, userId) => {
         product_name_cn: data.product_name_cn,
         product_description: data.product_description,
         vin_number: data.vin_number,
+        model_type: data.model_type,
+        dimensi: data.dimensi,
+        model_engine: data.model_engine,
         updated_by: userId,
         updated_at: db.fn.now()
       })
@@ -361,6 +389,7 @@ const restore = async (id, userId) => {
 module.exports = {
   findAll,
   findById,
+  findByVinNumber,
   create,
   update,
   remove,

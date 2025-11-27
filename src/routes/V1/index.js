@@ -46,6 +46,14 @@ routing.use(`${API_TAG}/products`, productsModule)
 const dokumenModule = require('../../modules/dokumen')
 routing.use(`${API_TAG}/dokumen`, dokumenModule)
 
+// Master Items Module
+const masterItemsModule = require('../../modules/master_items')
+routing.use(`${API_TAG}/master_items`, masterItemsModule)
+
+// Parts Catalogs Search Module
+const partsCatalogsModule = require('../../modules/parts_catalogs')
+routing.use(`${API_TAG}/parts-catalogs`, partsCatalogsModule)
+
 // Tambahkan routes module Anda di sini
 // Example:
 // const yourModule = require('../../modules/yourModule')
