@@ -12,11 +12,26 @@ const search = async (req, res) => {
       limit = 10
     } = req.body;
 
+    // Convert page and limit to integers and validate
+    let pageNum = parseInt(page, 10) || 1;
+    let limitNum = parseInt(limit, 10) || 10;
+    
+    // Ensure limit doesn't exceed maximum (100)
+    if (limitNum > 100) {
+      limitNum = 100;
+    }
+    if (limitNum < 1) {
+      limitNum = 10;
+    }
+    if (pageNum < 1) {
+      pageNum = 1;
+    }
+
     const result = await repository.searchPartsCatalog(
       dataCode,
       {
-        page: Number(page) || 1,
-        limit: Number(limit) || 10
+        page: pageNum,
+        limit: limitNum
       }
     );
 
@@ -41,11 +56,26 @@ const getByTypeCategoryId = async (req, res) => {
       limit = 10
     } = req.query;
 
+    // Convert page and limit to integers and validate
+    let pageNum = parseInt(page, 10) || 1;
+    let limitNum = parseInt(limit, 10) || 10;
+    
+    // Ensure limit doesn't exceed maximum (100)
+    if (limitNum > 100) {
+      limitNum = 100;
+    }
+    if (limitNum < 1) {
+      limitNum = 10;
+    }
+    if (pageNum < 1) {
+      pageNum = 1;
+    }
+
     const result = await repository.getByTypeCategoryId(
       typeCategoryId,
       {
-        page: Number(page) || 1,
-        limit: Number(limit) || 10
+        page: pageNum,
+        limit: limitNum
       }
     );
 
@@ -70,11 +100,26 @@ const getByItemCategoryId = async (req, res) => {
       limit = 10
     } = req.query;
 
+    // Convert page and limit to integers and validate
+    let pageNum = parseInt(page, 10) || 1;
+    let limitNum = parseInt(limit, 10) || 10;
+    
+    // Ensure limit doesn't exceed maximum (100)
+    if (limitNum > 100) {
+      limitNum = 100;
+    }
+    if (limitNum < 1) {
+      limitNum = 10;
+    }
+    if (pageNum < 1) {
+      pageNum = 1;
+    }
+
     const result = await repository.getByItemCategoryId(
       itemCategoryId,
       {
-        page: Number(page) || 1,
-        limit: Number(limit) || 10
+        page: pageNum,
+        limit: limitNum
       }
     );
 

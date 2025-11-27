@@ -14,7 +14,22 @@ const getAll = async (req, res) => {
       sort_order = 'desc'
     } = req.body;
     
-    const data = await repository.findAll(page, limit, search, sort_by, sort_order);
+    // Convert page and limit to integers and validate
+    let pageNum = parseInt(page, 10) || 1;
+    let limitNum = parseInt(limit, 10) || 10;
+    
+    // Ensure limit doesn't exceed maximum (100)
+    if (limitNum > 100) {
+      limitNum = 100;
+    }
+    if (limitNum < 1) {
+      limitNum = 10;
+    }
+    if (pageNum < 1) {
+      pageNum = 1;
+    }
+    
+    const data = await repository.findAll(pageNum, limitNum, search, sort_by, sort_order);
     return successResponse(res, data, 'Data berhasil diambil');
   } catch (error) {
     return errorResponse(res, error.message || 'Terjadi kesalahan', 500);

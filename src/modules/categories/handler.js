@@ -15,12 +15,27 @@ const getAll = async (req, res) => {
       master_category_id = null
     } = req.body;
     
+    // Convert page and limit to integers and validate
+    let pageNum = parseInt(page, 10) || 1;
+    let limitNum = parseInt(limit, 10) || 10;
+    
+    // Ensure limit doesn't exceed maximum (100)
+    if (limitNum > 100) {
+      limitNum = 100;
+    }
+    if (limitNum < 1) {
+      limitNum = 10;
+    }
+    if (pageNum < 1) {
+      pageNum = 1;
+    }
+    
     // Normalize master_category_id: jika string kosong atau null, set ke null
     const normalizedMasterCategoryId = (master_category_id === '' || master_category_id === null || master_category_id === undefined) 
       ? null 
       : master_category_id;
     
-    const data = await repository.findAll(page, limit, search, sort_by, sort_order, normalizedMasterCategoryId);
+    const data = await repository.findAll(pageNum, limitNum, search, sort_by, sort_order, normalizedMasterCategoryId);
     return successResponse(res, data, 'Data berhasil diambil');
   } catch (error) {
     return errorResponse(res, error.message || 'Terjadi kesalahan', 500);
