@@ -412,7 +412,10 @@ const create = async (data, userId) => {
 
     // Create item category details
     if (data.data_items && data.data_items.length > 0) {
-      for (const item of data.data_items) {
+      const validationErrors = [];
+      
+      for (let i = 0; i < data.data_items.length; i++) {
+        const item = data.data_items[i];
         const unit = await findOrCreateUnit(item.unit, userId);
         
         // Cari master_item yang sudah ada berdasarkan kriteria
@@ -437,12 +440,16 @@ const create = async (data, userId) => {
             
             // Validasi: jika part_number sama tapi description berbeda, maka gagal
             if (existingDescription !== normalizedDescription) {
-              await trx.rollback();
-              throw new Error('Data gagal tersimpan: Data dengan part_number yang sama sudah ada dengan description yang berbeda');
+              const partNumber = item.part_number || 'tidak ada';
+              const name = item.catalog_item_name_en || item.catalog_item_name_ch || 'tidak ada';
+              const newDescription = normalizedDescription || 'tidak ada';
+              const existingName = existingMasterItem.master_item_name_en || existingMasterItem.master_item_name_ch || 'tidak ada';
+              const existingDesc = existingDescription || 'tidak ada';
+              validationErrors.push(`Item ke-${i + 1}: Part number "${partNumber}" (nama: "${name}", description: "${newDescription}") sudah ada di database dengan description yang berbeda (nama: "${existingName}", description: "${existingDesc}")`);
+            } else {
+              // Jika part_number dan description sama, gunakan master_item_id yang sudah ada
+              masterItemId = existingMasterItem.master_item_id;
             }
-            
-            // Jika part_number dan description sama, gunakan master_item_id yang sudah ada
-            masterItemId = existingMasterItem.master_item_id;
           }
         }
         
@@ -494,6 +501,12 @@ const create = async (data, userId) => {
             created_at: db.fn.now(),
             updated_at: db.fn.now()
           });
+      }
+      
+      // Jika ada error validasi, rollback dan throw error dengan semua detail
+      if (validationErrors.length > 0) {
+        await trx.rollback();
+        throw new Error(`Data gagal tersimpan:\n${validationErrors.join('\n')}`);
       }
     }
 
@@ -624,7 +637,10 @@ const update = async (id, data, userId) => {
 
     // Create new details
     if (data.data_items && data.data_items.length > 0) {
-      for (const item of data.data_items) {
+      const validationErrors = [];
+      
+      for (let i = 0; i < data.data_items.length; i++) {
+        const item = data.data_items[i];
         const unit = await findOrCreateUnit(item.unit, userId);
         
         // Cari master_item yang sudah ada berdasarkan kriteria
@@ -649,12 +665,16 @@ const update = async (id, data, userId) => {
             
             // Validasi: jika part_number sama tapi description berbeda, maka gagal
             if (existingDescription !== normalizedDescription) {
-              await trx.rollback();
-              throw new Error('Data gagal tersimpan: Data dengan part_number yang sama sudah ada dengan description yang berbeda');
+              const partNumber = item.part_number || 'tidak ada';
+              const name = item.catalog_item_name_en || item.catalog_item_name_ch || 'tidak ada';
+              const newDescription = normalizedDescription || 'tidak ada';
+              const existingName = existingMasterItem.master_item_name_en || existingMasterItem.master_item_name_ch || 'tidak ada';
+              const existingDesc = existingDescription || 'tidak ada';
+              validationErrors.push(`Item ke-${i + 1}: Part number "${partNumber}" (nama: "${name}", description: "${newDescription}") sudah ada di database dengan description yang berbeda (nama: "${existingName}", description: "${existingDesc}")`);
+            } else {
+              // Jika part_number dan description sama, gunakan master_item_id yang sudah ada
+              masterItemId = existingMasterItem.master_item_id;
             }
-            
-            // Jika part_number dan description sama, gunakan master_item_id yang sudah ada
-            masterItemId = existingMasterItem.master_item_id;
           }
         }
         
@@ -706,6 +726,12 @@ const update = async (id, data, userId) => {
             created_at: db.fn.now(),
             updated_at: db.fn.now()
           });
+      }
+      
+      // Jika ada error validasi, rollback dan throw error dengan semua detail
+      if (validationErrors.length > 0) {
+        await trx.rollback();
+        throw new Error(`Data gagal tersimpan:\n${validationErrors.join('\n')}`);
       }
     }
 

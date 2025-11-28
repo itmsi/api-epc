@@ -99,36 +99,93 @@ const createValidation = [
   body('data_items.*.target_id')
     .optional()
     .isLength({ max: 255 })
-    .withMessage('Target ID maksimal 255 karakter')
+    .withMessage((value, { req, path }) => {
+      const match = path.match(/data_items\[(\d+)\]/);
+      const index = match ? parseInt(match[1], 10) : null;
+      const item = index !== null && req.body.data_items?.[index] ? req.body.data_items[index] : null;
+      const partNumber = item?.part_number || 'tidak ada';
+      const name = item?.catalog_item_name_en || item?.catalog_item_name_ch || 'tidak ada';
+      const itemIndex = index !== null ? ` (item ke-${index + 1})` : '';
+      return `Target ID pada item dengan part_number "${partNumber}" (nama: "${name}")${itemIndex} maksimal 255 karakter`;
+    })
     .trim(),
   body('data_items.*.part_number')
     .optional()
     .isLength({ max: 255 })
-    .withMessage('Part number maksimal 255 karakter')
+    .withMessage((value, { req, path }) => {
+      const match = path.match(/data_items\[(\d+)\]/);
+      const index = match ? parseInt(match[1], 10) : null;
+      const item = index !== null && req.body.data_items?.[index] ? req.body.data_items[index] : null;
+      const partNumber = value || 'tidak ada';
+      const name = item?.catalog_item_name_en || item?.catalog_item_name_ch || 'tidak ada';
+      const itemIndex = index !== null ? ` (item ke-${index + 1})` : '';
+      return `Part number "${partNumber}" (nama: "${name}")${itemIndex} maksimal 255 karakter`;
+    })
     .trim(),
   body('data_items.*.catalog_item_name_en')
     .optional()
     .isLength({ max: 255 })
-    .withMessage('Catalog item name EN maksimal 255 karakter')
+    .withMessage((value, { req, path }) => {
+      const match = path.match(/data_items\[(\d+)\]/);
+      const index = match ? parseInt(match[1], 10) : null;
+      const item = index !== null && req.body.data_items?.[index] ? req.body.data_items[index] : null;
+      const partNumber = item?.part_number || 'tidak ada';
+      const name = value || 'tidak ada';
+      const itemIndex = index !== null ? ` (item ke-${index + 1})` : '';
+      return `Catalog item name EN "${name}" pada item dengan part_number "${partNumber}"${itemIndex} maksimal 255 karakter`;
+    })
     .trim(),
   body('data_items.*.catalog_item_name_ch')
     .optional()
     .isLength({ max: 255 })
-    .withMessage('Catalog item name CH maksimal 255 karakter')
+    .withMessage((value, { req, path }) => {
+      const match = path.match(/data_items\[(\d+)\]/);
+      const index = match ? parseInt(match[1], 10) : null;
+      const item = index !== null && req.body.data_items?.[index] ? req.body.data_items[index] : null;
+      const partNumber = item?.part_number || 'tidak ada';
+      const name = value || 'tidak ada';
+      const itemIndex = index !== null ? ` (item ke-${index + 1})` : '';
+      return `Catalog item name CH "${name}" pada item dengan part_number "${partNumber}"${itemIndex} maksimal 255 karakter`;
+    })
     .trim(),
   body('data_items.*.description')
     .optional()
     .isLength({ max: 1000 })
-    .withMessage('Description maksimal 1000 karakter')
+    .withMessage((value, { req, path }) => {
+      const match = path.match(/data_items\[(\d+)\]/);
+      const index = match ? parseInt(match[1], 10) : null;
+      const item = index !== null && req.body.data_items?.[index] ? req.body.data_items[index] : null;
+      const partNumber = item?.part_number || 'tidak ada';
+      const name = item?.catalog_item_name_en || item?.catalog_item_name_ch || 'tidak ada';
+      const description = value || 'tidak ada';
+      const itemIndex = index !== null ? ` (item ke-${index + 1})` : '';
+      return `Description "${description}" pada item dengan part_number "${partNumber}" (nama: "${name}")${itemIndex} maksimal 1000 karakter`;
+    })
     .trim(),
   body('data_items.*.quantity')
     .optional()
     .isInt({ min: 0 })
-    .withMessage('Quantity harus berupa angka positif'),
+    .withMessage((value, { req, path }) => {
+      const match = path.match(/data_items\[(\d+)\]/);
+      const index = match ? parseInt(match[1], 10) : null;
+      const item = index !== null && req.body.data_items?.[index] ? req.body.data_items[index] : null;
+      const partNumber = item?.part_number || 'tidak ada';
+      const name = item?.catalog_item_name_en || item?.catalog_item_name_ch || 'tidak ada';
+      const itemIndex = index !== null ? ` (item ke-${index + 1})` : '';
+      return `Quantity pada item dengan part_number "${partNumber}" (nama: "${name}")${itemIndex} harus berupa angka positif`;
+    }),
   body('data_items.*.unit')
     .optional()
     .isLength({ max: 255 })
-    .withMessage('Unit maksimal 255 karakter')
+    .withMessage((value, { req, path }) => {
+      const match = path.match(/data_items\[(\d+)\]/);
+      const index = match ? parseInt(match[1], 10) : null;
+      const item = index !== null && req.body.data_items?.[index] ? req.body.data_items[index] : null;
+      const partNumber = item?.part_number || 'tidak ada';
+      const name = item?.catalog_item_name_en || item?.catalog_item_name_ch || 'tidak ada';
+      const itemIndex = index !== null ? ` (item ke-${index + 1})` : '';
+      return `Unit pada item dengan part_number "${partNumber}" (nama: "${name}")${itemIndex} maksimal 255 karakter`;
+    })
     .trim(),
 ];
 
@@ -204,36 +261,93 @@ const updateValidation = [
   body('data_items.*.target_id')
     .optional()
     .isLength({ max: 255 })
-    .withMessage('Target ID maksimal 255 karakter')
+    .withMessage((value, { req, path }) => {
+      const match = path.match(/data_items\[(\d+)\]/);
+      const index = match ? parseInt(match[1], 10) : null;
+      const item = index !== null && req.body.data_items?.[index] ? req.body.data_items[index] : null;
+      const partNumber = item?.part_number || 'tidak ada';
+      const name = item?.catalog_item_name_en || item?.catalog_item_name_ch || 'tidak ada';
+      const itemIndex = index !== null ? ` (item ke-${index + 1})` : '';
+      return `Target ID pada item dengan part_number "${partNumber}" (nama: "${name}")${itemIndex} maksimal 255 karakter`;
+    })
     .trim(),
   body('data_items.*.part_number')
     .optional()
     .isLength({ max: 255 })
-    .withMessage('Part number maksimal 255 karakter')
+    .withMessage((value, { req, path }) => {
+      const match = path.match(/data_items\[(\d+)\]/);
+      const index = match ? parseInt(match[1], 10) : null;
+      const item = index !== null && req.body.data_items?.[index] ? req.body.data_items[index] : null;
+      const partNumber = value || 'tidak ada';
+      const name = item?.catalog_item_name_en || item?.catalog_item_name_ch || 'tidak ada';
+      const itemIndex = index !== null ? ` (item ke-${index + 1})` : '';
+      return `Part number "${partNumber}" (nama: "${name}")${itemIndex} maksimal 255 karakter`;
+    })
     .trim(),
   body('data_items.*.catalog_item_name_en')
     .optional()
     .isLength({ max: 255 })
-    .withMessage('Catalog item name EN maksimal 255 karakter')
+    .withMessage((value, { req, path }) => {
+      const match = path.match(/data_items\[(\d+)\]/);
+      const index = match ? parseInt(match[1], 10) : null;
+      const item = index !== null && req.body.data_items?.[index] ? req.body.data_items[index] : null;
+      const partNumber = item?.part_number || 'tidak ada';
+      const name = value || 'tidak ada';
+      const itemIndex = index !== null ? ` (item ke-${index + 1})` : '';
+      return `Catalog item name EN "${name}" pada item dengan part_number "${partNumber}"${itemIndex} maksimal 255 karakter`;
+    })
     .trim(),
   body('data_items.*.catalog_item_name_ch')
     .optional()
     .isLength({ max: 255 })
-    .withMessage('Catalog item name CH maksimal 255 karakter')
+    .withMessage((value, { req, path }) => {
+      const match = path.match(/data_items\[(\d+)\]/);
+      const index = match ? parseInt(match[1], 10) : null;
+      const item = index !== null && req.body.data_items?.[index] ? req.body.data_items[index] : null;
+      const partNumber = item?.part_number || 'tidak ada';
+      const name = value || 'tidak ada';
+      const itemIndex = index !== null ? ` (item ke-${index + 1})` : '';
+      return `Catalog item name CH "${name}" pada item dengan part_number "${partNumber}"${itemIndex} maksimal 255 karakter`;
+    })
     .trim(),
   body('data_items.*.description')
     .optional()
     .isLength({ max: 1000 })
-    .withMessage('Description maksimal 1000 karakter')
+    .withMessage((value, { req, path }) => {
+      const match = path.match(/data_items\[(\d+)\]/);
+      const index = match ? parseInt(match[1], 10) : null;
+      const item = index !== null && req.body.data_items?.[index] ? req.body.data_items[index] : null;
+      const partNumber = item?.part_number || 'tidak ada';
+      const name = item?.catalog_item_name_en || item?.catalog_item_name_ch || 'tidak ada';
+      const description = value || 'tidak ada';
+      const itemIndex = index !== null ? ` (item ke-${index + 1})` : '';
+      return `Description "${description}" pada item dengan part_number "${partNumber}" (nama: "${name}")${itemIndex} maksimal 1000 karakter`;
+    })
     .trim(),
   body('data_items.*.quantity')
     .optional()
     .isInt({ min: 0 })
-    .withMessage('Quantity harus berupa angka positif'),
+    .withMessage((value, { req, path }) => {
+      const match = path.match(/data_items\[(\d+)\]/);
+      const index = match ? parseInt(match[1], 10) : null;
+      const item = index !== null && req.body.data_items?.[index] ? req.body.data_items[index] : null;
+      const partNumber = item?.part_number || 'tidak ada';
+      const name = item?.catalog_item_name_en || item?.catalog_item_name_ch || 'tidak ada';
+      const itemIndex = index !== null ? ` (item ke-${index + 1})` : '';
+      return `Quantity pada item dengan part_number "${partNumber}" (nama: "${name}")${itemIndex} harus berupa angka positif`;
+    }),
   body('data_items.*.unit')
     .optional()
     .isLength({ max: 255 })
-    .withMessage('Unit maksimal 255 karakter')
+    .withMessage((value, { req, path }) => {
+      const match = path.match(/data_items\[(\d+)\]/);
+      const index = match ? parseInt(match[1], 10) : null;
+      const item = index !== null && req.body.data_items?.[index] ? req.body.data_items[index] : null;
+      const partNumber = item?.part_number || 'tidak ada';
+      const name = item?.catalog_item_name_en || item?.catalog_item_name_ch || 'tidak ada';
+      const itemIndex = index !== null ? ` (item ke-${index + 1})` : '';
+      return `Unit pada item dengan part_number "${partNumber}" (nama: "${name}")${itemIndex} maksimal 255 karakter`;
+    })
     .trim(),
 ];
 

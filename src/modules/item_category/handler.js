@@ -123,8 +123,17 @@ const create = async (req, res) => {
     const result = await repository.create(data, userId);
     return successResponse(res, result, 'Data berhasil dibuat', 201);
   } catch (error) {
-    // Check if error is validation error (duplicate data)
-    if (error.message && error.message.includes('Data gagal tersimpan')) {
+    // Check if error is validation error (duplicate data or validation errors)
+    if (error.message && (error.message.includes('Data gagal tersimpan') || error.message.includes('Part number'))) {
+      // Split error message by newline to get array of errors
+      const errorMessages = error.message.includes('\n') 
+        ? error.message.split('\n').filter(msg => msg.trim() !== '')
+        : [error.message];
+      
+      // If multiple errors, return as array
+      if (errorMessages.length > 1) {
+        return errorResponse(res, errorMessages[0], 400, errorMessages.slice(1));
+      }
       return errorResponse(res, error.message, 400);
     }
     return errorResponse(res, error.message || 'Terjadi kesalahan', 500);
@@ -195,8 +204,17 @@ const update = async (req, res) => {
     
     return successResponse(res, result, 'Data berhasil diupdate');
   } catch (error) {
-    // Check if error is validation error (duplicate data)
-    if (error.message && error.message.includes('Data gagal tersimpan')) {
+    // Check if error is validation error (duplicate data or validation errors)
+    if (error.message && (error.message.includes('Data gagal tersimpan') || error.message.includes('Part number'))) {
+      // Split error message by newline to get array of errors
+      const errorMessages = error.message.includes('\n') 
+        ? error.message.split('\n').filter(msg => msg.trim() !== '')
+        : [error.message];
+      
+      // If multiple errors, return as array
+      if (errorMessages.length > 1) {
+        return errorResponse(res, errorMessages[0], 400, errorMessages.slice(1));
+      }
       return errorResponse(res, error.message, 400);
     }
     return errorResponse(res, error.message || 'Terjadi kesalahan', 500);
