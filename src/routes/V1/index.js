@@ -42,6 +42,10 @@ routing.use(`${API_TAG}/item_category`, itemCategoryModule)
 const productsModule = require('../../modules/products')
 routing.use(`${API_TAG}/products`, productsModule)
 
+// VIN Customer Module
+const vinCustomerModule = require('../../modules/vin_customer')
+routing.use(`${API_TAG}/vin_customer`, vinCustomerModule)
+
 // Dokumen Module
 const dokumenModule = require('../../modules/dokumen')
 routing.use(`${API_TAG}/dokumen`, dokumenModule)
