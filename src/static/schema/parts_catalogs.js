@@ -28,6 +28,37 @@ const partsCatalogSchemas = {
     }
   },
 
+  PartsCatalogSearchByVinRequest: {
+    type: 'object',
+    required: ['vin_number'],
+    properties: {
+      vin_number: {
+        type: 'string',
+        description: 'VIN number yang ingin dicari',
+        example: 'LZGJR4V61RX035044'
+      },
+      customer_id: {
+        type: 'string',
+        nullable: true,
+        description: 'ID Customer untuk validasi kepemilikan VIN (opsional)',
+        example: '123e4567-e89b-12d3-a456-426614174000'
+      },
+      page: {
+        type: 'integer',
+        minimum: 1,
+        description: 'Halaman data (opsional, default 1)',
+        example: 1
+      },
+      limit: {
+        type: 'integer',
+        minimum: 1,
+        maximum: 100,
+        description: 'Jumlah data per halaman (opsional, default 10)',
+        example: 10
+      }
+    }
+  },
+
   PartsCatalogPagination: {
     type: 'object',
     properties: {
@@ -452,6 +483,35 @@ const partsCatalogSchemas = {
       errors: {
         type: 'object',
         nullable: true
+      },
+      timestamp: {
+        type: 'string',
+        format: 'date-time',
+        example: '2025-01-01T00:00:00.000Z'
+      }
+    }
+  },
+
+  PartsCatalogResponseProduct: {
+    type: 'object',
+    properties: {
+      success: {
+        type: 'boolean',
+        example: true
+      },
+      message: {
+        type: 'string',
+        example: 'Data berhasil diambil'
+      },
+      data: {
+        type: 'object',
+        description: 'Data produk',
+        example: {
+          "product_id": "uuid",
+          "vin_number": "LZGJR4V61RX035044",
+          "model_name": "Model X",
+          "created_at": "2025-01-01"
+        }
       },
       timestamp: {
         type: 'string',

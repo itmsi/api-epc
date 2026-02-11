@@ -3,7 +3,7 @@ const router = express.Router();
 const handler = require('./handler');
 const { verifyToken } = require('../../middlewares');
 const { validateMiddleware } = require('../../middlewares/validation');
-const { getValidation, getByTypeCategoryIdValidation, getByItemCategoryIdValidation } = require('./validation');
+const { getValidation, getByTypeCategoryIdValidation, getByItemCategoryIdValidation, getVinValidation } = require('./validation');
 
 /**
  * @route   POST /api/epc/parts-catalogs/get
@@ -16,6 +16,19 @@ router.post(
   getValidation,
   validateMiddleware,
   handler.search
+);
+
+/**
+ * @route   POST /api/epc/parts-catalogs/vin/get
+ * @desc    Cari data katalog berdasarkan VIN number dengan validasi customer
+ * @access  Private
+ */
+router.post(
+  '/vin/get',
+  verifyToken,
+  getVinValidation,
+  validateMiddleware,
+  handler.searchByVinEndpoint
 );
 
 /**

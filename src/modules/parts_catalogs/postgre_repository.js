@@ -2,6 +2,7 @@ const db = require('../../config/database').pgCore;
 
 const TABLES = {
   PRODUCTS: 'products',
+  VIN_CUSTOMERS: 'vin_customer',
   PRODUCTS_DETAILS: 'products_details',
   ITEM_CATEGORIES: 'item_categories',
   ITEM_CATEGORIES_DETAILS: 'item_categories_details',
@@ -399,47 +400,47 @@ const searchByVinNumber = async (dataCode, pagination) => {
 
   const rows = await db({ p: TABLES.PRODUCTS })
     .select(SELECT_FIELDS)
-    .leftJoin({ pd: TABLES.PRODUCTS_DETAILS }, function() {
+    .leftJoin({ pd: TABLES.PRODUCTS_DETAILS }, function () {
       this.on('p.product_id', '=', 'pd.product_id')
         .andOnNull('pd.deleted_at')
         .andOn('pd.is_delete', '=', RAW_FALSE);
     })
-    .leftJoin({ ic: TABLES.ITEM_CATEGORIES }, function() {
+    .leftJoin({ ic: TABLES.ITEM_CATEGORIES }, function () {
       this.on('pd.dokumen_id', '=', 'ic.dokumen_id')
         .andOnNull('ic.deleted_at')
         .andOn('ic.is_delete', '=', RAW_FALSE);
     })
-    .leftJoin({ tc: TABLES.TYPE_CATEGORIES }, function() {
+    .leftJoin({ tc: TABLES.TYPE_CATEGORIES }, function () {
       this.on('ic.type_category_id', '=', 'tc.type_category_id')
         .andOnNull('tc.deleted_at')
         .andOn('tc.is_delete', '=', RAW_FALSE);
     })
-    .leftJoin({ c_type: TABLES.CATEGORIES }, function() {
+    .leftJoin({ c_type: TABLES.CATEGORIES }, function () {
       this.on('tc.category_id', '=', 'c_type.category_id')
         .andOnNull('c_type.deleted_at')
         .andOn('c_type.is_delete', '=', RAW_FALSE);
     })
-    .leftJoin({ c_direct: TABLES.CATEGORIES }, function() {
+    .leftJoin({ c_direct: TABLES.CATEGORIES }, function () {
       this.on('ic.category_id', '=', 'c_direct.category_id')
         .andOnNull('c_direct.deleted_at')
         .andOn('c_direct.is_delete', '=', RAW_FALSE);
     })
-    .leftJoin({ mc_type: TABLES.MASTER_CATEGORIES }, function() {
+    .leftJoin({ mc_type: TABLES.MASTER_CATEGORIES }, function () {
       this.on('c_type.master_category_id', '=', 'mc_type.master_category_id')
         .andOnNull('mc_type.deleted_at')
         .andOn('mc_type.is_delete', '=', RAW_FALSE);
     })
-    .leftJoin({ mc_direct: TABLES.MASTER_CATEGORIES }, function() {
+    .leftJoin({ mc_direct: TABLES.MASTER_CATEGORIES }, function () {
       this.on('c_direct.master_category_id', '=', 'mc_direct.master_category_id')
         .andOnNull('mc_direct.deleted_at')
         .andOn('mc_direct.is_delete', '=', RAW_FALSE);
     })
-    .leftJoin({ icd: TABLES.ITEM_CATEGORIES_DETAILS }, function() {
+    .leftJoin({ icd: TABLES.ITEM_CATEGORIES_DETAILS }, function () {
       this.on('ic.item_category_id', '=', 'icd.item_category_id')
         .andOnNull('icd.deleted_at')
         .andOn('icd.is_delete', '=', RAW_FALSE);
     })
-    .leftJoin({ mi: TABLES.MASTER_ITEMS }, function() {
+    .leftJoin({ mi: TABLES.MASTER_ITEMS }, function () {
       this.on('icd.master_item_id', '=', 'mi.master_item_id')
         .andOnNull('mi.deleted_at')
         .andOn('mi.is_delete', '=', RAW_FALSE);
@@ -461,40 +462,40 @@ const searchByVinNumber = async (dataCode, pagination) => {
 const searchByCategoryCode = async (dataCode, pagination) => {
   const rows = await db({ c_direct: TABLES.CATEGORIES })
     .select(SELECT_FIELDS)
-    .leftJoin({ mc_direct: TABLES.MASTER_CATEGORIES }, function() {
+    .leftJoin({ mc_direct: TABLES.MASTER_CATEGORIES }, function () {
       this.on('c_direct.master_category_id', '=', 'mc_direct.master_category_id')
         .andOnNull('mc_direct.deleted_at')
         .andOn('mc_direct.is_delete', '=', RAW_FALSE);
     })
-    .leftJoin({ tc: TABLES.TYPE_CATEGORIES }, function() {
+    .leftJoin({ tc: TABLES.TYPE_CATEGORIES }, function () {
       this.on('tc.category_id', '=', 'c_direct.category_id')
         .andOnNull('tc.deleted_at')
         .andOn('tc.is_delete', '=', RAW_FALSE);
     })
-    .leftJoin({ c_type: TABLES.CATEGORIES }, function() {
+    .leftJoin({ c_type: TABLES.CATEGORIES }, function () {
       this.on('tc.category_id', '=', 'c_type.category_id')
         .andOnNull('c_type.deleted_at')
         .andOn('c_type.is_delete', '=', RAW_FALSE);
     })
-    .leftJoin({ mc_type: TABLES.MASTER_CATEGORIES }, function() {
+    .leftJoin({ mc_type: TABLES.MASTER_CATEGORIES }, function () {
       this.on('c_type.master_category_id', '=', 'mc_type.master_category_id')
         .andOnNull('mc_type.deleted_at')
         .andOn('mc_type.is_delete', '=', RAW_FALSE);
     })
-    .leftJoin({ ic: TABLES.ITEM_CATEGORIES }, function() {
-      this.on(function() {
+    .leftJoin({ ic: TABLES.ITEM_CATEGORIES }, function () {
+      this.on(function () {
         this.on('ic.type_category_id', '=', 'tc.type_category_id')
           .orOn('ic.category_id', '=', 'c_direct.category_id');
       })
         .andOnNull('ic.deleted_at')
         .andOn('ic.is_delete', '=', RAW_FALSE);
     })
-    .leftJoin({ icd: TABLES.ITEM_CATEGORIES_DETAILS }, function() {
+    .leftJoin({ icd: TABLES.ITEM_CATEGORIES_DETAILS }, function () {
       this.on('ic.item_category_id', '=', 'icd.item_category_id')
         .andOnNull('icd.deleted_at')
         .andOn('icd.is_delete', '=', RAW_FALSE);
     })
-    .leftJoin({ mi: TABLES.MASTER_ITEMS }, function() {
+    .leftJoin({ mi: TABLES.MASTER_ITEMS }, function () {
       this.on('icd.master_item_id', '=', 'mi.master_item_id')
         .andOnNull('mi.deleted_at')
         .andOn('mi.is_delete', '=', RAW_FALSE);
@@ -521,40 +522,40 @@ const searchByCategoryCode = async (dataCode, pagination) => {
 const buildTypeCategoryQuery = (filterCallback) => {
   const query = db({ tc: TABLES.TYPE_CATEGORIES })
     .select(SELECT_FIELDS)
-    .leftJoin({ c_type: TABLES.CATEGORIES }, function() {
+    .leftJoin({ c_type: TABLES.CATEGORIES }, function () {
       this.on('tc.category_id', '=', 'c_type.category_id')
         .andOnNull('c_type.deleted_at')
         .andOn('c_type.is_delete', '=', RAW_FALSE);
     })
-    .leftJoin({ mc_type: TABLES.MASTER_CATEGORIES }, function() {
+    .leftJoin({ mc_type: TABLES.MASTER_CATEGORIES }, function () {
       this.on('c_type.master_category_id', '=', 'mc_type.master_category_id')
         .andOnNull('mc_type.deleted_at')
         .andOn('mc_type.is_delete', '=', RAW_FALSE);
     })
-    .leftJoin({ ic: TABLES.ITEM_CATEGORIES }, function() {
-      this.on(function() {
+    .leftJoin({ ic: TABLES.ITEM_CATEGORIES }, function () {
+      this.on(function () {
         this.on('ic.type_category_id', '=', 'tc.type_category_id')
           .orOn('ic.category_id', '=', 'c_type.category_id');
       })
         .andOnNull('ic.deleted_at')
         .andOn('ic.is_delete', '=', RAW_FALSE);
     })
-    .leftJoin({ c_direct: TABLES.CATEGORIES }, function() {
+    .leftJoin({ c_direct: TABLES.CATEGORIES }, function () {
       this.on('ic.category_id', '=', 'c_direct.category_id')
         .andOnNull('c_direct.deleted_at')
         .andOn('c_direct.is_delete', '=', RAW_FALSE);
     })
-    .leftJoin({ mc_direct: TABLES.MASTER_CATEGORIES }, function() {
+    .leftJoin({ mc_direct: TABLES.MASTER_CATEGORIES }, function () {
       this.on('c_direct.master_category_id', '=', 'mc_direct.master_category_id')
         .andOnNull('mc_direct.deleted_at')
         .andOn('mc_direct.is_delete', '=', RAW_FALSE);
     })
-    .leftJoin({ icd: TABLES.ITEM_CATEGORIES_DETAILS }, function() {
+    .leftJoin({ icd: TABLES.ITEM_CATEGORIES_DETAILS }, function () {
       this.on('ic.item_category_id', '=', 'icd.item_category_id')
         .andOnNull('icd.deleted_at')
         .andOn('icd.is_delete', '=', RAW_FALSE);
     })
-    .leftJoin({ mi: TABLES.MASTER_ITEMS }, function() {
+    .leftJoin({ mi: TABLES.MASTER_ITEMS }, function () {
       this.on('icd.master_item_id', '=', 'mi.master_item_id')
         .andOnNull('mi.deleted_at')
         .andOn('mi.is_delete', '=', RAW_FALSE);
@@ -598,37 +599,37 @@ const searchByTypeCategory = async (dataCode, pagination) => {
 const searchByMasterItemPartNumber = async (dataCode, pagination) => {
   const rows = await db({ mi: TABLES.MASTER_ITEMS })
     .select(SELECT_FIELDS)
-    .leftJoin({ icd: TABLES.ITEM_CATEGORIES_DETAILS }, function() {
+    .leftJoin({ icd: TABLES.ITEM_CATEGORIES_DETAILS }, function () {
       this.on('mi.master_item_id', '=', 'icd.master_item_id')
         .andOnNull('icd.deleted_at')
         .andOn('icd.is_delete', '=', RAW_FALSE);
     })
-    .leftJoin({ ic: TABLES.ITEM_CATEGORIES }, function() {
+    .leftJoin({ ic: TABLES.ITEM_CATEGORIES }, function () {
       this.on('ic.item_category_id', '=', 'icd.item_category_id')
         .andOnNull('ic.deleted_at')
         .andOn('ic.is_delete', '=', RAW_FALSE);
     })
-    .leftJoin({ tc: TABLES.TYPE_CATEGORIES }, function() {
+    .leftJoin({ tc: TABLES.TYPE_CATEGORIES }, function () {
       this.on('ic.type_category_id', '=', 'tc.type_category_id')
         .andOnNull('tc.deleted_at')
         .andOn('tc.is_delete', '=', RAW_FALSE);
     })
-    .leftJoin({ c_type: TABLES.CATEGORIES }, function() {
+    .leftJoin({ c_type: TABLES.CATEGORIES }, function () {
       this.on('tc.category_id', '=', 'c_type.category_id')
         .andOnNull('c_type.deleted_at')
         .andOn('c_type.is_delete', '=', RAW_FALSE);
     })
-    .leftJoin({ mc_type: TABLES.MASTER_CATEGORIES }, function() {
+    .leftJoin({ mc_type: TABLES.MASTER_CATEGORIES }, function () {
       this.on('c_type.master_category_id', '=', 'mc_type.master_category_id')
         .andOnNull('mc_type.deleted_at')
         .andOn('mc_type.is_delete', '=', RAW_FALSE);
     })
-    .leftJoin({ c_direct: TABLES.CATEGORIES }, function() {
+    .leftJoin({ c_direct: TABLES.CATEGORIES }, function () {
       this.on('ic.category_id', '=', 'c_direct.category_id')
         .andOnNull('c_direct.deleted_at')
         .andOn('c_direct.is_delete', '=', RAW_FALSE);
     })
-    .leftJoin({ mc_direct: TABLES.MASTER_CATEGORIES }, function() {
+    .leftJoin({ mc_direct: TABLES.MASTER_CATEGORIES }, function () {
       this.on('c_direct.master_category_id', '=', 'mc_direct.master_category_id')
         .andOnNull('mc_direct.deleted_at')
         .andOn('mc_direct.is_delete', '=', RAW_FALSE);
@@ -650,6 +651,36 @@ const searchByMasterItemPartNumber = async (dataCode, pagination) => {
     item_data: data,
     pagination: meta
   };
+};
+
+const searchByVinWithCustomerCheck = async (vinNumber, customerId, pagination) => {
+  // 1. Get Product Data first to check relation and return
+  const product = await db(TABLES.PRODUCTS)
+    .where('vin_number', vinNumber)
+    .whereNull('deleted_at')
+    .where('is_delete', false)
+    .first();
+
+  if (!product) {
+    return null;
+  }
+
+  // 2. Check Customer Relation if customer_id is valid
+  // Treat 'NaN', 'null', '', null, undefined as invalid/skip check
+  if (customerId && customerId !== '' && customerId !== 'NaN' && customerId !== 'null' && customerId !== null) {
+    // Assuming customer_id is meant to be checked against vin_customer table
+    const relation = await db(TABLES.VIN_CUSTOMERS)
+      .where('customer_id', customerId)
+      .where('product_id', product.product_id)
+      .first();
+
+    if (!relation) {
+      throw new Error('Customer tidak memiliki vin number berikut');
+    }
+  }
+
+  // 3. Return product data directly (no joins)
+  return product;
 };
 
 const searchPartsCatalog = async (dataCode, options = {}) => {
@@ -720,37 +751,37 @@ const getByTypeCategoryId = async (typeCategoryId, options = {}) => {
 const buildItemCategoryQuery = (filterCallback) => {
   const query = db({ ic: TABLES.ITEM_CATEGORIES })
     .select(SELECT_FIELDS)
-    .leftJoin({ tc: TABLES.TYPE_CATEGORIES }, function() {
+    .leftJoin({ tc: TABLES.TYPE_CATEGORIES }, function () {
       this.on('ic.type_category_id', '=', 'tc.type_category_id')
         .andOnNull('tc.deleted_at')
         .andOn('tc.is_delete', '=', RAW_FALSE);
     })
-    .leftJoin({ c_type: TABLES.CATEGORIES }, function() {
+    .leftJoin({ c_type: TABLES.CATEGORIES }, function () {
       this.on('tc.category_id', '=', 'c_type.category_id')
         .andOnNull('c_type.deleted_at')
         .andOn('c_type.is_delete', '=', RAW_FALSE);
     })
-    .leftJoin({ mc_type: TABLES.MASTER_CATEGORIES }, function() {
+    .leftJoin({ mc_type: TABLES.MASTER_CATEGORIES }, function () {
       this.on('c_type.master_category_id', '=', 'mc_type.master_category_id')
         .andOnNull('mc_type.deleted_at')
         .andOn('mc_type.is_delete', '=', RAW_FALSE);
     })
-    .leftJoin({ c_direct: TABLES.CATEGORIES }, function() {
+    .leftJoin({ c_direct: TABLES.CATEGORIES }, function () {
       this.on('ic.category_id', '=', 'c_direct.category_id')
         .andOnNull('c_direct.deleted_at')
         .andOn('c_direct.is_delete', '=', RAW_FALSE);
     })
-    .leftJoin({ mc_direct: TABLES.MASTER_CATEGORIES }, function() {
+    .leftJoin({ mc_direct: TABLES.MASTER_CATEGORIES }, function () {
       this.on('c_direct.master_category_id', '=', 'mc_direct.master_category_id')
         .andOnNull('mc_direct.deleted_at')
         .andOn('mc_direct.is_delete', '=', RAW_FALSE);
     })
-    .leftJoin({ icd: TABLES.ITEM_CATEGORIES_DETAILS }, function() {
+    .leftJoin({ icd: TABLES.ITEM_CATEGORIES_DETAILS }, function () {
       this.on('ic.item_category_id', '=', 'icd.item_category_id')
         .andOnNull('icd.deleted_at')
         .andOn('icd.is_delete', '=', RAW_FALSE);
     })
-    .leftJoin({ mi: TABLES.MASTER_ITEMS }, function() {
+    .leftJoin({ mi: TABLES.MASTER_ITEMS }, function () {
       this.on('icd.master_item_id', '=', 'mi.master_item_id')
         .andOnNull('mi.deleted_at')
         .andOn('mi.is_delete', '=', RAW_FALSE);
@@ -798,6 +829,7 @@ const getByItemCategoryId = async (itemCategoryId, options = {}) => {
 
 module.exports = {
   searchPartsCatalog,
+  searchByVinWithCustomerCheck,
   getByTypeCategoryId,
   getByItemCategoryId
 };

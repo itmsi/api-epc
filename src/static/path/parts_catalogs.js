@@ -78,6 +78,48 @@ const partsCatalogPaths = {
       }
     }
   },
+  '/parts-catalogs/vin/get': {
+    post: {
+      tags: ['Parts Catalogs'],
+      summary: 'Cari data katalog berdasarkan VIN number dengan validasi customer',
+      description: 'Mencari data produk berdasarkan VIN number. Jika customer_id disertakan, memvalidasi kepemilikan.',
+      security: [{ bearerAuth: [] }],
+      requestBody: {
+        required: true,
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/PartsCatalogSearchByVinRequest'
+            }
+          }
+        }
+      },
+      responses: {
+        200: {
+          description: 'Data berhasil ditemukan',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/PartsCatalogResponseProduct'
+              }
+            }
+          }
+        },
+        400: {
+          description: 'Permintaan tidak valid'
+        },
+        401: {
+          description: 'Tidak terotorisasi'
+        },
+        404: {
+          description: 'Data tidak ditemukan'
+        },
+        500: {
+          description: 'Terjadi kesalahan pada server'
+        }
+      }
+    }
+  },
   '/parts-catalogs/get-by-type-category-id/{type_category_id}': {
     get: {
       tags: ['Parts Catalogs'],
