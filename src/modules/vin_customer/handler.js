@@ -112,7 +112,7 @@ const create = async (req, res) => {
 const update = async (req, res) => {
   try {
     const { customerId } = req.params;
-    const { product_ids } = req.body;
+    const { customer_id: newCustomerId, product_ids } = req.body;
     
     // Get user ID from token
     const userId = req.user?.employee_id || req.user?.user_id;
@@ -125,18 +125,26 @@ const update = async (req, res) => {
       return errorResponse(res, 'product_ids harus berupa array dan tidak boleh kosong', 400);
     }
 
-    const results = await repository.update(customerId, product_ids, userId);
+    const results = await repository.update(customerId, product_ids, userId, newCustomerId);
+    
+    const message = newCustomerId 
+      ? `Berhasil memindahkan ${results.length} product ke customer baru`
+      : `Berhasil mengupdate ${results.length} product untuk customer`;
     
     return successResponse(
       res, 
       results,
-      `Berhasil mengupdate ${results.length} product untuk customer`,
+      message,
       200
     );
   } catch (error) {
     // Handle foreign key violation
     if (error.code === '23503') {
       return errorResponse(res, 'Salah satu Product ID tidak valid atau tidak ditemukan', 400);
+    }
+    // Handle unique constraint violation (customer already has product)
+    if (error.code === '23505') {
+      return errorResponse(res, 'Customer tujuan sudah memiliki salah satu product ini', 409);
     }
     return errorResponse(res, error.message || 'Terjadi kesalahan', 500);
   }

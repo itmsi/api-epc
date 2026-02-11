@@ -130,6 +130,11 @@ const updateByCustomerValidation = [
     .isUUID()
     .withMessage('Format Customer ID tidak valid'),
   
+  body('customer_id')
+    .optional()
+    .isUUID()
+    .withMessage('customer_id harus berupa UUID yang valid'),
+  
   body('product_ids')
     .notEmpty()
     .withMessage('product_ids wajib diisi')

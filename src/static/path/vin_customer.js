@@ -180,15 +180,15 @@ const vinCustomerPaths = {
 
     put: {
       tags: ['VIN Customer'],
-      summary: 'Update - replace all products for a customer',
-      description: 'Replace all products assigned to a customer with new ones. Auto-handles single or multiple products.',
+      summary: 'Update - replace or transfer products',
+      description: 'Replace products for same customer OR transfer products to a new customer. If customer_id is provided, products will be transferred to the new customer (validates target customer does not already have the products). If customer_id is not provided, products will be replaced for the same customer.',
       security: [{ bearerAuth: [] }],
       parameters: [
         {
           name: 'customerId',
           in: 'path',
           required: true,
-          description: 'Customer ID from SSO',
+          description: 'Original Customer ID',
           schema: {
             type: 'string',
             format: 'uuid'
@@ -203,6 +203,11 @@ const vinCustomerPaths = {
               type: 'object',
               required: ['product_ids'],
               properties: {
+                customer_id: {
+                  type: 'string',
+                  format: 'uuid',
+                  description: 'Optional: New customer ID to transfer products to (if different from customerId in path)'
+                },
                 product_ids: {
                   type: 'array',
                   items: {
@@ -213,13 +218,28 @@ const vinCustomerPaths = {
                   example: ['987fcdeb-51a2-43d7-b123-987654321abc', '456defgh-12a3-45b6-c789-012345678def']
                 }
               }
+            },
+            examples: {
+              transfer: {
+                summary: 'Transfer products to new customer',
+                value: {
+                  customer_id: 'new-customer-uuid-here',
+                  product_ids: ['987fcdeb-51a2-43d7-b123-987654321abc', '456defgh-12a3-45b6-c789-012345678def']
+                }
+              },
+              replace: {
+                summary: 'Replace products for same customer',
+                value: {
+                  product_ids: ['987fcdeb-51a2-43d7-b123-987654321abc', '456defgh-12a3-45b6-c789-012345678def']
+                }
+              }
             }
           }
         }
       },
       responses: {
         200: {
-          description: 'Successfully updated products for customer',
+          description: 'Successfully updated/transferred products',
           content: {
             'application/json': {
               schema: {
@@ -230,6 +250,16 @@ const vinCustomerPaths = {
         },
         400: {
           description: 'Bad Request - Invalid product ID',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        409: {
+          description: 'Conflict - Target customer already has one or more of these products',
           content: {
             'application/json': {
               schema: {
