@@ -321,28 +321,6 @@ const vinCustomerSchemas = {
         items: {
           $ref: '#/components/schemas/ProductInCustomer'
         }
-      },
-      pagination: {
-        type: 'object',
-        properties: {
-          page: {
-            type: 'integer',
-            example: 1
-          },
-          limit: {
-            type: 'integer',
-            example: 10
-          },
-          total: {
-            type: 'integer',
-            description: 'Total number of products',
-            example: 25
-          },
-          totalPages: {
-            type: 'integer',
-            example: 3
-          }
-        }
       }
     }
   },
