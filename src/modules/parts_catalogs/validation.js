@@ -115,10 +115,33 @@ const getVinCategoryByProductIdValidation = [
         .withMessage('Format product ID tidak valid'),
 ];
 
+/**
+ * Validation untuk mengambil data category berdasarkan vin_number (POST)
+ */
+const getVinCategoryByVinNumberValidation = [
+    body('vin_number')
+        .notEmpty()
+        .withMessage('VIN Number wajib diisi')
+        .bail()
+        .isString()
+        .withMessage('VIN Number harus berupa string')
+        .bail()
+        .isLength({ max: 255 })
+        .withMessage('VIN Number maksimal 255 karakter')
+        .trim(),
+    body('customer_id')
+        .notEmpty()
+        .withMessage('Customer ID wajib diisi')
+        .bail()
+        .isUUID()
+        .withMessage('Format Customer ID tidak valid'),
+];
+
 module.exports = {
     getValidation,
     getByTypeCategoryIdValidation,
     getByItemCategoryIdValidation,
     getVinValidation,
-    getVinCategoryByProductIdValidation
+    getVinCategoryByProductIdValidation,
+    getVinCategoryByVinNumberValidation
 };

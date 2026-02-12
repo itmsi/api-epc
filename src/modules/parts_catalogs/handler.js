@@ -206,11 +206,34 @@ const getVinCategoryByProductId = async (req, res) => {
   }
 };
 
+const getVinCategoryByVinNumber = async (req, res) => {
+  try {
+    const { vin_number: vinNumber, customer_id: customerId } = req.body;
+
+    const result = await repository.getVinCategoryByVinNumber(vinNumber, customerId);
+
+    if (!result) {
+      // Could be not found or validation failed, check repository response logic or handle specific return
+      // The repository returns null if product not found or customer verification failed.
+      // We can refine this in repo to throw error for specific cases.
+      return errorResponse(res, 'Data tidak ditemukan atau akses ditolak', 404);
+    }
+
+    return successResponse(res, result, 'Data berhasil diambil');
+  } catch (error) {
+    if (error.message === 'Customer tidak memiliki akses ke VIN ini') {
+      return errorResponse(res, error.message, 403);
+    }
+    return errorResponse(res, error.message || 'Terjadi kesalahan', 500);
+  }
+};
+
 module.exports = {
   search,
   searchByVinEndpoint,
   getByTypeCategoryId,
   getByItemCategoryId,
-  getVinCategoryByProductId
+  getVinCategoryByProductId,
+  getVinCategoryByVinNumber
 };
 

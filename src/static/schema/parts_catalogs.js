@@ -78,6 +78,24 @@ const partsCatalogSchemas = {
     }
   },
 
+  PartsCatalogCategoryByVinRequest: {
+    type: 'object',
+    required: ['vin_number', 'customer_id'],
+    properties: {
+      vin_number: {
+        type: 'string',
+        description: 'VIN Number',
+        example: 'LZGJR4V61RX035044'
+      },
+      customer_id: {
+        type: 'string',
+        format: 'uuid',
+        description: 'ID Customer',
+        example: '123e4567-e89b-12d3-a456-426614174000'
+      }
+    }
+  },
+
   PartsCatalogPagination: {
     type: 'object',
     properties: {
@@ -557,6 +575,17 @@ const partsCatalogSchemas = {
     }
   },
 
+  PartsCatalogProductInfo: {
+    type: 'object',
+    properties: {
+      product_id: { type: 'string', format: 'uuid' },
+      vin_number: { type: 'string' },
+      product_name_en: { type: 'string' },
+      product_name_cn: { type: 'string' },
+      product_description: { type: 'string' }
+    }
+  },
+
   PartsCatalogResponseMasterCategoryQuery: {
     type: 'object',
     properties: {
@@ -565,8 +594,7 @@ const partsCatalogSchemas = {
       data: {
         type: 'object',
         properties: {
-          type_data: { type: 'string', enum: ['master_category'], example: 'master_category' },
-          data: { $ref: '#/components/schemas/PartsCatalogProductItem' },
+          data_vin: { $ref: '#/components/schemas/PartsCatalogProductInfo' },
           items: {
             type: 'array',
             items: { $ref: '#/components/schemas/PartsCatalogMasterCategoryQueryItem' }

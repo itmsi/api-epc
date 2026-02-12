@@ -877,11 +877,60 @@ const getVinCategoryByProductId = async (productId) => {
   };
 };
 
+const getVinCategoryByVinNumber = async (vinNumber, customerId) => {
+  // 1. Check Product by VIN
+  const product = await db(TABLES.PRODUCTS)
+    .select('product_id', 'vin_number', 'product_name_en', 'product_name_cn', 'product_description')
+    .where('vin_number', vinNumber)
+    .whereNull('deleted_at')
+    .where('is_delete', false)
+    .first();
+
+  if (!product) {
+    return null;
+  }
+
+  // 2. Check Customer Access (if customerId is provided - though validation makes it mandatory)
+  if (customerId) {
+    const access = await db(TABLES.VIN_CUSTOMERS)
+      .where('product_id', product.product_id)
+      .where('customer_id', customerId)
+      .first();
+
+    if (!access) {
+      throw new Error('Customer tidak memiliki akses ke VIN ini');
+    }
+  }
+
+  // 3. Fetch Data
+  const rows = await db({ pd: TABLES.PRODUCTS_DETAILS })
+    .select(['mc.master_category_id', 'mc.master_category_name_en'])
+    .join({ ic: TABLES.ITEM_CATEGORIES }, 'pd.dokumen_id', '=', 'ic.dokumen_id')
+    .join({ c: TABLES.CATEGORIES }, 'c.category_id', '=', 'ic.category_id')
+    .join({ mc: TABLES.MASTER_CATEGORIES }, 'mc.master_category_id', '=', 'c.master_category_id')
+    .where('pd.product_id', product.product_id)
+    .groupBy('mc.master_category_id', 'mc.master_category_name_en');
+
+  const total = rows.length;
+
+  return {
+    data_vin: product,
+    items: rows,
+    pagination: {
+      page: 1,
+      limit: total || 10,
+      total: total,
+      totalPages: 1
+    }
+  };
+};
+
 module.exports = {
   searchPartsCatalog,
   searchByVinWithCustomerCheck,
   getByTypeCategoryId,
   getByItemCategoryId,
-  getVinCategoryByProductId
+  getVinCategoryByProductId,
+  getVinCategoryByVinNumber
 };
 
