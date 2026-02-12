@@ -547,6 +547,34 @@ const partsCatalogSchemas = {
         example: '2025-01-01T00:00:00.000Z'
       }
     }
+  },
+
+  PartsCatalogMasterCategoryQueryItem: {
+    type: 'object',
+    properties: {
+      master_category_id: { type: 'string', format: 'uuid' },
+      master_category_name_en: { type: 'string' }
+    }
+  },
+
+  PartsCatalogResponseMasterCategoryQuery: {
+    type: 'object',
+    properties: {
+      success: { type: 'boolean', example: true },
+      message: { type: 'string', example: 'Data berhasil diambil' },
+      data: {
+        type: 'object',
+        properties: {
+          type_data: { type: 'string', enum: ['master_category'], example: 'master_category' },
+          data: {
+            type: 'array',
+            items: { $ref: '#/components/schemas/PartsCatalogMasterCategoryQueryItem' }
+          },
+          pagination: { $ref: '#/components/schemas/PartsCatalogPagination' }
+        }
+      },
+      timestamp: { type: 'string', format: 'date-time' }
+    }
   }
 };
 

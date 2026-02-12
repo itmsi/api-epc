@@ -190,10 +190,27 @@ const getByItemCategoryId = async (req, res) => {
   }
 };
 
+const getVinCategoryByProductId = async (req, res) => {
+  try {
+    const { product_id: productId } = req.params;
+
+    const result = await repository.getVinCategoryByProductId(productId);
+
+    if (!result) {
+      return errorResponse(res, 'Data tidak ditemukan', 404);
+    }
+
+    return successResponse(res, result, 'Data berhasil diambil');
+  } catch (error) {
+    return errorResponse(res, error.message || 'Terjadi kesalahan', 500);
+  }
+};
+
 module.exports = {
   search,
   searchByVinEndpoint,
   getByTypeCategoryId,
-  getByItemCategoryId
+  getByItemCategoryId,
+  getVinCategoryByProductId
 };
 

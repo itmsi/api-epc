@@ -120,6 +120,51 @@ const partsCatalogPaths = {
       }
     }
   },
+  '/parts-catalogs/vin/category/{product_id}': {
+    get: {
+      tags: ['Parts Catalogs'],
+      summary: 'Ambil master category berdasarkan product_id',
+      description: 'Mengambil data master category yang terkait dengan product_id tertentu.',
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'product_id',
+          in: 'path',
+          required: true,
+          description: 'ID Product',
+          schema: {
+            type: 'string',
+            format: 'uuid',
+            example: '123e4567-e89b-12d3-a456-426614174000'
+          }
+        }
+      ],
+      responses: {
+        200: {
+          description: 'Data berhasil ditemukan',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/PartsCatalogResponseMasterCategoryQuery'
+              }
+            }
+          }
+        },
+        400: {
+          description: 'Permintaan tidak valid'
+        },
+        401: {
+          description: 'Tidak terotorisasi'
+        },
+        404: {
+          description: 'Data tidak ditemukan'
+        },
+        500: {
+          description: 'Terjadi kesalahan pada server'
+        }
+      }
+    }
+  },
   '/parts-catalogs/get-by-type-category-id/{type_category_id}': {
     get: {
       tags: ['Parts Catalogs'],

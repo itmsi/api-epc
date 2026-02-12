@@ -845,10 +845,33 @@ const getByItemCategoryId = async (itemCategoryId, options = {}) => {
   };
 };
 
+const getVinCategoryByProductId = async (productId) => {
+  const rows = await db({ pd: TABLES.PRODUCTS_DETAILS })
+    .select(['mc.master_category_id', 'mc.master_category_name_en'])
+    .join({ ic: TABLES.ITEM_CATEGORIES }, 'pd.dokumen_id', '=', 'ic.dokumen_id')
+    .join({ c: TABLES.CATEGORIES }, 'c.category_id', '=', 'ic.category_id')
+    .join({ mc: TABLES.MASTER_CATEGORIES }, 'mc.master_category_id', '=', 'c.master_category_id')
+    .where('pd.product_id', productId)
+    .groupBy('mc.master_category_id', 'mc.master_category_name_en');
+
+  const total = rows.length;
+
+  return {
+    items: rows,
+    pagination: {
+      page: 1,
+      limit: total || 10,
+      total: total,
+      totalPages: 1
+    }
+  };
+};
+
 module.exports = {
   searchPartsCatalog,
   searchByVinWithCustomerCheck,
   getByTypeCategoryId,
-  getByItemCategoryId
+  getByItemCategoryId,
+  getVinCategoryByProductId
 };
 

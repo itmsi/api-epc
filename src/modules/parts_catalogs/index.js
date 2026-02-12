@@ -3,7 +3,7 @@ const router = express.Router();
 const handler = require('./handler');
 const { verifyToken } = require('../../middlewares');
 const { validateMiddleware } = require('../../middlewares/validation');
-const { getValidation, getByTypeCategoryIdValidation, getByItemCategoryIdValidation, getVinValidation } = require('./validation');
+const { getValidation, getByTypeCategoryIdValidation, getByItemCategoryIdValidation, getVinValidation, getVinCategoryByProductIdValidation } = require('./validation');
 
 /**
  * @route   POST /api/epc/parts-catalogs/get
@@ -29,6 +29,19 @@ router.post(
   getVinValidation,
   validateMiddleware,
   handler.searchByVinEndpoint
+);
+
+/**
+ * @route   GET /api/epc/parts-catalogs/vin/category/:product_id
+ * @desc    Ambil master category berdasarkan product_id
+ * @access  Private
+ */
+router.get(
+  '/vin/category/:product_id',
+  verifyToken,
+  getVinCategoryByProductIdValidation,
+  validateMiddleware,
+  handler.getVinCategoryByProductId
 );
 
 /**

@@ -103,9 +103,22 @@ const getVinValidation = [
         .withMessage('Sort order harus asc atau desc'),
 ];
 
+/**
+ * Validation untuk mengambil data category berdasarkan product_id
+ */
+const getVinCategoryByProductIdValidation = [
+    param('product_id')
+        .notEmpty()
+        .withMessage('Product ID wajib diisi')
+        .bail()
+        .isUUID()
+        .withMessage('Format product ID tidak valid'),
+];
+
 module.exports = {
     getValidation,
     getByTypeCategoryIdValidation,
     getByItemCategoryIdValidation,
-    getVinValidation
+    getVinValidation,
+    getVinCategoryByProductIdValidation
 };
