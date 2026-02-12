@@ -566,7 +566,8 @@ const partsCatalogSchemas = {
         type: 'object',
         properties: {
           type_data: { type: 'string', enum: ['master_category'], example: 'master_category' },
-          data: {
+          data: { $ref: '#/components/schemas/PartsCatalogProductItem' },
+          items: {
             type: 'array',
             items: { $ref: '#/components/schemas/PartsCatalogMasterCategoryQueryItem' }
           },

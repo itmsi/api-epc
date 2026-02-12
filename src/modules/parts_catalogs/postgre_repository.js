@@ -846,6 +846,15 @@ const getByItemCategoryId = async (itemCategoryId, options = {}) => {
 };
 
 const getVinCategoryByProductId = async (productId) => {
+  const product = await db(TABLES.PRODUCTS)
+    .select('product_id', 'vin_number', 'product_name_en', 'product_name_cn', 'product_description')
+    .where('product_id', productId)
+    .first();
+
+  if (!product) {
+    return null;
+  }
+
   const rows = await db({ pd: TABLES.PRODUCTS_DETAILS })
     .select(['mc.master_category_id', 'mc.master_category_name_en'])
     .join({ ic: TABLES.ITEM_CATEGORIES }, 'pd.dokumen_id', '=', 'ic.dokumen_id')
@@ -857,6 +866,7 @@ const getVinCategoryByProductId = async (productId) => {
   const total = rows.length;
 
   return {
+    data_vin: product,
     items: rows,
     pagination: {
       page: 1,
