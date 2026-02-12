@@ -51,14 +51,13 @@ const search = async (req, res) => {
 const searchByVinEndpoint = async (req, res) => {
   try {
     const {
-      vin_number: vinNumber,
+      search,
       customer_id: customerId,
-    } = req.body;
-
-    const {
       page = 1,
-      limit = 10
-    } = req.query;
+      limit = 10,
+      sort_by: sortBy = 'created_at',
+      sort_order: sortOrder = 'desc'
+    } = req.body;
 
     // Convert page and limit to integers and validate
     let pageNum = parseInt(page, 10) || 1;
@@ -76,11 +75,13 @@ const searchByVinEndpoint = async (req, res) => {
     }
 
     const result = await repository.searchByVinWithCustomerCheck(
-      vinNumber,
+      search,
       customerId,
       {
         page: pageNum,
-        limit: limitNum
+        limit: limitNum,
+        sortBy,
+        sortOrder
       }
     );
 

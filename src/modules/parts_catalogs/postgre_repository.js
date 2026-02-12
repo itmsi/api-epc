@@ -190,7 +190,8 @@ const SELECT_FIELDS = [
   'icd.item_category_detail_id',
   'mi.part_number',
   db.raw('mi.master_item_name_en as catalog_item_name_en'),
-  db.raw('mi.master_item_name_ch as catalog_item_name_ch')
+  db.raw('mi.master_item_name_ch as catalog_item_name_ch'),
+  db.raw('COALESCE(mc_type.created_at, mc_direct.created_at) as created_at')
 ];
 
 const sanitizePagination = (page, limit) => {
@@ -251,6 +252,7 @@ const formatMasterData = (rows) => {
         master_category_id: row.master_category_id || null,
         master_category_name_en: row.master_category_name_en || null,
         master_category_name_cn: row.master_category_name_cn || null,
+        created_at: row.created_at || null,
         category_data: [],
         __categoryMap: new Map()
       };
@@ -454,7 +456,7 @@ const searchByVinNumber = async (dataCode, pagination) => {
 
   return {
     type_data: 'vin_number',
-    master_data: data,
+    item: data,
     pagination: meta
   };
 };
@@ -653,34 +655,50 @@ const searchByMasterItemPartNumber = async (dataCode, pagination) => {
   };
 };
 
-const searchByVinWithCustomerCheck = async (vinNumber, customerId, pagination) => {
-  // 1. Get Product Data first to check relation and return
-  const product = await db(TABLES.PRODUCTS)
-    .where('vin_number', vinNumber)
+const searchByVinWithCustomerCheck = async (search, customerId, pagination) => {
+  // Build Query for Products (Simple Query)
+  const simpleQuery = db(TABLES.PRODUCTS)
     .whereNull('deleted_at')
-    .where('is_delete', false)
-    .first();
+    .where('is_delete', false);
 
-  if (!product) {
-    return null;
+  if (search && String(search).trim() !== '') {
+    simpleQuery.where('vin_number', 'ilike', `%${String(search).trim()}%`);
   }
 
-  // 2. Check Customer Relation if customer_id is valid
-  // Treat 'NaN', 'null', '', null, undefined as invalid/skip check
   if (customerId && customerId !== '' && customerId !== 'NaN' && customerId !== 'null' && customerId !== null) {
-    // Assuming customer_id is meant to be checked against vin_customer table
-    const relation = await db(TABLES.VIN_CUSTOMERS)
-      .where('customer_id', customerId)
-      .where('product_id', product.product_id)
-      .first();
-
-    if (!relation) {
-      throw new Error('Customer tidak memiliki vin number berikut');
-    }
+    simpleQuery.whereIn('product_id', function () {
+      this.select('product_id')
+        .from(TABLES.VIN_CUSTOMERS)
+        .where('customer_id', customerId);
+    });
   }
 
-  // 3. Return product data directly (no joins)
-  return product;
+  // Count
+  const countResult = await simpleQuery.clone().count('product_id as total').first();
+  const total = parseInt(countResult.total, 10) || 0;
+
+  // Sorting
+  if (pagination.sortBy && pagination.sortOrder) {
+    simpleQuery.orderBy(pagination.sortBy, pagination.sortOrder);
+  } else {
+    simpleQuery.orderBy('created_at', 'desc');
+  }
+
+  // Pagination
+  simpleQuery.limit(pagination.limit).offset((pagination.page - 1) * pagination.limit);
+
+  const data = await simpleQuery;
+  const totalPages = Math.ceil(total / pagination.limit);
+
+  return {
+    items: data,
+    pagination: {
+      page: pagination.page,
+      limit: pagination.limit,
+      total,
+      totalPages
+    }
+  };
 };
 
 const searchPartsCatalog = async (dataCode, options = {}) => {

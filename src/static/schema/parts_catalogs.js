@@ -3,6 +3,15 @@
  */
 
 const partsCatalogSchemas = {
+  PartsCatalogProductItem: {
+    type: 'object',
+    properties: {
+      product_id: { type: 'string', format: 'uuid' },
+      vin_number: { type: 'string' },
+      model_name: { type: 'string' },
+      created_at: { type: 'string', format: 'date-time' }
+    }
+  },
   PartsCatalogSearchRequest: {
     type: 'object',
     required: ['data_code'],
@@ -30,11 +39,10 @@ const partsCatalogSchemas = {
 
   PartsCatalogSearchByVinRequest: {
     type: 'object',
-    required: ['vin_number'],
     properties: {
-      vin_number: {
+      search: {
         type: 'string',
-        description: 'VIN number yang ingin dicari',
+        description: 'VIN number atau keyword pencarian',
         example: 'LZGJR4V61RX035044'
       },
       customer_id: {
@@ -55,6 +63,17 @@ const partsCatalogSchemas = {
         maximum: 100,
         description: 'Jumlah data per halaman (opsional, default 10)',
         example: 10
+      },
+      sort_by: {
+        type: 'string',
+        description: 'Field untuk sorting (opsional, default created_at)',
+        example: 'created_at'
+      },
+      sort_order: {
+        type: 'string',
+        enum: ['asc', 'desc'],
+        description: 'Urutan sorting (opsional, default desc)',
+        example: 'desc'
       }
     }
   },
@@ -505,12 +524,21 @@ const partsCatalogSchemas = {
       },
       data: {
         type: 'object',
-        description: 'Data produk',
-        example: {
-          "product_id": "uuid",
-          "vin_number": "LZGJR4V61RX035044",
-          "model_name": "Model X",
-          "created_at": "2025-01-01"
+        properties: {
+          type_data: {
+            type: 'string',
+            enum: ['vin_number'],
+            example: 'vin_number'
+          },
+          data: {
+            type: 'array',
+            items: {
+              $ref: '#/components/schemas/PartsCatalogProductItem'
+            }
+          },
+          pagination: {
+            $ref: '#/components/schemas/PartsCatalogPagination'
+          }
         }
       },
       timestamp: {

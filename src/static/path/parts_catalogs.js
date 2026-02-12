@@ -81,8 +81,8 @@ const partsCatalogPaths = {
   '/parts-catalogs/vin/get': {
     post: {
       tags: ['Parts Catalogs'],
-      summary: 'Cari data katalog berdasarkan VIN number dengan validasi customer',
-      description: 'Mencari data produk berdasarkan VIN number. Jika customer_id disertakan, memvalidasi kepemilikan.',
+      summary: 'Cari data katalog berdasarkan VIN number dengan validasi customer, pagination, dan sorting',
+      description: 'Mencari data produk dan katalog berdasarkan VIN number atau keyword. Mendukung pagination dan sorting by created_at.',
       security: [{ bearerAuth: [] }],
       requestBody: {
         required: true,
