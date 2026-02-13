@@ -604,6 +604,87 @@ const partsCatalogSchemas = {
       },
       timestamp: { type: 'string', format: 'date-time' }
     }
+  },
+
+  PartsCatalogCategoryByMasterIdRequest: {
+    type: 'object',
+    required: ['master_category_id', 'product_id', 'customer_id'],
+    properties: {
+      master_category_id: {
+        type: 'string',
+        format: 'uuid',
+        description: 'ID Master Category',
+        example: '1e30e77b-1663-47d9-9cb0-67531c831516'
+      },
+      product_id: {
+        type: 'string',
+        format: 'uuid',
+        description: 'ID Product (untuk validasi)',
+        example: '123e4567-e89b-12d3-a456-426614174000'
+      },
+      customer_id: {
+        type: 'string',
+        format: 'uuid',
+        description: 'ID Customer (untuk validasi)',
+        example: '123e4567-e89b-12d3-a456-426614174000'
+      },
+      search: {
+        type: 'string',
+        nullable: true,
+        description: 'Keyword pencarian (opsional)',
+        example: 'LZGJR4V61RX035044'
+      },
+      page: {
+        type: 'integer',
+        minimum: 1,
+        default: 1
+      },
+      limit: {
+        type: 'integer',
+        minimum: 1,
+        maximum: 100,
+        default: 10
+      },
+      sort_by: {
+        type: 'string',
+        default: 'created_at'
+      },
+      sort_order: {
+        type: 'string',
+        enum: ['asc', 'desc'],
+        default: 'desc'
+      }
+    }
+  },
+
+  PartsCatalogVariableCategoryItem: {
+    type: 'object',
+    properties: {
+      category_id: { type: 'string', format: 'uuid' },
+      category_name_en: { type: 'string' },
+      category_name_cn: { type: 'string' },
+      category_description: { type: 'string' },
+      created_at: { type: 'string', format: 'date-time' }
+    }
+  },
+
+  PartsCatalogResponseCategoryByMasterId: {
+    type: 'object',
+    properties: {
+      success: { type: 'boolean', example: true },
+      message: { type: 'string', example: 'Data berhasil diambil' },
+      data: {
+        type: 'object',
+        properties: {
+          items: {
+            type: 'array',
+            items: { $ref: '#/components/schemas/PartsCatalogVariableCategoryItem' }
+          },
+          pagination: { $ref: '#/components/schemas/PartsCatalogPagination' }
+        }
+      },
+      timestamp: { type: 'string', format: 'date-time' }
+    }
   }
 };
 

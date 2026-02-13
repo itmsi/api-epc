@@ -925,12 +925,128 @@ const getVinCategoryByVinNumber = async (vinNumber, customerId) => {
   };
 };
 
+
+const getCategoriesByMasterCategoryId = async (masterCategoryId, options = {}) => {
+  const {
+    search,
+    page,
+    limit,
+    sortBy = 'created_at',
+    sortOrder = 'desc',
+    productId,
+    customerId
+  } = options;
+
+  if (productId && customerId) {
+    const checkProduct = await db(TABLES.VIN_CUSTOMERS)
+      .where('product_id', productId)
+      .where('customer_id', customerId)
+      .first();
+
+    if (!checkProduct) {
+      throw new Error('Validasi gagal: Product ID dan Customer ID tidak cocok atau tidak ditemukan');
+    }
+  }
+
+  const baseQuery = db({ c: TABLES.CATEGORIES })
+    .select(
+      'icd.item_category_id',
+      'c.category_id',
+      'c.category_name_en',
+      'c.category_name_cn',
+      'c.category_description',
+      'c.created_at',
+      'tc.type_category_name_en',
+      'tc.type_category_name_cn'
+    )
+    .join({ ic: TABLES.ITEM_CATEGORIES }, 'ic.category_id', 'c.category_id')
+    .join({ tc: TABLES.TYPE_CATEGORIES }, 'tc.type_category_id', 'ic.type_category_id')
+    .join({ icd: TABLES.ITEM_CATEGORIES_DETAILS }, 'icd.item_category_id', 'ic.item_category_id')
+    .join({ mi: TABLES.MASTER_ITEMS }, 'mi.master_item_id', 'icd.master_item_id')
+    .where('c.master_category_id', masterCategoryId)
+    .whereNull('c.deleted_at')
+    .where('c.is_delete', false);
+
+  if (search) {
+    baseQuery.where(function () {
+      this.where('c.category_name_en', 'ilike', `%${search}%`)
+        .orWhere('c.category_name_cn', 'ilike', `%${search}%`)
+        .orWhere('tc.type_category_name_en', 'ilike', `%${search}%`)
+        .orWhere('tc.type_category_name_cn', 'ilike', `%${search}%`)
+        .orWhere('c.category_description', 'ilike', `%${search}%`)
+        .orWhere('mi.part_number', 'ilike', `%${search}%`);
+    });
+  }
+
+  // Group by to avoid duplicates from joins
+  baseQuery.groupBy(
+    'icd.item_category_id',
+    'c.master_category_id',
+    'c.category_id',
+    'c.category_name_en',
+    'c.category_name_cn',
+    'c.category_description',
+    'c.created_at',
+    'tc.type_category_name_en',
+    'tc.type_category_name_cn'
+  );
+
+  // Count total for pagination (using countDistinct to handle joins)
+  // We need to clone before applying limit/offset, but after filters and joins.
+  // Note: baseQuery already has groupBy, which might interfere with simple count. 
+  // We'll create a separate count query or modify the clone.
+  const countQuery = db({ c: TABLES.CATEGORIES })
+    .join({ ic: TABLES.ITEM_CATEGORIES }, 'ic.category_id', 'c.category_id')
+    .join({ tc: TABLES.TYPE_CATEGORIES }, 'tc.type_category_id', 'ic.type_category_id')
+    .join({ icd: TABLES.ITEM_CATEGORIES_DETAILS }, 'icd.item_category_id', 'ic.item_category_id')
+    .join({ mi: TABLES.MASTER_ITEMS }, 'mi.master_item_id', 'icd.master_item_id')
+    .where('c.master_category_id', masterCategoryId)
+    .whereNull('c.deleted_at')
+    .where('c.is_delete', false);
+
+  if (search) {
+    countQuery.where(function () {
+      this.where('c.category_name_en', 'ilike', `%${search}%`)
+        .orWhere('c.category_name_cn', 'ilike', `%${search}%`)
+        .orWhere('tc.type_category_name_en', 'ilike', `%${search}%`)
+        .orWhere('tc.type_category_name_cn', 'ilike', `%${search}%`)
+        .orWhere('c.category_description', 'ilike', `%${search}%`)
+        .orWhere('mi.part_number', 'ilike', `%${search}%`);
+    });
+  }
+
+  // The baseQuery groups by item_category_id (among others), so we count distinct item_category_id
+  const countResult = await countQuery.countDistinct('ic.item_category_id as total').first();
+  const total = parseInt(countResult ? countResult.total : 0, 10);
+
+  // Apply sorting
+  baseQuery.orderBy(sortBy, sortOrder);
+
+  // Apply pagination
+  const { page: safePage, limit: safeLimit } = sanitizePagination(page, limit);
+  const offset = (safePage - 1) * safeLimit;
+  baseQuery.limit(safeLimit).offset(offset);
+
+  const items = await baseQuery;
+
+  return {
+    items,
+    pagination: {
+      page: safePage,
+      limit: safeLimit,
+      total,
+      totalPages: Math.ceil(total / safeLimit)
+    }
+  };
+};
+
 module.exports = {
   searchPartsCatalog,
   searchByVinWithCustomerCheck,
   getByTypeCategoryId,
   getByItemCategoryId,
   getVinCategoryByProductId,
-  getVinCategoryByVinNumber
+  getVinCategoryByVinNumber,
+  getCategoriesByMasterCategoryId
 };
 

@@ -228,12 +228,43 @@ const getVinCategoryByVinNumber = async (req, res) => {
   }
 };
 
+const getCategoriesByMasterCategoryId = async (req, res) => {
+  try {
+    const {
+      master_category_id: masterCategoryId,
+      search,
+      product_id: productId,
+      customer_id: customerId,
+      page = 1,
+      limit = 10,
+      sort_by: sortBy = 'created_at',
+      sort_order: sortOrder = 'desc'
+    } = req.body;
+
+    const result = await repository.getCategoriesByMasterCategoryId(masterCategoryId, {
+      search,
+      page,
+      limit,
+      sortBy,
+      sortOrder,
+      productId,
+      customerId
+    });
+
+    return successResponse(res, result, 'Data berhasil diambil');
+  } catch (error) {
+    return errorResponse(res, error.message || 'Terjadi kesalahan', 500);
+  }
+};
+
 module.exports = {
   search,
   searchByVinEndpoint,
   getByTypeCategoryId,
   getByItemCategoryId,
   getVinCategoryByProductId,
-  getVinCategoryByVinNumber
+  getVinCategoryByProductId,
+  getVinCategoryByVinNumber,
+  getCategoriesByMasterCategoryId
 };
 

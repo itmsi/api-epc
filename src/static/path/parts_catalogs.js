@@ -405,6 +405,40 @@ const partsCatalogPaths = {
         }
       }
     }
+  },
+  '/parts-catalogs/get-by-master-category-id': {
+    post: {
+      tags: ['Parts Catalogs'],
+      summary: 'Ambil data categories berdasarkan master_category_id',
+      description: 'Mengambil daftar categories berdasarkan master_category_id dengan fitur search, pagination, dan sorting.',
+      security: [{ bearerAuth: [] }],
+      requestBody: {
+        required: true,
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/PartsCatalogCategoryByMasterIdRequest'
+            }
+          }
+        }
+      },
+      responses: {
+        200: {
+          description: 'Data berhasil ditemukan',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/PartsCatalogResponseCategoryByMasterId'
+              }
+            }
+          }
+        },
+        400: { description: 'Permintaan tidak valid' },
+        401: { description: 'Tidak terotorisasi' },
+        404: { description: 'Data tidak ditemukan' },
+        500: { description: 'Terjadi kesalahan pada server' }
+      }
+    }
   }
 };
 

@@ -137,11 +137,60 @@ const getVinCategoryByVinNumberValidation = [
         .withMessage('Format Customer ID tidak valid'),
 ];
 
+/**
+ * Validation untuk mengambil data categories berdasarkan master_category_id (POST)
+ */
+const getCategoriesByMasterCategoryIdValidation = [
+    body('master_category_id')
+        .notEmpty()
+        .withMessage('Master Category ID wajib diisi')
+        .bail()
+        .isUUID()
+        .withMessage('Format Master Category ID tidak valid'),
+    body('search')
+        .optional({ nullable: true, checkFalsy: true })
+        .isString()
+        .withMessage('Search harus berupa string')
+        .bail()
+        .isLength({ max: 255 })
+        .withMessage('Search maksimal 255 karakter')
+        .trim(),
+    body('product_id')
+        .notEmpty()
+        .withMessage('Product ID wajib diisi')
+        .bail()
+        .isUUID()
+        .withMessage('Format Product ID tidak valid'),
+    body('customer_id')
+        .notEmpty()
+        .withMessage('Customer ID wajib diisi')
+        .bail()
+        .isUUID()
+        .withMessage('Format Customer ID tidak valid'),
+    body('page')
+        .optional()
+        .isInt({ min: 1 })
+        .withMessage('Page minimal bernilai 1'),
+    body('limit')
+        .optional()
+        .isInt({ min: 1, max: 100 })
+        .withMessage('Limit harus antara 1 hingga 100'),
+    body('sort_by')
+        .optional()
+        .isString()
+        .withMessage('Sort by harus berupa string'),
+    body('sort_order')
+        .optional()
+        .isIn(['asc', 'desc'])
+        .withMessage('Sort order harus asc atau desc'),
+];
+
 module.exports = {
     getValidation,
     getByTypeCategoryIdValidation,
     getByItemCategoryIdValidation,
     getVinValidation,
     getVinCategoryByProductIdValidation,
-    getVinCategoryByVinNumberValidation
+    getVinCategoryByVinNumberValidation,
+    getCategoriesByMasterCategoryIdValidation
 };

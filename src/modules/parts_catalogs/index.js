@@ -3,7 +3,15 @@ const router = express.Router();
 const handler = require('./handler');
 const { verifyToken } = require('../../middlewares');
 const { validateMiddleware } = require('../../middlewares/validation');
-const { getValidation, getByTypeCategoryIdValidation, getByItemCategoryIdValidation, getVinValidation, getVinCategoryByProductIdValidation, getVinCategoryByVinNumberValidation } = require('./validation');
+const {
+  getValidation,
+  getByTypeCategoryIdValidation,
+  getByItemCategoryIdValidation,
+  getVinValidation,
+  getVinCategoryByProductIdValidation,
+  getVinCategoryByVinNumberValidation,
+  getCategoriesByMasterCategoryIdValidation
+} = require('./validation');
 
 /**
  * @route   POST /api/epc/parts-catalogs/get
@@ -81,6 +89,19 @@ router.get(
   getByItemCategoryIdValidation,
   validateMiddleware,
   handler.getByItemCategoryId
+);
+
+/**
+ * @route   POST /api/epc/parts-catalogs/get-by-master-category-id
+ * @desc    Ambil data categories berdasarkan master_category_id
+ * @access  Private
+ */
+router.post(
+  '/get-by-master-category-id',
+  verifyToken,
+  getCategoriesByMasterCategoryIdValidation,
+  validateMiddleware,
+  handler.getCategoriesByMasterCategoryId
 );
 
 module.exports = router;
