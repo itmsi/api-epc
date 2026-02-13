@@ -660,11 +660,28 @@ const partsCatalogSchemas = {
   PartsCatalogVariableCategoryItem: {
     type: 'object',
     properties: {
-      category_id: { type: 'string', format: 'uuid' },
-      category_name_en: { type: 'string' },
-      category_name_cn: { type: 'string' },
-      category_description: { type: 'string' },
-      created_at: { type: 'string', format: 'date-time' }
+      id: { type: 'string', format: 'uuid' },
+      id_link: { type: 'string', format: 'uuid', nullable: true },
+      name: { type: 'string' },
+      name_cn: { type: 'string' },
+      description: { type: 'string', nullable: true },
+      child: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid', nullable: true },
+            id_link: { type: 'string', format: 'uuid', nullable: true },
+            name: { type: 'string', nullable: true },
+            name_cn: { type: 'string', nullable: true },
+            description: { type: 'string', nullable: true },
+            child: {
+              type: 'array',
+              items: { type: 'object' } // Recursion or just empty array as per spec
+            }
+          }
+        }
+      }
     }
   },
 

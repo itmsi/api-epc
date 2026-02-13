@@ -956,6 +956,7 @@ const getCategoriesByMasterCategoryId = async (masterCategoryId, options = {}) =
       'c.category_name_cn',
       'c.category_description',
       'c.created_at',
+      'tc.type_category_id',
       'tc.type_category_name_en',
       'tc.type_category_name_cn'
     )
@@ -987,6 +988,7 @@ const getCategoriesByMasterCategoryId = async (masterCategoryId, options = {}) =
     'c.category_name_cn',
     'c.category_description',
     'c.created_at',
+    'tc.type_category_id',
     'tc.type_category_name_en',
     'tc.type_category_name_cn'
   );
@@ -1029,8 +1031,63 @@ const getCategoriesByMasterCategoryId = async (masterCategoryId, options = {}) =
 
   const items = await baseQuery;
 
+  // Grouping items by category_id
+  const groupedItems = Object.values(
+    items.reduce((acc, current) => {
+      const { category_id } = current;
+      if (!acc[category_id]) {
+        acc[category_id] = {
+          id: category_id,
+          id_link: null, // Will be set later
+          name: current.category_name_en,
+          name_cn: current.category_name_cn,
+          description: current.category_description,
+          child: []
+        };
+      }
+
+      // Check if item has type category (child)
+      // Note: If type_category is present, it's a child. If null, might be direct item_category.
+      // The logic: if type_category_id is present OR there are multiple items for this category, populate child.
+      // But we iterate first.
+      acc[category_id].child.push({
+        id: current.type_category_id,
+        id_link: current.item_category_id,
+        name: current.type_category_name_en,
+        name_cn: current.type_category_name_cn,
+        description: null,
+        child: []
+      });
+
+      return acc;
+    }, {})
+  ).map(category => {
+    // Logic for id_link and child structure
+    // If only 1 child AND child.id (type_category_id) is null:
+    // It means this category has no type categories, just a direct item category.
+    // In this case, id_link = child[0].id_link (the item_category_id), and child array should be empty (as per user request structure example where "child" is empty for simple items).
+    // Wait, user example 2: { ... "child": [] } -> implies no type categories.
+    // User example 1: { ... "child": [ {type...} ] } -> implies type categories.
+
+    const hasTypeCategory = category.child.some(c => c.id !== null);
+
+    if (!hasTypeCategory && category.child.length === 1) {
+      // Single direct item category
+      category.id_link = category.child[0].id_link;
+      category.child = [];
+    } else {
+      // Multiple items or explicit type categories
+      category.id_link = null;
+      // Filter out children if they are just placeholders? 
+      // If type_category_id is null in a multi-item scenario, it's a direct item mixed with types? 
+      // We keep them as children (e.g. "General" or similar unnamed type).
+      // However, if type_category_id is null, "id" property of child will be null.
+    }
+    return category;
+  });
+
   return {
-    items,
+    items: groupedItems,
     pagination: {
       page: safePage,
       limit: safeLimit,
