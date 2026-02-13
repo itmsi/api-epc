@@ -1040,6 +1040,45 @@ const getCategoriesByMasterCategoryId = async (masterCategoryId, options = {}) =
   };
 };
 
+const updateProduct = async (productId, data, userId) => {
+  const existingProduct = await db(TABLES.PRODUCTS)
+    .where('product_id', productId)
+    .whereNull('deleted_at')
+    .where('is_delete', false)
+    .first();
+
+  if (!existingProduct) {
+    throw new Error('Product not found');
+  }
+
+  const updateData = {
+    ...data,
+    updated_at: db.fn.now(),
+    updated_by: userId
+  };
+
+  const [updatedProduct] = await db(TABLES.PRODUCTS)
+    .where('product_id', productId)
+    .update(updateData)
+    .returning('*');
+
+  return updatedProduct;
+};
+
+const getProductById = async (productId) => {
+  const product = await db(TABLES.PRODUCTS)
+    .where('product_id', productId)
+    .whereNull('deleted_at')
+    .where('is_delete', false)
+    .first();
+
+  if (!product) {
+    throw new Error('Product not found');
+  }
+
+  return product;
+};
+
 module.exports = {
   searchPartsCatalog,
   searchByVinWithCustomerCheck,
@@ -1047,6 +1086,8 @@ module.exports = {
   getByItemCategoryId,
   getVinCategoryByProductId,
   getVinCategoryByVinNumber,
-  getCategoriesByMasterCategoryId
+  getCategoriesByMasterCategoryId,
+  updateProduct,
+  getProductById
 };
 

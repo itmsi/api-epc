@@ -185,6 +185,76 @@ const getCategoriesByMasterCategoryIdValidation = [
         .withMessage('Sort order harus asc atau desc'),
 ];
 
+/**
+ * Validation untuk update data product
+ */
+const updateProductValidation = [
+    param('product_id')
+        .notEmpty()
+        .withMessage('Product ID wajib diisi')
+        .bail()
+        .isUUID()
+        .withMessage('Format Product ID tidak valid'),
+    body('product_name_en')
+        .optional({ nullable: true })
+        .isString()
+        .withMessage('Product Name EN harus berupa string')
+        .isLength({ max: 255 })
+        .withMessage('Product Name EN maksimal 255 karakter'),
+    body('product_name_cn')
+        .optional({ nullable: true })
+        .isString()
+        .withMessage('Product Name CN harus berupa string')
+        .isLength({ max: 255 })
+        .withMessage('Product Name CN maksimal 255 karakter'),
+    body('product_description')
+        .optional({ nullable: true })
+        .isString()
+        .withMessage('Product Description harus berupa string'),
+    body('vin_number')
+        .optional({ nullable: true })
+        .isString()
+        .withMessage('VIN Number harus berupa string')
+        .isLength({ max: 255 })
+        .withMessage('VIN Number maksimal 255 karakter'),
+    body('model_type')
+        .optional({ nullable: true })
+        .isString()
+        .withMessage('Model Type harus berupa string')
+        .isLength({ max: 255 })
+        .withMessage('Model Type maksimal 255 karakter'),
+    body('dimensi')
+        .optional({ nullable: true })
+        .isString()
+        .withMessage('Dimensi harus berupa string')
+        .isLength({ max: 255 })
+        .withMessage('Dimensi maksimal 255 karakter'),
+    body('model_engine')
+        .optional({ nullable: true })
+        .isString()
+        .withMessage('Model Engine harus berupa string')
+        .isLength({ max: 255 })
+        .withMessage('Model Engine maksimal 255 karakter'),
+    body('body_number')
+        .optional({ nullable: true })
+        .isString()
+        .withMessage('Body Number harus berupa string')
+        .isLength({ max: 255 })
+        .withMessage('Body Number maksimal 255 karakter')
+];
+
+/**
+ * Validation untuk mengambil data product by ID
+ */
+const getProductByIdValidation = [
+    param('product_id')
+        .notEmpty()
+        .withMessage('Product ID wajib diisi')
+        .bail()
+        .isUUID()
+        .withMessage('Format Product ID tidak valid'),
+];
+
 module.exports = {
     getValidation,
     getByTypeCategoryIdValidation,
@@ -192,5 +262,7 @@ module.exports = {
     getVinValidation,
     getVinCategoryByProductIdValidation,
     getVinCategoryByVinNumberValidation,
-    getCategoriesByMasterCategoryIdValidation
+    getCategoriesByMasterCategoryIdValidation,
+    updateProductValidation,
+    getProductByIdValidation
 };

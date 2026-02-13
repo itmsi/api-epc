@@ -685,6 +685,68 @@ const partsCatalogSchemas = {
       },
       timestamp: { type: 'string', format: 'date-time' }
     }
+  },
+
+  UpdateProductRequest: {
+    type: 'object',
+    properties: {
+      product_name_en: { type: 'string', nullable: true },
+      product_name_cn: { type: 'string', nullable: true },
+      product_description: { type: 'string', nullable: true },
+      vin_number: { type: 'string', nullable: true },
+      model_type: { type: 'string', nullable: true },
+      dimensi: { type: 'string', nullable: true },
+      model_engine: { type: 'string', nullable: true },
+      body_number: { type: 'string', nullable: true }
+    }
+  },
+
+  UpdateProductResponse: {
+    type: 'object',
+    properties: {
+      success: { type: 'boolean', example: true },
+      message: { type: 'string', example: 'Data berhasil diperbarui' },
+      data: {
+        type: 'object',
+        properties: {
+          product_id: { type: 'string', format: 'uuid' },
+          product_name_en: { type: 'string' },
+          product_name_cn: { type: 'string' },
+          product_description: { type: 'string' },
+          vin_number: { type: 'string' },
+          model_type: { type: 'string' },
+          dimensi: { type: 'string' },
+          model_engine: { type: 'string' },
+          body_number: { type: 'string' }
+        }
+      },
+      timestamp: { type: 'string', format: 'date-time' }
+    }
+  },
+
+  GetProductResponse: {
+    type: 'object',
+    properties: {
+      success: { type: 'boolean', example: true },
+      message: { type: 'string', example: 'Data berhasil diambil' },
+      data: {
+        type: 'object',
+        properties: {
+          product_id: { type: 'string', format: 'uuid' },
+          product_name_en: { type: 'string' },
+          product_name_cn: { type: 'string' },
+          product_description: { type: 'string' },
+          vin_number: { type: 'string' },
+          model_type: { type: 'string' },
+          dimensi: { type: 'string' },
+          model_engine: { type: 'string' },
+          body_number: { type: 'string' },
+          created_at: { type: 'string', format: 'date-time' },
+          updated_at: { type: 'string', format: 'date-time' }
+        }
+      },
+      timestamp: { type: 'string', format: 'date-time' }
+    }
   }
 };
 

@@ -10,7 +10,9 @@ const {
   getVinValidation,
   getVinCategoryByProductIdValidation,
   getVinCategoryByVinNumberValidation,
-  getCategoriesByMasterCategoryIdValidation
+  getCategoriesByMasterCategoryIdValidation,
+  updateProductValidation,
+  getProductByIdValidation
 } = require('./validation');
 
 /**
@@ -102,6 +104,32 @@ router.post(
   getCategoriesByMasterCategoryIdValidation,
   validateMiddleware,
   handler.getCategoriesByMasterCategoryId
+);
+
+/**
+ * @route   PUT /api/epc/parts-catalogs/vin/get/:product_id
+ * @desc    Update data product
+ * @access  Private
+ */
+router.put(
+  '/vin/get/:product_id',
+  verifyToken,
+  updateProductValidation,
+  validateMiddleware,
+  handler.updateProduct
+);
+
+/**
+ * @route   GET /api/epc/parts-catalogs/vin/get/:product_id
+ * @desc    Ambil detail product by ID
+ * @access  Private
+ */
+router.get(
+  '/vin/get/:product_id',
+  verifyToken,
+  getProductByIdValidation,
+  validateMiddleware,
+  handler.getProductById
 );
 
 module.exports = router;

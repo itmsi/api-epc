@@ -257,6 +257,38 @@ const getCategoriesByMasterCategoryId = async (req, res) => {
   }
 };
 
+const updateProduct = async (req, res) => {
+  try {
+    const { product_id: productId } = req.params;
+    const data = req.body;
+    const userId = req.user ? req.user.user_id : null; // Assuming user_id is in req.user set by verifyToken
+
+    const result = await repository.updateProduct(productId, data, userId);
+
+    return successResponse(res, result, 'Data berhasil diperbarui');
+  } catch (error) {
+    if (error.message === 'Product not found') {
+      return errorResponse(res, 'Product tidak ditemukan', 404);
+    }
+    return errorResponse(res, error.message || 'Terjadi kesalahan', 500);
+  }
+};
+
+const getProductById = async (req, res) => {
+  try {
+    const { product_id: productId } = req.params;
+
+    const result = await repository.getProductById(productId);
+
+    return successResponse(res, result, 'Data berhasil diambil');
+  } catch (error) {
+    if (error.message === 'Product not found') {
+      return errorResponse(res, 'Product tidak ditemukan', 404);
+    }
+    return errorResponse(res, error.message || 'Terjadi kesalahan', 500);
+  }
+};
+
 module.exports = {
   search,
   searchByVinEndpoint,
@@ -265,6 +297,8 @@ module.exports = {
   getVinCategoryByProductId,
   getVinCategoryByProductId,
   getVinCategoryByVinNumber,
-  getCategoriesByMasterCategoryId
+  getCategoriesByMasterCategoryId,
+  updateProduct,
+  getProductById
 };
 

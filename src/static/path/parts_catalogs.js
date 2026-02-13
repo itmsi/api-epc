@@ -439,6 +439,88 @@ const partsCatalogPaths = {
         500: { description: 'Terjadi kesalahan pada server' }
       }
     }
+  },
+  '/parts-catalogs/vin/get/{product_id}': {
+    put: {
+      tags: ['Parts Catalogs'],
+      summary: 'Update data product',
+      description: 'Mengupdate data product pada semua kolom yang tersedia.',
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'product_id',
+          in: 'path',
+          required: true,
+          description: 'ID Product yang akan diupdate',
+          schema: {
+            type: 'string',
+            format: 'uuid',
+            example: '123e4567-e89b-12d3-a456-426614174000'
+          }
+        }
+      ],
+      requestBody: {
+        required: true,
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/UpdateProductRequest'
+            }
+          }
+        }
+      },
+      responses: {
+        200: {
+          description: 'Data berhasil diperbarui',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/UpdateProductResponse'
+              }
+            }
+          }
+        },
+        400: { description: 'Permintaan tidak valid' },
+        401: { description: 'Tidak terotorisasi' },
+        404: { description: 'Data tidak ditemukan' },
+        500: { description: 'Terjadi kesalahan pada server' }
+      }
+    },
+    get: {
+      tags: ['Parts Catalogs'],
+      summary: 'Ambil detail product',
+      description: 'Mengambil detail data product berdasarkan ID.',
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'product_id',
+          in: 'path',
+          required: true,
+          description: 'ID Product',
+          schema: {
+            type: 'string',
+            format: 'uuid',
+            example: '123e4567-e89b-12d3-a456-426614174000'
+          }
+        }
+      ],
+      responses: {
+        200: {
+          description: 'Data berhasil ditemukan',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/GetProductResponse'
+              }
+            }
+          }
+        },
+        400: { description: 'Permintaan tidak valid' },
+        401: { description: 'Tidak terotorisasi' },
+        404: { description: 'Data tidak ditemukan' },
+        500: { description: 'Terjadi kesalahan pada server' }
+      }
+    }
   }
 };
 
