@@ -1088,7 +1088,7 @@ const getItemDetailsByItemCategoryId = async (itemCategoryId) => {
       'icd.target_id',
       'icd.quantity',
       'mi.master_item_name_en',
-      'mi.master_item_name_cn',
+      'mi.master_item_name_ch',
       'mi.part_number',
       'mi.description'
     )
