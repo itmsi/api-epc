@@ -255,6 +255,18 @@ const getProductByIdValidation = [
         .withMessage('Format Product ID tidak valid'),
 ];
 
+/**
+ * Validation untuk mengambil detail items berdasarkan item_category_id
+ */
+const getItemDetailsByItemCategoryIdValidation = [
+    param('item_category_id')
+        .notEmpty()
+        .withMessage('Item Category ID wajib diisi')
+        .bail()
+        .isUUID()
+        .withMessage('Format Item Category ID tidak valid'),
+];
+
 module.exports = {
     getValidation,
     getByTypeCategoryIdValidation,
@@ -264,5 +276,6 @@ module.exports = {
     getVinCategoryByVinNumberValidation,
     getCategoriesByMasterCategoryIdValidation,
     updateProductValidation,
-    getProductByIdValidation
+    getProductByIdValidation,
+    getItemDetailsByItemCategoryIdValidation
 };

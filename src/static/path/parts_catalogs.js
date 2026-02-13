@@ -521,6 +521,43 @@ const partsCatalogPaths = {
         500: { description: 'Terjadi kesalahan pada server' }
       }
     }
+  },
+  '/parts-catalogs/get-by-master-category-id/{item_category_id}': {
+    get: {
+      tags: ['Parts Catalogs'],
+      summary: 'Ambil detail item category',
+      description: 'Mengambil detail item category dan daftar items berdasarkan ID.',
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'item_category_id',
+          in: 'path',
+          required: true,
+          description: 'ID Item Category',
+          schema: {
+            type: 'string',
+            format: 'uuid',
+            example: '4f6edd44-f7b2-411c-8652-d56cc3f308e6'
+          }
+        }
+      ],
+      responses: {
+        200: {
+          description: 'Data berhasil ditemukan',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/GetItemDetailsByItemCategoryIdResponse'
+              }
+            }
+          }
+        },
+        400: { description: 'Permintaan tidak valid' },
+        401: { description: 'Tidak terotorisasi' },
+        404: { description: 'Data tidak ditemukan' },
+        500: { description: 'Terjadi kesalahan pada server' }
+      }
+    }
   }
 };
 

@@ -12,7 +12,8 @@ const {
   getVinCategoryByVinNumberValidation,
   getCategoriesByMasterCategoryIdValidation,
   updateProductValidation,
-  getProductByIdValidation
+  getProductByIdValidation,
+  getItemDetailsByItemCategoryIdValidation
 } = require('./validation');
 
 /**
@@ -130,6 +131,19 @@ router.get(
   getProductByIdValidation,
   validateMiddleware,
   handler.getProductById
+);
+
+/**
+ * @route   GET /api/epc/parts-catalogs/get-by-master-category-id/:item_category_id
+ * @desc    Ambil detail item category berdasarkan item_category_id
+ * @access  Private
+ */
+router.get(
+  '/get-by-master-category-id/:item_category_id',
+  verifyToken,
+  getItemDetailsByItemCategoryIdValidation,
+  validateMiddleware,
+  handler.getItemDetailsByItemCategoryId
 );
 
 module.exports = router;

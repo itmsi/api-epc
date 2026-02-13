@@ -289,6 +289,21 @@ const getProductById = async (req, res) => {
   }
 };
 
+const getItemDetailsByItemCategoryId = async (req, res) => {
+  try {
+    const { item_category_id: itemCategoryId } = req.params;
+
+    const result = await repository.getItemDetailsByItemCategoryId(itemCategoryId);
+
+    return successResponse(res, result, 'Data berhasil diambil');
+  } catch (error) {
+    if (error.message === 'Data tidak ditemukan') {
+      return errorResponse(res, 'Data tidak ditemukan', 404);
+    }
+    return errorResponse(res, error.message || 'Terjadi kesalahan', 500);
+  }
+};
+
 module.exports = {
   search,
   searchByVinEndpoint,
@@ -299,6 +314,7 @@ module.exports = {
   getVinCategoryByVinNumber,
   getCategoriesByMasterCategoryId,
   updateProduct,
-  getProductById
+  getProductById,
+  getItemDetailsByItemCategoryId
 };
 

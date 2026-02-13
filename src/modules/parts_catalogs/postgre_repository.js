@@ -960,7 +960,7 @@ const getCategoriesByMasterCategoryId = async (masterCategoryId, options = {}) =
       'tc.type_category_name_cn'
     )
     .join({ ic: TABLES.ITEM_CATEGORIES }, 'ic.category_id', 'c.category_id')
-    .join({ tc: TABLES.TYPE_CATEGORIES }, 'tc.type_category_id', 'ic.type_category_id')
+    .leftJoin({ tc: TABLES.TYPE_CATEGORIES }, 'tc.type_category_id', 'ic.type_category_id')
     .join({ icd: TABLES.ITEM_CATEGORIES_DETAILS }, 'icd.item_category_id', 'ic.item_category_id')
     .join({ mi: TABLES.MASTER_ITEMS }, 'mi.master_item_id', 'icd.master_item_id')
     .where('c.master_category_id', masterCategoryId)
@@ -997,7 +997,7 @@ const getCategoriesByMasterCategoryId = async (masterCategoryId, options = {}) =
   // We'll create a separate count query or modify the clone.
   const countQuery = db({ c: TABLES.CATEGORIES })
     .join({ ic: TABLES.ITEM_CATEGORIES }, 'ic.category_id', 'c.category_id')
-    .join({ tc: TABLES.TYPE_CATEGORIES }, 'tc.type_category_id', 'ic.type_category_id')
+    .leftJoin({ tc: TABLES.TYPE_CATEGORIES }, 'tc.type_category_id', 'ic.type_category_id')
     .join({ icd: TABLES.ITEM_CATEGORIES_DETAILS }, 'icd.item_category_id', 'ic.item_category_id')
     .join({ mi: TABLES.MASTER_ITEMS }, 'mi.master_item_id', 'icd.master_item_id')
     .where('c.master_category_id', masterCategoryId)
@@ -1079,6 +1079,46 @@ const getProductById = async (productId) => {
   return product;
 };
 
+const getItemDetailsByItemCategoryId = async (itemCategoryId) => {
+  // Query 1: Get data items
+  const items = await db({ icd: TABLES.ITEM_CATEGORIES_DETAILS })
+    .join({ mi: TABLES.MASTER_ITEMS }, 'mi.master_item_id', 'icd.master_item_id')
+    .select(
+      'icd.item_category_detail_id',
+      'icd.target_id',
+      'icd.quantity',
+      'mi.master_item_name_en',
+      'mi.master_item_name_cn',
+      'mi.part_number',
+      'mi.description'
+    )
+    .where('icd.item_category_id', itemCategoryId);
+
+  // Query 2: Get data header item
+  const header = await db({ ic: TABLES.ITEM_CATEGORIES })
+    .join({ c: TABLES.CATEGORIES }, 'c.category_id', 'ic.category_id')
+    .leftJoin({ tc: TABLES.TYPE_CATEGORIES }, 'tc.type_category_id', 'ic.type_category_id')
+    .select(
+      'ic.item_category_foto',
+      'c.category_name_en',
+      'c.category_name_cn',
+      'tc.type_category_name_cn',
+      'tc.type_category_name_en'
+    )
+    .where('ic.item_category_id', itemCategoryId)
+    .first();
+
+  if (!header) {
+    throw new Error('Data tidak ditemukan');
+  }
+
+  return {
+    header,
+    items
+  };
+};
+
+
 module.exports = {
   searchPartsCatalog,
   searchByVinWithCustomerCheck,
@@ -1088,6 +1128,7 @@ module.exports = {
   getVinCategoryByVinNumber,
   getCategoriesByMasterCategoryId,
   updateProduct,
-  getProductById
+  getProductById,
+  getItemDetailsByItemCategoryId
 };
 

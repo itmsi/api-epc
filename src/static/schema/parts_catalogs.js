@@ -747,6 +747,45 @@ const partsCatalogSchemas = {
       },
       timestamp: { type: 'string', format: 'date-time' }
     }
+  },
+
+  GetItemDetailsByItemCategoryIdResponse: {
+    type: 'object',
+    properties: {
+      success: { type: 'boolean', example: true },
+      message: { type: 'string', example: 'Data berhasil diambil' },
+      data: {
+        type: 'object',
+        properties: {
+          header: {
+            type: 'object',
+            properties: {
+              item_category_foto: { type: 'string', nullable: true },
+              category_name_en: { type: 'string' },
+              category_name_cn: { type: 'string' },
+              type_category_name_cn: { type: 'string', nullable: true },
+              type_category_name_en: { type: 'string', nullable: true }
+            }
+          },
+          items: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                item_category_detail_id: { type: 'string', format: 'uuid' },
+                target_id: { type: 'string', nullable: true },
+                quantity: { type: 'integer' },
+                master_item_name_en: { type: 'string' },
+                master_item_name_ch: { type: 'string', description: 'Mapped from cn' },
+                part_number: { type: 'string' },
+                description: { type: 'string' }
+              }
+            }
+          }
+        }
+      },
+      timestamp: { type: 'string', format: 'date-time' }
+    }
   }
 };
 
