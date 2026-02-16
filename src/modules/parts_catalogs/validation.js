@@ -20,8 +20,8 @@ const getValidation = [
         .withMessage('Page minimal bernilai 1'),
     body('limit')
         .optional()
-        .isInt({ min: 1, max: 100 })
-        .withMessage('Limit harus antara 1 hingga 100'),
+        .isInt({ min: 1, max: 9999 })
+        .withMessage('Limit harus antara 1 hingga 9999'),
 ];
 
 /**
@@ -40,8 +40,8 @@ const getByTypeCategoryIdValidation = [
         .withMessage('Page minimal bernilai 1'),
     query('limit')
         .optional()
-        .isInt({ min: 1, max: 100 })
-        .withMessage('Limit harus antara 1 hingga 100'),
+        .isInt({ min: 1, max: 9999 })
+        .withMessage('Limit harus antara 1 hingga 9999'),
 ];
 
 /**
@@ -60,8 +60,8 @@ const getByItemCategoryIdValidation = [
         .withMessage('Page minimal bernilai 1'),
     query('limit')
         .optional()
-        .isInt({ min: 1, max: 100 })
-        .withMessage('Limit harus antara 1 hingga 100'),
+        .isInt({ min: 1, max: 9999 })
+        .withMessage('Limit harus antara 1 hingga 9999'),
 ];
 
 /**
@@ -91,8 +91,8 @@ const getVinValidation = [
         .withMessage('Page minimal bernilai 1'),
     body('limit')
         .optional()
-        .isInt({ min: 1, max: 100 })
-        .withMessage('Limit harus antara 1 hingga 100'),
+        .isInt({ min: 1, max: 9999 })
+        .withMessage('Limit harus antara 1 hingga 9999'),
     body('sort_by')
         .optional()
         .isString()
@@ -173,8 +173,8 @@ const getCategoriesByMasterCategoryIdValidation = [
         .withMessage('Page minimal bernilai 1'),
     body('limit')
         .optional()
-        .isInt({ min: 1, max: 100 })
-        .withMessage('Limit harus antara 1 hingga 100'),
+        .isInt({ min: 1, max: 9999 })
+        .withMessage('Limit harus antara 1 hingga 9999'),
     body('sort_by')
         .optional()
         .isString()

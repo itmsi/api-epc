@@ -9,7 +9,8 @@ const TABLES = {
   MASTER_ITEMS: 'master_items',
   MASTER_CATEGORIES: 'master_categories',
   CATEGORIES: 'categories',
-  TYPE_CATEGORIES: 'type_categories'
+  TYPE_CATEGORIES: 'type_categories',
+  DOKUMEN: 'dokumen'
 };
 
 const RAW_FALSE = db.raw('false');
@@ -958,9 +959,11 @@ const getCategoriesByMasterCategoryId = async (masterCategoryId, options = {}) =
       'c.created_at',
       'tc.type_category_id',
       'tc.type_category_name_en',
-      'tc.type_category_name_cn'
+      'tc.type_category_name_cn',
+      'd.dokumen_name'
     )
     .join({ ic: TABLES.ITEM_CATEGORIES }, 'ic.category_id', 'c.category_id')
+    .leftJoin({ d: TABLES.DOKUMEN }, 'd.dokumen_id', 'ic.dokumen_id')
     .leftJoin({ tc: TABLES.TYPE_CATEGORIES }, 'tc.type_category_id', 'ic.type_category_id')
     .join({ icd: TABLES.ITEM_CATEGORIES_DETAILS }, 'icd.item_category_id', 'ic.item_category_id')
     .join({ mi: TABLES.MASTER_ITEMS }, 'mi.master_item_id', 'icd.master_item_id')
@@ -990,7 +993,8 @@ const getCategoriesByMasterCategoryId = async (masterCategoryId, options = {}) =
     'c.created_at',
     'tc.type_category_id',
     'tc.type_category_name_en',
-    'tc.type_category_name_cn'
+    'tc.type_category_name_cn',
+    'd.dokumen_name'
   );
 
   // Count total for pagination (using countDistinct to handle joins)
@@ -1050,11 +1054,15 @@ const getCategoriesByMasterCategoryId = async (masterCategoryId, options = {}) =
       // Note: If type_category is present, it's a child. If null, might be direct item_category.
       // The logic: if type_category_id is present OR there are multiple items for this category, populate child.
       // But we iterate first.
+      // Logic fallback name
+      const fallbackName = [current.dokumen_name, current.category_name_en].filter(Boolean).join(' ');
+      const fallbackNameCn = [current.dokumen_name, current.category_name_cn].filter(Boolean).join(' ');
+
       acc[category_id].child.push({
-        id: current.type_category_id,
+        id: current.type_category_id || current.category_id,
         id_link: current.item_category_id,
-        name: current.type_category_name_en,
-        name_cn: current.type_category_name_cn,
+        name: current.type_category_name_en || fallbackName,
+        name_cn: current.type_category_name_cn || fallbackNameCn,
         description: null,
         child: []
       });
@@ -1078,10 +1086,10 @@ const getCategoriesByMasterCategoryId = async (masterCategoryId, options = {}) =
     } else {
       // Multiple items or explicit type categories
       category.id_link = null;
-      // Filter out children if they are just placeholders? 
-      // If type_category_id is null in a multi-item scenario, it's a direct item mixed with types? 
-      // We keep them as children (e.g. "General" or similar unnamed type).
-      // However, if type_category_id is null, "id" property of child will be null.
+      // If category has multiple children but none have type_category_id (id is null),
+      // or if it has mix of types and direct items, we only want to show valid types in child list.
+      // Direct items (id === null) should not appear in child list if they couldn't be promoted to id_link.
+      // category.child = category.child.filter((c) => c.id !== null);
     }
     return category;
   });
