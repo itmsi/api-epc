@@ -973,7 +973,7 @@ const getCategoriesByMasterCategoryId = async (masterCategoryId, options = {}) =
       'tc.type_category_name_cn',
       'd.dokumen_name'
     )
-    .join({ ic: TABLES.ITEM_CATEGORIES }, 'ic.category_id', 'c.category_id')
+    .leftJoin({ ic: TABLES.ITEM_CATEGORIES }, 'ic.category_id', 'c.category_id')
     .leftJoin({ d: TABLES.DOKUMEN }, 'd.dokumen_id', 'ic.dokumen_id')
     .leftJoin({ tc: TABLES.TYPE_CATEGORIES }, 'tc.type_category_id', 'ic.type_category_id')
     .join({ icd: TABLES.ITEM_CATEGORIES_DETAILS }, 'icd.item_category_id', 'ic.item_category_id')
@@ -1026,7 +1026,7 @@ const getCategoriesByMasterCategoryId = async (masterCategoryId, options = {}) =
   // Note: baseQuery already has groupBy, which might interfere with simple count. 
   // We'll create a separate count query or modify the clone.
   const countQuery = db({ c: TABLES.CATEGORIES })
-    .join({ ic: TABLES.ITEM_CATEGORIES }, 'ic.category_id', 'c.category_id')
+    .leftJoin({ ic: TABLES.ITEM_CATEGORIES }, 'ic.category_id', 'c.category_id')
     .leftJoin({ tc: TABLES.TYPE_CATEGORIES }, 'tc.type_category_id', 'ic.type_category_id')
     .join({ icd: TABLES.ITEM_CATEGORIES_DETAILS }, 'icd.item_category_id', 'ic.item_category_id')
     .join({ mi: TABLES.MASTER_ITEMS }, 'mi.master_item_id', 'icd.master_item_id')
@@ -1067,8 +1067,11 @@ const getCategoriesByMasterCategoryId = async (masterCategoryId, options = {}) =
 
   // Apply pagination
   const { page: safePage, limit: safeLimit } = sanitizePagination(page, limit);
-  const offset = (safePage - 1) * safeLimit;
-  baseQuery.limit(safeLimit).offset(offset);
+
+  if (limit !== 1000) {
+    const offset = (safePage - 1) * safeLimit;
+    baseQuery.limit(safeLimit).offset(offset);
+  }
 
   const items = await baseQuery;
 
