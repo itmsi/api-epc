@@ -963,11 +963,13 @@ const getCategoriesByMasterCategoryId = async (masterCategoryId, options = {}) =
       'd.dokumen_name'
     )
     .join({ ic: TABLES.ITEM_CATEGORIES }, 'ic.category_id', 'c.category_id')
+    .join({ pd: TABLES.PRODUCTS_DETAILS }, 'pd.dokumen_id', 'ic.dokumen_id')
     .leftJoin({ d: TABLES.DOKUMEN }, 'd.dokumen_id', 'ic.dokumen_id')
     .leftJoin({ tc: TABLES.TYPE_CATEGORIES }, 'tc.type_category_id', 'ic.type_category_id')
     .join({ icd: TABLES.ITEM_CATEGORIES_DETAILS }, 'icd.item_category_id', 'ic.item_category_id')
     .join({ mi: TABLES.MASTER_ITEMS }, 'mi.master_item_id', 'icd.master_item_id')
     .where('c.master_category_id', masterCategoryId)
+    .where('pd.product_id', productId)
     .whereNull('c.deleted_at')
     .where('c.is_delete', false);
 
@@ -1003,10 +1005,12 @@ const getCategoriesByMasterCategoryId = async (masterCategoryId, options = {}) =
   // We'll create a separate count query or modify the clone.
   const countQuery = db({ c: TABLES.CATEGORIES })
     .join({ ic: TABLES.ITEM_CATEGORIES }, 'ic.category_id', 'c.category_id')
+    .join({ pd: TABLES.PRODUCTS_DETAILS }, 'pd.dokumen_id', 'ic.dokumen_id')
     .leftJoin({ tc: TABLES.TYPE_CATEGORIES }, 'tc.type_category_id', 'ic.type_category_id')
     .join({ icd: TABLES.ITEM_CATEGORIES_DETAILS }, 'icd.item_category_id', 'ic.item_category_id')
     .join({ mi: TABLES.MASTER_ITEMS }, 'mi.master_item_id', 'icd.master_item_id')
     .where('c.master_category_id', masterCategoryId)
+    .where('pd.product_id', productId)
     .whereNull('c.deleted_at')
     .where('c.is_delete', false);
 
