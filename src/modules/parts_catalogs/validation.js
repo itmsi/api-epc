@@ -142,11 +142,17 @@ const getVinCategoryByVinNumberValidation = [
  */
 const getCategoriesByMasterCategoryIdValidation = [
     body('master_category_id')
-        .notEmpty()
-        .withMessage('Master Category ID wajib diisi')
-        .bail()
+        .optional({ nullable: true })
         .isUUID()
         .withMessage('Format Master Category ID tidak valid'),
+    body('dokumen_ids')
+        .optional()
+        .isArray()
+        .withMessage('Dokumen IDs harus berupa array'),
+    body('dokumen_ids.*')
+        .optional()
+        .isUUID()
+        .withMessage('Format Dokumen ID dalam array tidak valid'),
     body('search')
         .optional({ nullable: true, checkFalsy: true })
         .isString()

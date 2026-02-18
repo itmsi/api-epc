@@ -905,18 +905,28 @@ const getVinCategoryByVinNumber = async (vinNumber, customerId) => {
 
   // 3. Fetch Data
   const rows = await db({ pd: TABLES.PRODUCTS_DETAILS })
-    .select(['mc.master_category_id', 'mc.master_category_name_en'])
+    .select([
+      'mc.master_category_id',
+      'mc.master_category_name_en',
+      db.raw('array_agg(DISTINCT pd.dokumen_id) as dokumen_ids')
+    ])
     .join({ ic: TABLES.ITEM_CATEGORIES }, 'pd.dokumen_id', '=', 'ic.dokumen_id')
     .join({ c: TABLES.CATEGORIES }, 'c.category_id', '=', 'ic.category_id')
     .join({ mc: TABLES.MASTER_CATEGORIES }, 'mc.master_category_id', '=', 'c.master_category_id')
     .where('pd.product_id', product.product_id)
     .groupBy('mc.master_category_id', 'mc.master_category_name_en');
 
+
+  const formattedRows = rows.map((row) => ({
+    ...row,
+    dokumen_ids: (row.dokumen_ids || []).map((id) => ({ dokumen_id: id }))
+  }));
+
   const total = rows.length;
 
   return {
     data_vin: product,
-    items: rows,
+    items: formattedRows,
     pagination: {
       page: 1,
       limit: total || 10,
@@ -935,7 +945,8 @@ const getCategoriesByMasterCategoryId = async (masterCategoryId, options = {}) =
     sortBy = 'created_at',
     sortOrder = 'desc',
     productId,
-    customerId
+    customerId,
+    dokumenIds
   } = options;
 
   if (productId && customerId) {
@@ -963,15 +974,26 @@ const getCategoriesByMasterCategoryId = async (masterCategoryId, options = {}) =
       'd.dokumen_name'
     )
     .join({ ic: TABLES.ITEM_CATEGORIES }, 'ic.category_id', 'c.category_id')
-    .join({ pd: TABLES.PRODUCTS_DETAILS }, 'pd.dokumen_id', 'ic.dokumen_id')
     .leftJoin({ d: TABLES.DOKUMEN }, 'd.dokumen_id', 'ic.dokumen_id')
     .leftJoin({ tc: TABLES.TYPE_CATEGORIES }, 'tc.type_category_id', 'ic.type_category_id')
     .join({ icd: TABLES.ITEM_CATEGORIES_DETAILS }, 'icd.item_category_id', 'ic.item_category_id')
     .join({ mi: TABLES.MASTER_ITEMS }, 'mi.master_item_id', 'icd.master_item_id')
-    .where('c.master_category_id', masterCategoryId)
-    .where('pd.product_id', productId)
     .whereNull('c.deleted_at')
     .where('c.is_delete', false);
+
+  if (dokumenIds && Array.isArray(dokumenIds) && dokumenIds.length > 0) {
+    baseQuery.whereIn('ic.dokumen_id', dokumenIds);
+  } else if (masterCategoryId) {
+    baseQuery.where('c.master_category_id', masterCategoryId);
+
+    if (masterCategoryId === '1e30e77b-1663-47d9-9cb0-67531c831516' && productId) {
+      baseQuery
+        .join({ pd: TABLES.PRODUCTS_DETAILS }, 'pd.dokumen_id', 'ic.dokumen_id')
+        .where('pd.product_id', productId)
+        .whereNull('pd.deleted_at')
+        .where('pd.is_delete', false);
+    }
+  }
 
   if (search) {
     baseQuery.where(function () {
@@ -1005,14 +1027,25 @@ const getCategoriesByMasterCategoryId = async (masterCategoryId, options = {}) =
   // We'll create a separate count query or modify the clone.
   const countQuery = db({ c: TABLES.CATEGORIES })
     .join({ ic: TABLES.ITEM_CATEGORIES }, 'ic.category_id', 'c.category_id')
-    .join({ pd: TABLES.PRODUCTS_DETAILS }, 'pd.dokumen_id', 'ic.dokumen_id')
     .leftJoin({ tc: TABLES.TYPE_CATEGORIES }, 'tc.type_category_id', 'ic.type_category_id')
     .join({ icd: TABLES.ITEM_CATEGORIES_DETAILS }, 'icd.item_category_id', 'ic.item_category_id')
     .join({ mi: TABLES.MASTER_ITEMS }, 'mi.master_item_id', 'icd.master_item_id')
-    .where('c.master_category_id', masterCategoryId)
-    .where('pd.product_id', productId)
     .whereNull('c.deleted_at')
     .where('c.is_delete', false);
+
+  if (dokumenIds && Array.isArray(dokumenIds) && dokumenIds.length > 0) {
+    countQuery.whereIn('ic.dokumen_id', dokumenIds);
+  } else if (masterCategoryId) {
+    countQuery.where('c.master_category_id', masterCategoryId);
+
+    if (masterCategoryId === '1e30e77b-1663-47d9-9cb0-67531c831516' && productId) {
+      countQuery
+        .join({ pd: TABLES.PRODUCTS_DETAILS }, 'pd.dokumen_id', 'ic.dokumen_id')
+        .where('pd.product_id', productId)
+        .whereNull('pd.deleted_at')
+        .where('pd.is_delete', false);
+    }
+  }
 
   if (search) {
     countQuery.where(function () {

@@ -237,6 +237,7 @@ const getCategoriesByMasterCategoryId = async (req, res) => {
       customer_id: customerId,
       page = 1,
       limit = 10,
+      dokumen_ids: dokumenIds,
       sort_by: sortBy = 'created_at',
       sort_order: sortOrder = 'desc'
     } = req.body;
@@ -248,7 +249,8 @@ const getCategoriesByMasterCategoryId = async (req, res) => {
       sortBy,
       sortOrder,
       productId,
-      customerId
+      customerId,
+      dokumenIds
     });
 
     return successResponse(res, result, 'Data berhasil diambil');

@@ -608,13 +608,24 @@ const partsCatalogSchemas = {
 
   PartsCatalogCategoryByMasterIdRequest: {
     type: 'object',
-    required: ['master_category_id', 'product_id', 'customer_id'],
+    required: ['product_id', 'customer_id'],
     properties: {
       master_category_id: {
         type: 'string',
         format: 'uuid',
+        nullable: true,
         description: 'ID Master Category',
         example: '1e30e77b-1663-47d9-9cb0-67531c831516'
+      },
+      dokumen_ids: {
+        type: 'array',
+        items: {
+          type: 'string',
+          format: 'uuid'
+        },
+        nullable: true,
+        description: 'List of Document IDs',
+        example: ['1886f775-208e-4e6f-ba7e-7b62673ed22c', 'b8c50159-4ad3-4ab6-b5d4-f5e3d9be7407']
       },
       product_id: {
         type: 'string',
