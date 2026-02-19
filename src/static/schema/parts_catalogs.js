@@ -3,6 +3,15 @@
  */
 
 const partsCatalogSchemas = {
+  PartsCatalogProductItem: {
+    type: 'object',
+    properties: {
+      product_id: { type: 'string', format: 'uuid' },
+      vin_number: { type: 'string' },
+      model_name: { type: 'string' },
+      created_at: { type: 'string', format: 'date-time' }
+    }
+  },
   PartsCatalogSearchRequest: {
     type: 'object',
     required: ['data_code'],
@@ -24,6 +33,70 @@ const partsCatalogSchemas = {
         maximum: 100,
         description: 'Jumlah data per halaman (opsional, default 10)',
         example: 10
+      }
+    }
+  },
+
+  PartsCatalogSearchByVinRequest: {
+    type: 'object',
+    properties: {
+      search: {
+        type: 'string',
+        description: 'VIN number atau keyword pencarian',
+        example: 'LZGJR4V61RX035044'
+      },
+      status: {
+        type: 'string',
+        description: 'Status',
+        example: 'active'
+      },
+      customer_id: {
+        type: 'string',
+        nullable: true,
+        description: 'ID Customer untuk validasi kepemilikan VIN (opsional)',
+        example: '123e4567-e89b-12d3-a456-426614174000'
+      },
+      page: {
+        type: 'integer',
+        minimum: 1,
+        description: 'Halaman data (opsional, default 1)',
+        example: 1
+      },
+      limit: {
+        type: 'integer',
+        minimum: 1,
+        maximum: 100,
+        description: 'Jumlah data per halaman (opsional, default 10)',
+        example: 10
+      },
+      sort_by: {
+        type: 'string',
+        description: 'Field untuk sorting (opsional, default created_at)',
+        example: 'created_at'
+      },
+      sort_order: {
+        type: 'string',
+        enum: ['asc', 'desc'],
+        description: 'Urutan sorting (opsional, default desc)',
+        example: 'desc'
+      }
+    }
+  },
+
+  PartsCatalogCategoryByVinRequest: {
+    type: 'object',
+    required: ['vin_number', 'customer_id'],
+    properties: {
+      vin_number: {
+        type: 'string',
+        description: 'VIN Number',
+        example: 'LZGJR4V61RX035044'
+      },
+      customer_id: {
+        type: 'string',
+        format: 'uuid',
+        description: 'ID Customer',
+        example: '123e4567-e89b-12d3-a456-426614174000'
       }
     }
   },
@@ -458,6 +531,296 @@ const partsCatalogSchemas = {
         format: 'date-time',
         example: '2025-01-01T00:00:00.000Z'
       }
+    }
+  },
+
+  PartsCatalogResponseProduct: {
+    type: 'object',
+    properties: {
+      success: {
+        type: 'boolean',
+        example: true
+      },
+      message: {
+        type: 'string',
+        example: 'Data berhasil diambil'
+      },
+      data: {
+        type: 'object',
+        properties: {
+          type_data: {
+            type: 'string',
+            enum: ['vin_number'],
+            example: 'vin_number'
+          },
+          data: {
+            type: 'array',
+            items: {
+              $ref: '#/components/schemas/PartsCatalogProductItem'
+            }
+          },
+          pagination: {
+            $ref: '#/components/schemas/PartsCatalogPagination'
+          }
+        }
+      },
+      timestamp: {
+        type: 'string',
+        format: 'date-time',
+        example: '2025-01-01T00:00:00.000Z'
+      }
+    }
+  },
+
+  PartsCatalogMasterCategoryQueryItem: {
+    type: 'object',
+    properties: {
+      master_category_id: { type: 'string', format: 'uuid' },
+      master_category_name_en: { type: 'string' }
+    }
+  },
+
+  PartsCatalogProductInfo: {
+    type: 'object',
+    properties: {
+      product_id: { type: 'string', format: 'uuid' },
+      vin_number: { type: 'string' },
+      product_name_en: { type: 'string' },
+      product_name_cn: { type: 'string' },
+      product_description: { type: 'string' }
+    }
+  },
+
+  PartsCatalogResponseMasterCategoryQuery: {
+    type: 'object',
+    properties: {
+      success: { type: 'boolean', example: true },
+      message: { type: 'string', example: 'Data berhasil diambil' },
+      data: {
+        type: 'object',
+        properties: {
+          data_vin: { $ref: '#/components/schemas/PartsCatalogProductInfo' },
+          items: {
+            type: 'array',
+            items: { $ref: '#/components/schemas/PartsCatalogMasterCategoryQueryItem' }
+          },
+          pagination: { $ref: '#/components/schemas/PartsCatalogPagination' }
+        }
+      },
+      timestamp: { type: 'string', format: 'date-time' }
+    }
+  },
+
+  PartsCatalogCategoryByMasterIdRequest: {
+    type: 'object',
+    required: ['product_id', 'customer_id'],
+    properties: {
+      master_category_id: {
+        type: 'string',
+        format: 'uuid',
+        nullable: true,
+        description: 'ID Master Category',
+        example: '1e30e77b-1663-47d9-9cb0-67531c831516'
+      },
+      dokumen_ids: {
+        type: 'array',
+        items: {
+          type: 'string',
+          format: 'uuid'
+        },
+        nullable: true,
+        description: 'List of Document IDs',
+        example: ['1886f775-208e-4e6f-ba7e-7b62673ed22c', 'b8c50159-4ad3-4ab6-b5d4-f5e3d9be7407']
+      },
+      product_id: {
+        type: 'string',
+        format: 'uuid',
+        description: 'ID Product (untuk validasi)',
+        example: '123e4567-e89b-12d3-a456-426614174000'
+      },
+      customer_id: {
+        type: 'string',
+        format: 'uuid',
+        description: 'ID Customer (untuk validasi)',
+        example: '123e4567-e89b-12d3-a456-426614174000'
+      },
+      search: {
+        type: 'string',
+        nullable: true,
+        description: 'Keyword pencarian (opsional)',
+        example: 'LZGJR4V61RX035044'
+      },
+      page: {
+        type: 'integer',
+        minimum: 1,
+        default: 1
+      },
+      limit: {
+        type: 'integer',
+        minimum: 1,
+        maximum: 100,
+        default: 10
+      },
+      sort_by: {
+        type: 'string',
+        default: 'created_at'
+      },
+      sort_order: {
+        type: 'string',
+        enum: ['asc', 'desc'],
+        default: 'desc'
+      }
+    }
+  },
+
+  PartsCatalogVariableCategoryItem: {
+    type: 'object',
+    properties: {
+      id: { type: 'string', format: 'uuid' },
+      id_link: { type: 'string', format: 'uuid', nullable: true },
+      name: { type: 'string' },
+      name_cn: { type: 'string' },
+      description: { type: 'string', nullable: true },
+      child: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid', nullable: true },
+            id_link: { type: 'string', format: 'uuid', nullable: true },
+            name: { type: 'string', nullable: true },
+            name_cn: { type: 'string', nullable: true },
+            description: { type: 'string', nullable: true },
+            child: {
+              type: 'array',
+              items: { type: 'object' } // Recursion or just empty array as per spec
+            }
+          }
+        }
+      }
+    }
+  },
+
+  PartsCatalogResponseCategoryByMasterId: {
+    type: 'object',
+    properties: {
+      success: { type: 'boolean', example: true },
+      message: { type: 'string', example: 'Data berhasil diambil' },
+      data: {
+        type: 'object',
+        properties: {
+          items: {
+            type: 'array',
+            items: { $ref: '#/components/schemas/PartsCatalogVariableCategoryItem' }
+          },
+          pagination: { $ref: '#/components/schemas/PartsCatalogPagination' }
+        }
+      },
+      timestamp: { type: 'string', format: 'date-time' }
+    }
+  },
+
+  UpdateProductRequest: {
+    type: 'object',
+    properties: {
+      product_name_en: { type: 'string', nullable: true },
+      product_name_cn: { type: 'string', nullable: true },
+      product_description: { type: 'string', nullable: true },
+      vin_number: { type: 'string', nullable: true },
+      model_type: { type: 'string', nullable: true },
+      dimensi: { type: 'string', nullable: true },
+      model_engine: { type: 'string', nullable: true },
+      body_number: { type: 'string', nullable: true },
+      status: { type: 'string', nullable: true }
+    }
+  },
+
+  UpdateProductResponse: {
+    type: 'object',
+    properties: {
+      success: { type: 'boolean', example: true },
+      message: { type: 'string', example: 'Data berhasil diperbarui' },
+      data: {
+        type: 'object',
+        properties: {
+          product_id: { type: 'string', format: 'uuid' },
+          product_name_en: { type: 'string' },
+          product_name_cn: { type: 'string' },
+          product_description: { type: 'string' },
+          vin_number: { type: 'string' },
+          model_type: { type: 'string' },
+          dimensi: { type: 'string' },
+          model_engine: { type: 'string' },
+          body_number: { type: 'string' },
+          status: { type: 'string' }
+        }
+      },
+      timestamp: { type: 'string', format: 'date-time' }
+    }
+  },
+
+  GetProductResponse: {
+    type: 'object',
+    properties: {
+      success: { type: 'boolean', example: true },
+      message: { type: 'string', example: 'Data berhasil diambil' },
+      data: {
+        type: 'object',
+        properties: {
+          product_id: { type: 'string', format: 'uuid' },
+          product_name_en: { type: 'string' },
+          product_name_cn: { type: 'string' },
+          product_description: { type: 'string' },
+          vin_number: { type: 'string' },
+          model_type: { type: 'string' },
+          dimensi: { type: 'string' },
+          model_engine: { type: 'string' },
+          body_number: { type: 'string' },
+          created_at: { type: 'string', format: 'date-time' },
+          updated_at: { type: 'string', format: 'date-time' },
+          status: { type: 'string' }
+        }
+      },
+      timestamp: { type: 'string', format: 'date-time' }
+    }
+  },
+
+  GetItemDetailsByItemCategoryIdResponse: {
+    type: 'object',
+    properties: {
+      success: { type: 'boolean', example: true },
+      message: { type: 'string', example: 'Data berhasil diambil' },
+      data: {
+        type: 'object',
+        properties: {
+          header: {
+            type: 'object',
+            properties: {
+              item_category_foto: { type: 'string', nullable: true },
+              category_name_en: { type: 'string' },
+              category_name_cn: { type: 'string' },
+              type_category_name_cn: { type: 'string', nullable: true },
+              type_category_name_en: { type: 'string', nullable: true }
+            }
+          },
+          items: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                item_category_detail_id: { type: 'string', format: 'uuid' },
+                target_id: { type: 'string', nullable: true },
+                quantity: { type: 'integer' },
+                master_item_name_en: { type: 'string' },
+                master_item_name_ch: { type: 'string', description: 'Mapped from cn' },
+                part_number: { type: 'string' },
+                description: { type: 'string' }
+              }
+            }
+          }
+        }
+      },
+      timestamp: { type: 'string', format: 'date-time' }
     }
   }
 };
