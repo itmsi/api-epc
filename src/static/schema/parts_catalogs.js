@@ -725,7 +725,8 @@ const partsCatalogSchemas = {
       model_type: { type: 'string', nullable: true },
       dimensi: { type: 'string', nullable: true },
       model_engine: { type: 'string', nullable: true },
-      body_number: { type: 'string', nullable: true }
+      body_number: { type: 'string', nullable: true },
+      status: { type: 'string', nullable: true }
     }
   },
 
@@ -745,7 +746,8 @@ const partsCatalogSchemas = {
           model_type: { type: 'string' },
           dimensi: { type: 'string' },
           model_engine: { type: 'string' },
-          body_number: { type: 'string' }
+          body_number: { type: 'string' },
+          status: { type: 'string' }
         }
       },
       timestamp: { type: 'string', format: 'date-time' }
@@ -770,7 +772,8 @@ const partsCatalogSchemas = {
           model_engine: { type: 'string' },
           body_number: { type: 'string' },
           created_at: { type: 'string', format: 'date-time' },
-          updated_at: { type: 'string', format: 'date-time' }
+          updated_at: { type: 'string', format: 'date-time' },
+          status: { type: 'string' }
         }
       },
       timestamp: { type: 'string', format: 'date-time' }
