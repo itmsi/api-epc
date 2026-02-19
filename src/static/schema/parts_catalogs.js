@@ -45,6 +45,11 @@ const partsCatalogSchemas = {
         description: 'VIN number atau keyword pencarian',
         example: 'LZGJR4V61RX035044'
       },
+      status: {
+        type: 'string',
+        description: 'Status',
+        example: 'active'
+      },
       customer_id: {
         type: 'string',
         nullable: true,

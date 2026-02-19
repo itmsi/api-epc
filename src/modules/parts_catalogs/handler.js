@@ -56,7 +56,8 @@ const searchByVinEndpoint = async (req, res) => {
       page = 1,
       limit = 10,
       sort_by: sortBy = 'created_at',
-      sort_order: sortOrder = 'desc'
+      sort_order: sortOrder = 'desc',
+      status
     } = req.body;
 
     // Convert page and limit to integers and validate
@@ -81,7 +82,8 @@ const searchByVinEndpoint = async (req, res) => {
         page: pageNum,
         limit: limitNum,
         sortBy,
-        sortOrder
+        sortOrder,
+        status
       }
     );
 

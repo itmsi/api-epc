@@ -101,6 +101,12 @@ const getVinValidation = [
         .optional()
         .isIn(['asc', 'desc'])
         .withMessage('Sort order harus asc atau desc'),
+    body('status')
+        .optional({ nullable: true })
+        .isString()
+        .withMessage('Status harus berupa string')
+        .isLength({ max: 255 })
+        .withMessage('Status maksimal 255 karakter'),
 ];
 
 /**

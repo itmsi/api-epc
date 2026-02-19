@@ -664,7 +664,15 @@ const searchByVinWithCustomerCheck = async (search, customerId, pagination) => {
     .where('is_delete', false);
 
   if (search && String(search).trim() !== '') {
-    simpleQuery.where('vin_number', 'ilike', `%${String(search).trim()}%`);
+    const searchTerm = `%${String(search).trim()}%`;
+    simpleQuery.where(function () {
+      this.where('vin_number', 'ilike', searchTerm)
+        .orWhere('body_number', 'ilike', searchTerm);
+    });
+  }
+
+  if (pagination.status && String(pagination.status).trim() !== '') {
+    simpleQuery.where('status', pagination.status);
   }
 
   if (customerId && customerId !== '' && customerId !== 'NaN' && customerId !== 'null' && customerId !== null) {
