@@ -1,4 +1,5 @@
 const db = require('../../config/database').pgCore;
+const { setupDblink } = require('../../utils/dblink');
 
 const TABLES = {
   PRODUCTS: 'products',
@@ -678,9 +679,40 @@ const searchByVinWithCustomerCheck = async (search, customerId, pagination) => {
   const countResult = await simpleQuery.clone().count('product_id as total').first();
   const total = parseInt(countResult.total, 10) || 0;
 
+  // Dblink for updated_by_name
+  const dblinkReady = await setupDblink();
+  if (dblinkReady) {
+    const dblinkSubquery = db.raw(`
+      dblink('gate_sso_conn', 
+        'SELECT 
+          c.customer_id::text, 
+          c.customer_name 
+        FROM customers c 
+        WHERE c.is_delete = false'
+      ) AS customer_data(customer_id text, customer_name varchar)
+    `);
+
+    simpleQuery
+      .select(`${TABLES.PRODUCTS}.*`, db.raw('customer_data.customer_name as updated_by_name'))
+      .leftJoin(dblinkSubquery, function () {
+        this.on(db.raw(`${TABLES.PRODUCTS}.updated_by::text`), '=', db.raw('customer_data.customer_id'));
+      });
+  } else {
+    simpleQuery.select(`${TABLES.PRODUCTS}.*`, db.raw('NULL::varchar as updated_by_name'));
+  }
+
   // Sorting
   if (pagination.sortBy && pagination.sortOrder) {
-    simpleQuery.orderBy(pagination.sortBy, pagination.sortOrder);
+    // If sort by updated_by_name, map to customer_name from dblink or ignore
+    if (pagination.sortBy === 'updated_by_name') {
+      if (dblinkReady) {
+        simpleQuery.orderBy(db.raw('customer_data.customer_name'), pagination.sortOrder);
+      } else {
+        simpleQuery.orderBy('created_at', 'desc');
+      }
+    } else {
+      simpleQuery.orderBy(pagination.sortBy, pagination.sortOrder);
+    }
   } else {
     simpleQuery.orderBy('created_at', 'desc');
   }
