@@ -26,7 +26,22 @@ const findAll = async (options = {}) => {
 
     // Apply order, limit, and offset
     const data = await query
-        .select('*')
+        .select(
+            'transaction_order_id',
+            'transaction_order_no',
+            'customer_id',
+            'transaction_order_date',
+            'transaction_order_status',
+            'transaction_order_items_total',
+            'transaction_order_description',
+            'created_at',
+            'created_by',
+            'updated_at',
+            'updated_by',
+            'deleted_at',
+            'deleted_by',
+            'is_delete'
+        )
         .orderBy(sortBy, sortOrder)
         .limit(limit)
         .offset(offset);
