@@ -43,6 +43,9 @@ const partsCatalogsPaths = require('./path/parts_catalogs');
 const vinCustomerSchema = require('./schema/vin_customer');
 const vinCustomerPaths = require('./path/vin_customer');
 
+const transactionOrderSchema = require('./schema/transaction_order');
+const transactionOrderPaths = require('./path/transaction_order');
+
 const schemas = {
   ...masterCategorySchema,
   ...categoriesSchema,
@@ -54,6 +57,7 @@ const schemas = {
   ...masterItemsSchema,
   ...partsCatalogsSchema,
   ...vinCustomerSchema,
+  ...transactionOrderSchema,
 };
 
 const paths = {
@@ -67,6 +71,7 @@ const paths = {
   ...masterItemsPaths,
   ...partsCatalogsPaths,
   ...vinCustomerPaths,
+  ...transactionOrderPaths,
 };
 
 const index = {
