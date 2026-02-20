@@ -37,9 +37,6 @@ const transactionOrderSchema = {
                 type: 'string',
                 format: 'uuid'
             },
-            transaction_order_no: {
-                type: 'string'
-            },
             transaction_order_date: {
                 type: 'string',
                 format: 'date'
@@ -72,7 +69,7 @@ const transactionOrderSchema = {
                 format: 'uuid'
             },
             transaction_order_no: {
-                type: 'string'
+                type: 'integer'
             },
             transaction_order_date: {
                 type: 'string',

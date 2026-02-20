@@ -58,17 +58,23 @@ const findById = async (id) => {
  * Create new transaction order
  */
 const create = async (data, userId) => {
+    // Prevent manual insertion to let postgres serial handle it
+    const insertData = { ...data };
+    delete insertData.transaction_order_no;
+
     const [result] = await db(TABLE_NAME)
         .insert({
-            ...data,
+            ...insertData,
             created_by: userId,
             updated_by: userId,
             created_at: db.fn.now(),
             updated_at: db.fn.now()
         })
         .returning('*');
+
     return result;
 };
+
 
 /**
  * Update existing transaction order

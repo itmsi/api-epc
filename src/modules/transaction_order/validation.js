@@ -11,9 +11,8 @@ const createValidation = [
         .withMessage('Format Customer ID tidak valid'),
     body('transaction_order_no')
         .optional()
-        .isLength({ max: 255 })
-        .withMessage('Nomor pesanan maksimal 255 karakter')
-        .trim(),
+        .isInt()
+        .withMessage('Nomor pesanan harus berupa angka bulat'),
     body('transaction_order_date')
         .optional()
         .isISO8601()
@@ -55,9 +54,8 @@ const updateValidation = [
         .withMessage('Format Customer ID tidak valid'),
     body('transaction_order_no')
         .optional()
-        .isLength({ max: 255 })
-        .withMessage('Nomor pesanan maksimal 255 karakter')
-        .trim(),
+        .isInt()
+        .withMessage('Nomor pesanan harus berupa angka bulat'),
     body('transaction_order_date')
         .optional()
         .isISO8601()

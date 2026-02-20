@@ -7,9 +7,11 @@ exports.up = function (knex) {
         // Primary Key dengan UUID
         table.uuid('transaction_order_id').primary().defaultTo(knex.raw('uuid_generate_v4()'));
 
+        // Auto incrementing order number
+        table.specificType('transaction_order_no', 'serial').unique().index('idx_transaction_orders_no');
+
         // Data fields
         table.uuid('customer_id').nullable();
-        table.string('transaction_order_no', 255).nullable();
         table.date('transaction_order_date').nullable();
         table.string('transaction_order_status', 255).nullable();
         table.jsonb('transaction_order_items').nullable();
