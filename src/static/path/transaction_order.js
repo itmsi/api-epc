@@ -136,6 +136,42 @@ const transactionOrderPaths = {
                     'application/json': {
                         schema: {
                             $ref: '#/components/schemas/TransactionOrderInput'
+                        },
+                        example: {
+                            customer_id: "69fdc48b-fbe3-455a-8cc1-a1c52cd4e500",
+                            transaction_order_date: "2026-02-20",
+                            transaction_order_status: "string",
+                            transaction_order_items: {
+                                data: [
+                                    {
+                                        vin_number: "",
+                                        item: [
+                                            {
+                                                master_item_id: "",
+                                                part_number: "",
+                                                master_item_name_en: "",
+                                                master_item_name_ch: "",
+                                                quantity_needs: "",
+                                                quantity_order: ""
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        vin_number: "",
+                                        item: [
+                                            {
+                                                master_item_id: "",
+                                                part_number: "",
+                                                master_item_name_en: "",
+                                                master_item_name_ch: "",
+                                                quantity_needs: "",
+                                                quantity_order: ""
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            transaction_order_items_total: 30
                         }
                     }
                 }
@@ -247,6 +283,42 @@ const transactionOrderPaths = {
                     'application/json': {
                         schema: {
                             $ref: '#/components/schemas/TransactionOrderInput'
+                        },
+                        example: {
+                            customer_id: "69fdc48b-fbe3-455a-8cc1-a1c52cd4e500",
+                            transaction_order_date: "2026-02-20",
+                            transaction_order_status: "string",
+                            transaction_order_items: {
+                                data: [
+                                    {
+                                        vin_number: "",
+                                        item: [
+                                            {
+                                                master_item_id: "",
+                                                part_number: "",
+                                                master_item_name_en: "",
+                                                master_item_name_ch: "",
+                                                quantity_needs: "",
+                                                quantity_order: ""
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        vin_number: "",
+                                        item: [
+                                            {
+                                                master_item_id: "",
+                                                part_number: "",
+                                                master_item_name_en: "",
+                                                master_item_name_ch: "",
+                                                quantity_needs: "",
+                                                quantity_order: ""
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            transaction_order_items_total: 30
                         }
                     }
                 }

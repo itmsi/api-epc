@@ -1204,6 +1204,7 @@ const getItemDetailsByItemCategoryId = async (itemCategoryId) => {
     .select(
       'icd.item_category_detail_id',
       'icd.target_id',
+      'mi.master_item_id',
       'icd.quantity as quantity_needs',
       'mi.quantity as quantity_stock',
       'mi.master_item_name_en',
