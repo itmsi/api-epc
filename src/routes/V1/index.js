@@ -59,8 +59,8 @@ const partsCatalogsModule = require('../../modules/parts_catalogs')
 routing.use(`${API_TAG}/parts-catalogs`, partsCatalogsModule)
 
 // Tambahkan routes module Anda di sini
-// Example:
-// const yourModule = require('../../modules/yourModule')
-// routing.use(`${API_TAG}/your-endpoint`, yourModule)
+// Transaction Order Module
+const transactionOrderModule = require('../../modules/transaction_order')
+routing.use(`${API_TAG}/transaction_order`, transactionOrderModule)
 
 module.exports = routing;
