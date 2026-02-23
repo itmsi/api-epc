@@ -15,9 +15,9 @@ const findAll = async (options = {}) => {
 
     if (search) {
         query.where(function () {
-            this.where('transaction_order_no', 'ilike', `%${search}%`)
-                .orWhere('transaction_order_description', 'ilike', `%${search}%`)
-                .orWhere('transaction_order_status', 'ilike', `%${search}%`);
+            this.whereRaw('CAST(transaction_order_no AS TEXT) ILIKE ?', [`%${search}%`])
+                .orWhereRaw('CAST(transaction_order_description AS TEXT) ILIKE ?', [`%${search}%`])
+                .orWhereRaw('CAST(transaction_order_status AS TEXT) ILIKE ?', [`%${search}%`]);
         });
     }
 
