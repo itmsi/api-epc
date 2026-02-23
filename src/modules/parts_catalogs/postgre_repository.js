@@ -1026,7 +1026,7 @@ const getCategoriesByMasterCategoryId = async (masterCategoryId, options = {}) =
   } else if (masterCategoryId) {
     baseQuery.where('c.master_category_id', masterCategoryId);
 
-    if (masterCategoryId === '1e30e77b-1663-47d9-9cb0-67531c831516' && productId) {
+    if (productId) {
       baseQuery
         .join({ pd: TABLES.PRODUCTS_DETAILS }, 'pd.dokumen_id', 'ic.dokumen_id')
         .where('pd.product_id', productId)
@@ -1081,7 +1081,7 @@ const getCategoriesByMasterCategoryId = async (masterCategoryId, options = {}) =
   } else if (masterCategoryId) {
     countQuery.where('c.master_category_id', masterCategoryId);
 
-    if (masterCategoryId === '1e30e77b-1663-47d9-9cb0-67531c831516' && productId) {
+    if (productId) {
       countQuery
         .join({ pd: TABLES.PRODUCTS_DETAILS }, 'pd.dokumen_id', 'ic.dokumen_id')
         .where('pd.product_id', productId)
