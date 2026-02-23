@@ -1042,7 +1042,10 @@ const getCategoriesByMasterCategoryId = async (masterCategoryId, options = {}) =
         .orWhere('tc.type_category_name_en', 'ilike', `%${search}%`)
         .orWhere('tc.type_category_name_cn', 'ilike', `%${search}%`)
         .orWhere('c.category_description', 'ilike', `%${search}%`)
-        .orWhere('mi.part_number', 'ilike', `%${search}%`);
+        .orWhere('mi.part_number', 'ilike', `%${search}%`)
+        .orWhere('mi.master_item_name_en', 'ilike', `%${search}%`)
+        .orWhere('mi.master_item_name_ch', 'ilike', `%${search}%`)
+        .orWhere('mi.description', 'ilike', `%${search}%`);
     });
   }
 
