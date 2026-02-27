@@ -1,4 +1,4 @@
-FROM node:22-alpine
+FROM node:22-alpine AS builder
 
 # Set working directory
 WORKDIR /app
@@ -8,6 +8,11 @@ COPY package*.json ./
 
 # Install dependencies
 RUN npm install --only=production && npm cache clean --force
+
+FROM node:22-alpine
+
+WORKDIR /app
+COPY --from=builder /app/node_modules ./node_modules
 
 # Copy application code
 COPY . .
@@ -20,5 +25,4 @@ RUN mkdir -p logs public storages
 EXPOSE 9566
 
 # Start application
-CMD ["node", "src/server.js"]
-
+CMD ["node", "--require", "./src/instrumentation.js", "src/server.js"]

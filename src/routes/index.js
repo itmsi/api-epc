@@ -5,6 +5,7 @@ const { register } = require('../config/prometheus')
 
 const router = express.Router()
 const { index } = require('../static')
+const { pgCore } = require('../config/database')
 
 const getDurationInMilliseconds = (start = process.hrtime()) => {
   const NS_PER_SEC = 1e9
@@ -24,6 +25,23 @@ router.get('/', (req, res) => {
       documentation: process?.env?.SWAGGER_ENABLED === 'true' ? `http://${req.get('host')}/documentation` : 'Swagger documentation is disabled'
     }
   })
+})
+
+router.get('/health', async (req, res) => {
+  const serviceName = process.env.SERVICE_NAME || 'epc-api';
+  try {
+    const rawResult = await pgCore.raw('SELECT 1 as result')
+    if (rawResult) {
+      return res.status(200).json({ status: 'ok', service: serviceName, database: 'ok' })
+    }
+  } catch (error) {
+    if (req.log && req.log.error) {
+      req.log.error(error)
+    } else {
+      console.error(error)
+    }
+    return res.status(503).json({ status: 'fail', service: serviceName, database: 'fail' })
+  }
 })
 
 // Swagger configuration - can be controlled via SWAGGER_ENABLED environment variable

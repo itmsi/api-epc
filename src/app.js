@@ -15,6 +15,9 @@ const {
   syntaxError,
 } = require('./utils')
 
+const pinoHttp = require('pino-http')
+const pinoLogger = require('./utils/pino_logger')
+
 const healthCheck = require('./routes')
 const apiV1 = require('./routes/V1')
 const { initListener } = require('./listeners')
@@ -30,6 +33,19 @@ if (process.env.RABBITMQ_ENABLED === 'true' && process.env.RABBITMQ_URL && proce
 
 const limit = process.env.JSON_LIMIT || '1gb'
 app.set('trust proxy', 1);
+
+app.use(pinoHttp({
+  logger: pinoLogger,
+  customLogLevel: function (req, res, err) {
+    if (res.statusCode >= 500 || err) {
+      return 'error'
+    } else if (res.statusCode >= 400) {
+      return 'warn'
+    }
+    return 'info'
+  }
+}))
+
 app.use(compress()) // gzip compression
 app.use(methodOverride()) // lets you use HTTP verbs
 app.use(xss()) // handler xss attack
