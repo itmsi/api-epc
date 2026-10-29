@@ -11,13 +11,13 @@ services:
       - .env
     restart: unless-stopped
     ports:
-      - "9566:9566"
+      - "127.0.0.1:9566:9566"
     volumes:
       - ./logs:/app/logs
       - ./public:/app/public
       - ./storages:/app/storages
     # Hanya override variables yang berbeda untuk Docker environment
-    # Semua variables lain (DB_HOST_PROD, DB_USER_PROD, REDIS_HOST, dll) 
+    # Semua variables lain (DB_HOST_PROD, DB_USER_PROD, REDIS_HOST, dll)
     # akan diambil dari file .env via env_file di atas
     environment:
       # Override untuk production server
@@ -45,7 +45,13 @@ services:
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:9566/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://localhost:9566/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -54,12 +60,12 @@ services:
       resources:
         limits:
           memory: 1G
-          cpus: '0.5'
+          cpus: "0.5"
         reservations:
           memory: 512M
-          cpus: '0.25'
+          cpus: "0.25"
 
 networks:
   infra_net:
-    external: true  # PENTING! Gunakan network yang sudah ada
-    name: infra_net  # Network untuk nginx dan cloudflare tunnel
+    external: true # PENTING! Gunakan network yang sudah ada
+    name: infra_net # Network untuk nginx dan cloudflare tunnel
